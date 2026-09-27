@@ -1,0 +1,21 @@
+# Reversa
+.reversa/config.user.toml
+
+# Framework vendorizado — reinstalável com `npx reversa install`
+.claude/skills/
+.agents/skills/
+
+# Segredos — credenciais dos leiloeiros e token do bot
+.env
+*.env
+
+# Bancos locais — motor-filtros e agendador-observabilidade
+*.db
+*.sqlite
+*.sqlite3
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
