@@ -46,7 +46,7 @@ Este projeto é greenfield: não houve extração reversa de código. Os artefat
 
 Todas as regras abaixo são **novas**: o sistema não existe ainda, então não há regra de legado sendo alterada ou removida.
 
-1. **RN-01:** Um lote só é candidato quando satisfaz, para um mesmo veículo-alvo, todos os critérios: marca, modelo, ano de modelo dentro da faixa, lance corrente menor ou igual ao teto, e tipo de leilão aceito. 🟢
+1. **RN-01:** Um lote só é candidato quando satisfaz, para um mesmo veículo-alvo, todos os critérios aplicáveis: marca, modelo, ano de modelo dentro da faixa, lance corrente menor ou igual ao teto, quilometragem menor ou igual ao teto quando este estiver declarado, e tipo de leilão aceito. 🟢
    - Origem: `_reversa_sdd/sdd/motor-filtros.md#6`, RF-06
    - Tipo: nova
 2. **RN-02:** O ano comparado contra a faixa do alvo é o **ano de modelo**, e não o de fabricação. 🟢
@@ -73,14 +73,23 @@ Todas as regras abaixo são **novas**: o sistema não existe ainda, então não 
 9. **RN-09:** O sistema não dá lances e não interage com o pregão. Apenas observa, filtra e avisa. 🟢
    - Origem: `_reversa_sdd/prd.md#5`
    - Tipo: nova
+10. **RN-10:** Procedência e estado de Monta são aplicados como filtro na origem, na própria busca enviada ao leiloeiro, e não são reavaliados pelo motor de filtros. Todo lote devolvido por uma busca herda, por construção, a procedência e a monta declaradas nela. 🟢
+   - Origem: sessão de esclarecimento de 2026-09-27; o Vip não exibe esses campos no card, apenas os oferece como filtro de busca
+   - Tipo: nova
+11. **RN-11:** A quilometragem máxima é critério **opcional** do veículo-alvo. Quando o campo estiver ausente ou nulo, nenhum limite de quilometragem é aplicado àquele alvo. 🟢
+   - Origem: decisão do Rafael em 2026-09-27
+   - Tipo: nova
+12. **RN-12:** Lote cuja situação na origem indique retirada do pregão é descartado antes da filtragem, sem gerar notificação. 🟢
+   - Origem: investigação do Vip em 2026-09-27; lotes retirados continuam aparecendo na listagem
+   - Tipo: nova
 
 ## 5. Requisitos Funcionais
 
 | ID | Requisito | Prioridade | Critério de aceite | Confidência |
 |----|-----------|------------|--------------------|-------------|
 | RF-01 | O sistema deve carregar e validar `config/veiculos-alvo.yaml` com ao menos um veículo-alvo ativo, abortando antes de qualquer requisição quando a configuração for inválida | Must | Com um alvo válido a execução prossegue; com `ano_min` maior que `ano_max` a execução aborta citando o alvo e o campo, sem emitir log de coleta | 🟡 |
-| RF-02 | O sistema deve carregar e validar `config/leiloeiros.yaml` com um leiloeiro público e uma busca de URL absoluta em `https` | Must | Um leiloeiro com acesso público e URL válida é carregado; uma URL sem TLS é rejeitada citando o leiloeiro | 🟡 |
-| RF-03 | O sistema deve obter o conteúdo da URL cadastrada por requisição HTTP direta, com timeout de 30 segundos e cabeçalho de navegador comum | Must | A requisição retorna conteúdo não vazio, e o registro da execução marca o nível `script` | 🟢 |
+| RF-02 | O sistema deve carregar e validar `config/leiloeiros.yaml` com um leiloeiro público e uma busca declarada como conjunto de filtros chave-valor | Must | Uma busca com `marca: NISSAN`, `procedencia: 4` e `monta: 1` é carregada com os três filtros acessíveis; uma busca sem nenhum filtro é rejeitada citando o leiloeiro | 🟢 |
+| RF-03 | O sistema deve obter o conteúdo por sessão HTTP que preserva cookies: primeiro a requisição que estabelece o cookie de canal do leiloeiro, depois a requisição de busca carregando os filtros cadastrados, com timeout de 30 segundos, limite de 3 redirecionamentos e cabeçalho de navegador comum | Must | A sessão obtém o cookie e a busca retorna conteúdo com os lotes; o registro da execução marca o nível `script` | 🟢 |
 | RF-04 | O sistema deve repetir requisição falha até 3 tentativas com espera crescente, e classificar resposta 403 ou 429 como bloqueio, distinta de falha de rede | Must | Uma resposta 429 produz veredito de bloqueio; um timeout produz veredito de falha de rede | 🟡 |
 | RF-05 | O sistema deve converter o conteúdo em lotes normalizados com número do lote, marca, modelo, ano de fabricação, ano de modelo, lance inicial, lance corrente, link absoluto, descrição e tipo de leilão | Must | De uma página com N lotes visíveis no navegador, o parser devolve N lotes com os campos preenchidos ou explicitamente nulos | 🟡 |
 | RF-06 | O sistema deve atribuir a cada lote um identificador canônico estável entre execuções | Must | O mesmo lote extraído em duas execuções recebe o mesmo identificador | 🟡 |
@@ -93,6 +102,9 @@ Todas as regras abaixo são **novas**: o sistema não existe ainda, então não 
 | RF-13 | O sistema deve registrar os candidatos da primeira execução como conhecidos, sem notificar | Must | A primeira execução de uma busca nova não envia digest, e a base fica populada | 🟡 |
 | RF-14 | O sistema deve oferecer um comando de execução manual que dispare a varredura completa | Must | Executar o comando roda a cadeia inteira e encerra com o resumo em log | 🟡 |
 | RF-15 | O sistema deve impedir execuções concorrentes por trava exclusiva | Should | Disparar uma segunda execução com outra em andamento resulta em recusa registrada | 🟡 |
+| RF-16 | O sistema deve aceitar `quilometragem_maxima` como campo opcional do veículo-alvo, aplicando o critério apenas quando ele estiver declarado | Must | Um alvo sem o campo casa com lote de qualquer quilometragem; um alvo com teto de 120.000 não casa com lote de 167.387 km | 🟢 |
+| RF-17 | O sistema deve descartar, antes da filtragem, os lotes cuja situação na origem indique retirada do pregão, registrando a contagem de descartes | Must | Uma listagem com 12 lotes, 2 deles retirados, produz 10 lotes avaliados e contador de descartes igual a 2 | 🟢 |
+| RF-18 | O sistema deve percorrer todas as páginas de resultado de uma busca, respeitando o intervalo mínimo entre requisições ao mesmo host | Must | Uma busca com 30 resultados em páginas de 12 produz 3 requisições espaçadas e 30 lotes coletados | 🟢 |
 
 ## 6. Requisitos Não Funcionais
 
@@ -207,16 +219,62 @@ Cenário: Segunda execução simultânea é recusada
 
 ## 9. Esclarecimentos
 
-> Nenhuma sessão de dúvidas registrada ainda. Rode `/reversa-clarify` quando houver `[DÚVIDA]` pendente.
+### Sessão 2026-09-27
+
+Precedida de investigação técnica do site do Vip Leilões, em três passadas. As respostas de A a C vieram de evidência coletada; as de D a G vieram de decisão do Rafael.
+
+- **Q:** Qual leiloeiro é o primeiro da fatia vertical?
+  **R:** Vip Leilões, `www.vipleiloes.com.br`, escolhido pelo Rafael em 2026-09-27.
+
+- **Q:** O leiloeiro exibe o lance corrente na página de listagem?
+  **R:** Sim. Cada card traz os rótulos **"Valor Atual"** e **"Valor inicial"**, mais a contagem de lances. Exemplo observado: Kwid 2019/2020, valor inicial R$ 9.500,00, valor atual R$ 10.500,00, 2 lances. Sem nenhum lance os dois valores coincidem, então o coletor pode ler sempre o valor atual. Nenhum valor de avaliação ou de tabela FIPE é exibido. Confirma RN-03 e dispensa uma requisição por lote.
+
+- **Q:** Os termos de uso e o `robots.txt` permitem acesso automatizado?
+  **R:** Sim. O `robots.txt` é `User-agent: *` com `Allow: /`, sem `Disallow` e sem `Crawl-delay`. O Termo de Adesão não traz cláusula sobre robôs, scraping ou coleta automatizada; a cláusula mais próxima veda programa ou procedimento que possa interferir no funcionamento do site, o que três varreduras semanais não caracterizam. Não há página de termos de uso no rodapé, apenas política de privacidade, código de ética e o guia de como comprar.
+
+- **Q:** Como o YAML deve declarar uma busca, já que o Vip envia os filtros no corpo da requisição em vez de na URL?
+  **R:** Como **conjunto de filtros chave-valor** por busca, e não como URL. O coletor monta a requisição a partir desses filtros. Isso substitui a estratégia de copiar a URL filtrada registrada em `_reversa_sdd/ideation.md` e exige emenda na spec `cadastro-leiloeiros`, cujo RF-02 hoje exige URL absoluta.
+
+- **Q:** Quais procedências entram na busca?
+  **R:** Apenas **Recuperado de Financiamento**, valor 4 do filtro de procedência. Carro retomado por inadimplência, sem histórico de sinistro na origem, o que preserva o valor de revenda. Ampliar depois é barato; estreitar depois de acostumar com ruído, não.
+
+- **Q:** Quais estados de Monta são aceitos?
+  **R:** Apenas **Conservado**, valor 1 do filtro de monta. Exclui pequena monta, média monta, sinistro recuperado e todas as variantes de sucata. Coerente com o objetivo de usar o carro e revender com lucro pequeno, já que histórico de sinistro derruba a revenda e precisa ser declarado ao comprador.
+
+- **Q:** Quilometragem máxima entra como critério do veículo-alvo?
+  **R:** Sim, como **teto por veículo-alvo e opcional**. Quando o campo for omitido, nenhum limite de quilometragem se aplica àquele alvo. O Vip exibe a quilometragem em todo card e a oferece como filtro. Resolve a OQ-02 de `_reversa_sdd/sdd/configuracao-veiculos-alvo.md`.
+
+- **Q:** Como a lista de veículos-alvo é gerenciada no dia a dia, já que ela muda com frequência?
+  **R:** **Edição direta do arquivo YAML**, em editor de texto. Adicionar é colar um bloco, remover é apagar, e pausar sem perder a calibragem é trocar `ativo` para `false`. Cada execução relê o arquivo do zero, então a alteração vale na varredura seguinte sem reiniciar nada. Isso **confirma** o não-objetivo NG-01 de `_reversa_sdd/sdd/configuracao-veiculos-alvo.md`, que excluía formulário, comando de cadastro e registro pelo Telegram. A exclusão deixa de ser inferência e passa a ser decisão explícita do Rafael, tomada em 2026-09-27.
+
+- **Q:** Quantos veículos-alvo entram na primeira varredura real?
+  **R:** **Um ou dois.** Com poucos alvos o Rafael consegue conferir à mão, no site do leiloeiro, se o que chegou no Telegram está correto. Expandir depois custa colar blocos. O esquema já suporta 20 ou mais alvos simultâneos, então a limitação é de estratégia de validação, e não de capacidade.
+
+#### Achados técnicos incorporados aos requisitos
+
+- **Cookie de canal obrigatório.** Qualquer página pedida sem o cookie de canal responde com redirecionamento para o endpoint que o emite, que por sua vez devolve à origem. Sem sessão que preserve cookies, isso vira laço infinito, o que de fato ocorreu na primeira passada da investigação. O coletor precisa obter o cookie uma vez por execução antes de buscar. Incorporado em RF-03.
+- **O redirecionamento descarta os parâmetros da URL**, o que reforça a decisão de guardar filtros em vez de URL.
+- **Lotes retirados continuam listados** e precisam ser descartados. Incorporado em RN-12 e RF-17.
+- **Paginação de 12 lotes por página.** Incorporado em RF-18.
+- **Formato do ano é `2019/2020`**, fabricação e modelo, o que confirma RN-02. O filtro de ano do site aceita um único ano.
+- **Marca e modelo vêm em campos separados** no card, o que dispensa inferir a partir do título.
+- **Padrão da URL de lote:** `/evento/anuncio/<marca>-<modelo-slug>-<id numérico>`, com identificador numérico estável, adequado ao identificador canônico de RF-06.
+- **Cloudflare está presente**, sem apresentar desafio nas três passadas. É o gatilho a observar para eventual escalada ao Apify.
+- **Fotos são públicas.** Laudo e chassi não foram verificados, e estão fora do escopo do MVP.
 
 ## 10. Lacunas
 
-- 🔴 [DÚVIDA] **Qual leiloeiro é o primeiro?** A fatia exige um leiloeiro público e de estrutura simples. Os cinco candidatos são Freitas, Vip Leilões, Claudio Kuss, Copart e Milan, e nenhum foi inspecionado. A escolha determina qual parser será escrito e qual URL filtrada precisa ser capturada. Categoria: escopo.
-- 🔴 [DÚVIDA] **O leiloeiro escolhido exibe o lance corrente na página de listagem?** RN-03 fixa o lance corrente como valor de comparação. Se o site só revelar esse valor ao abrir o lote, o filtro de preço exigiria uma requisição por lote, o que contraria a estratégia de fetch de URL única registrada em `_reversa_sdd/ideation.md` e muda o desenho da coleta. Espelha `_reversa_sdd/sdd/parser-lotes.md#14`, OQ-04. Categoria: escopo e técnico.
-- 🔴 [DÚVIDA] **Os termos de uso e o `robots.txt` do leiloeiro escolhido permitem acesso automatizado?** O `prd.md#6` assume o compromisso de respeitar os termos na medida do possível, e a verificação nunca foi feita site a site. A resposta pode vetar o leiloeiro escolhido ou impor restrição de caminho e de ritmo. Espelha `_reversa_sdd/sdd/onboarding-leiloeiro-assistido.md#14`, OQ-03, e `_reversa_sdd/sdd/coletor-lotes.md#14`, OQ-01. Categoria: segurança e conformidade.
+As três lacunas da versão inicial foram resolvidas na sessão de 2026-09-27, registrada na seção 9. Permanecem em aberto:
+
+- 🟡 **Pendência de dado, não de desenho:** os valores concretos do primeiro veículo-alvo, ou dos dois primeiros. O formato está fechado (marca, modelo, `ano_min`, `ano_max`, `preco_maximo` e `quilometragem_maxima` opcional), e falta o Rafael preencher. Necessário **antes da primeira execução real**, e não antes do plano nem da codificação, já que os testes podem usar um alvo de exemplo.
+- 🟡 **Verificação pendente, não bloqueante:** confirmar que o servidor do Vip respeita os filtros de procedência e de monta na requisição de busca. A existência das opções foi observada no formulário, e a aplicação efetiva pelo servidor não foi testada. Custa uma requisição e deve ser a primeira ação técnica do plano.
+- 🟡 **Herdado das specs, fora do escopo desta feature:** a margem de segurança sobre o teto de preço, para lotes que abrem encostados no limite, segue em `_reversa_sdd/sdd/motor-filtros.md#14`, OQ-01, aguardando série histórica.
+- 🟡 **Novo, revelado pela investigação:** o Vip opera com Lance Condicional, em que lance abaixo do mínimo fica sujeito à aceitação do comitente em 3 a 5 dias úteis. Isso significa que valor atual dentro do teto não garante arremate por aquele valor. Não afeta o MVP, que apenas notifica, e deve ser considerado quando houver avaliação de oportunidade.
 
 ## 11. Histórico de alterações
 
 | Data | Alteração | Autor |
 |------|-----------|-------|
 | 2026-09-25 | Versão inicial gerada por `/reversa-requirements` | reversa |
+| 2026-09-27 | Sessão de esclarecimento: 3 lacunas resolvidas, 3 regras de negócio e 3 requisitos funcionais acrescentados a partir da investigação do Vip Leilões | `/reversa-clarify` |
+| 2026-09-27 | Confirmada a gestão dos alvos por edição direta do YAML e o início com 1 ou 2 veículos; última lacuna reclassificada como pendência de dado | `/reversa-clarify` |
