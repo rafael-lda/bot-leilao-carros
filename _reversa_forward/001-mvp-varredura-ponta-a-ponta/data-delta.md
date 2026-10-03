@@ -202,8 +202,7 @@ Formato detalhado em `interfaces/arquivos-configuracao.md`. Delta resumido:
 Após a entrega, o `/reversa-sync` deve levar para `_reversa_sdd/` estes deltas, que hoje só existem na feature:
 
 1. `configuracao-veiculos-alvo.md#9`: `quilometragem_maxima`.
-2. `parser-lotes.md#6` e `#9`: `quilometragem`, `situacao`, `retirado`; regra de `id_canonico` por id do anúncio quando o número do lote não for global (roadmap D-14); tradução de sinônimos de marca pelo parser do leiloeiro, como `mmc` → `mitsubishi` (roadmap D-28).
+2. `parser-lotes.md#9`: `quilometragem`, `situacao`, `retirado`. (A regra de identificador único e a tabela de sinônimos de marca já foram levadas à spec na v1.1, em 2026-10-03, por valerem para qualquer leiloeiro.)
 3. `motor-filtros.md#6` e `#9`: critério de km, descarte de retirados, tabela renomeada para `lote_conhecido` com `origem`, `busca_semeada`.
 4. `agendador-observabilidade.md#9`: `execucao_busca`, colunas novas de `execucao` e `execucao_leiloeiro`.
-5. `cadastro-leiloeiros.md#8`: trocar o exemplo do Vip pela busca recomendada sem marca (`procedencia: 4`, `monta: 1`), com o racional de manter marca e modelo só nos veículos-alvo (roadmap D-29).
-6. `coletor-lotes.md`: endpoint, cookie `__CBCanal` e contrato de paginação do Vip, hoje só em `interfaces/vip-pesquisa.md`, como referência do adaptador `vip-leiloes`.
+5. `coletor-lotes.md`: endpoint, cookie `__CBCanal` e contrato de paginação do Vip, hoje só em `interfaces/vip-pesquisa.md`, como referência do adaptador `vip-leiloes`.

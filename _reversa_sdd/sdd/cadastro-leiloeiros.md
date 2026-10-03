@@ -2,7 +2,7 @@
 
 > Selo 🟡 PLANEJADO em todos os itens. Nenhum fato aqui foi extraído de código existente.
 
-**Versão:** 1.1
+**Versão:** 1.2
 **Status:** Rascunho
 **Autor:** reversa-spec-sdd
 **Data:** 2026-09-21 (emenda em 2026-10-03)
@@ -92,6 +92,16 @@
 | 🟡 RF-09 | O sistema deve atribuir a cada busca um identificador estável, derivado do leiloeiro e da forma canônica dos filtros, usado pelo `parser-lotes` para escolher o parser correto e pelo `agendador-observabilidade` para atribuir falhas. | Should | Dois carregamentos do mesmo arquivo produzem o mesmo identificador para a mesma busca, e reordenar as chaves de `filtros` no YAML não altera o identificador. |
 | 🟢 RF-10 | O sistema deve rejeitar o leiloeiro ativo para o qual não exista adaptador de coleta registrado no `coletor-lotes`. | Must | Um leiloeiro ativo com nome sem adaptador correspondente aborta a execução antes de qualquer fetch, citando o nome e listando os adaptadores disponíveis. |
 
+### 6.1.1 Diretriz de desenho de buscas: busca ampla
+
+🟢 Os filtros de uma busca devem restringir apenas atributos que os veículos-alvo **não** expressam, e que o card do lote muitas vezes nem exibe: procedência, estado de conservação (monta), categoria de veículo. Marca, modelo, ano, preço e quilometragem ficam **fora** da busca e são aplicados pelo `motor-filtros` contra os veículos-alvo.
+
+Motivo: os veículos-alvo mudam com frequência e são editados só em `config/veiculos-alvo.yaml`. Uma busca que filtra por marca obrigaria a editar também este arquivo a cada alvo de marca nova, em cada leiloeiro, e o esquecimento resultaria em lote perdido sem nenhum aviso, a falha mais cara do sistema.
+
+Exceção aceitável: quando a busca ampla de um leiloeiro exceder o teto de páginas do `coletor-lotes` (50) ou o limite de duração da execução, a busca pode ser fatiada por um atributo do site (por exemplo, categoria ou estado), mas nunca por marca ou modelo. Medida no Vip em 2026-10-03: a busca ampla `procedencia: 4, monta: 1` trouxe 201 lotes em 17 páginas, cerca de 2 minutos.
+
+O `onboarding-leiloeiro-assistido` aplica esta diretriz ao propor o bloco YAML de um leiloeiro novo (RF-11 daquela spec).
+
 ### 6.2 Fluxo Principal (Happy Path)
 
 1. 🟡 O agendador dispara uma execução de varredura.
@@ -145,11 +155,11 @@ leiloeiros:
     nivel_coleta: script
     frequencia: seg-qua-sex-08h
     buscas:
-      - descricao: Nissan recuperado de financiamento, conservado
+      - descricao: Recuperados de financiamento, conservados, qualquer marca
         filtros:
-          marca: NISSAN
           procedencia: 4      # Recuperado de Financiamento
           monta: 1            # Conservado
+          # sem marca: o recorte de marca e modelo é feito pelos veículos-alvo (seção 6.1.1)
 
   - nome: Copart
     base_url: https://www.copart.com.br
@@ -265,6 +275,7 @@ Escalar = string | int | float   // listas não podem ser vazias nem conter mapa
 
 | Decisão | Alternativas consideradas | Racional |
 |---|---|---|
+| 🟢 Busca ampla: filtros só sobre o que os alvos não expressam (seção 6.1.1) | Uma busca por marca de cada alvo; uma busca por alvo | Decidido em 2026-10-03. Configuração duplicada entre alvos e buscas cria falha silenciosa a cada alvo novo. O custo da busca ampla foi medido e cabe no limite de duração. |
 | 🟡 Credencial por referência a variável de ambiente | Senha no YAML; cofre de segredos dedicado | Escolhido em 2026-09-21. Senha no YAML seria versionada em git, o que é inaceitável. Um cofre dedicado é complexidade desproporcional para ferramenta pessoal de usuário único. |
 | 🟡 ~~URL filtrada cadastrada à mão~~ (substituída em 2026-10-03, ver linha seguinte) | Automação de navegador percorrendo os filtros | Decidido na ideação. Automação de cliques é frágil, lenta e quebra a cada mudança de layout. |
 | 🟢 Busca como conjunto de filtros chave-valor, opacos ao registro, traduzidos por adaptador por leiloeiro | Manter URL; guardar o corpo HTTP bruto; aceitar URL ou filtros como formas alternativas | Decidido em 2026-09-27 e incorporado em 2026-10-03. O Vip envia filtros no corpo de um POST e o redirecionamento de cookie descarta a query string, então a URL não reproduz a busca. Guardar o corpo bruto acoplaria o YAML ao formato HTTP. Duas formas alternativas dobrariam a validação; um leiloeiro que filtra por query string é atendido pelo adaptador montando a URL a partir dos mesmos filtros. Mantém o espírito da ideação: a busca é definida uma vez, à mão, sem automação de cliques. |
@@ -285,3 +296,4 @@ Escalar = string | int | float   // listas não podem ser vazias nem conter mapa
 |---|---|---|---|
 | 1.0 | 2026-09-21 | reversa-spec-sdd | Criação inicial a partir do PRD |
 | 1.1 | 2026-10-03 | reversa-forward | Emenda: busca passa de URL absoluta para mapa `filtros` (RF-02, RF-09, modelo de dados, exemplo, EC-02, EC-06); `https` passa a valer para `base_url`; novos NG-05, RF-10 e EC-11 (adaptador por leiloeiro); OQ-01 fechada. Origem: esclarecimento de 2026-09-27 em `_reversa_forward/001-mvp-varredura-ponta-a-ponta/requirements.md#9` |
+| 1.2 | 2026-10-03 | reversa-forward | Diretriz de busca ampla (seção 6.1.1) e exemplo do Vip sem filtro de marca. Origem: decisão D-29 de `_reversa_forward/001-mvp-varredura-ponta-a-ponta/roadmap.md` |

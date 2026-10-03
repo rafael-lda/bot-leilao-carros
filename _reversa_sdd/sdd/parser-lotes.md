@@ -2,10 +2,10 @@
 
 > Selo 🟡 PLANEJADO em todos os itens. Nenhum fato aqui foi extraído de código existente.
 
-**Versão:** 1.0
+**Versão:** 1.1
 **Status:** Rascunho
 **Autor:** reversa-spec-sdd
-**Data:** 2026-09-21
+**Data:** 2026-09-21 (emenda em 2026-10-03)
 **Reviewers:** Rafael
 
 ---
@@ -84,12 +84,13 @@
 | 🟡 RF-03 | O sistema deve normalizar cada valor monetário para número decimal, descartando símbolo de moeda e separadores de milhar. | Must | O texto `R$ 45.000,00` produz o valor numérico `45000.00`, tanto para o lance inicial quanto para o corrente. |
 | 🟡 RF-04 | O sistema deve normalizar o ano para quatro dígitos, registrando ano de fabricação e ano de modelo em campos separados quando a origem trouxer ambos. | Must | O texto `2018/2019` produz ano de fabricação `2018` e ano de modelo `2019`; o texto `2018` preenche ambos com `2018`. |
 | 🟡 RF-05 | O sistema deve converter links relativos em URL absoluta, usando a `base_url` do leiloeiro. | Must | O caminho `/lote/12345` em um leiloeiro de base `https://exemplo.com.br` produz `https://exemplo.com.br/lote/12345`. |
-| 🟡 RF-06 | O sistema deve atribuir a cada lote um identificador canônico estável, derivado do identificador do leiloeiro e do número do lote, recorrendo à URL do lote quando o número for ausente. | Must | O mesmo lote extraído em duas execuções distintas recebe o mesmo identificador canônico. |
+| 🟢 RF-06 | O sistema deve atribuir a cada lote um identificador canônico estável, derivado do identificador do leiloeiro e de um identificador **único em todo o leiloeiro**: o número do lote quando ele for global, ou o identificador do anúncio presente na URL quando o número do lote for reiniciado a cada evento, recorrendo ao hash da URL apenas quando nenhum dos dois existir. | Must | O mesmo lote extraído em duas execuções distintas recebe o mesmo identificador canônico, e dois lotes de eventos diferentes com o mesmo número exibido ("Lote: 21") recebem identificadores distintos. |
 | 🟡 RF-07 | O sistema deve sinalizar quebra de parser quando o conteúdo recebido for não vazio e nenhum lote for extraído. | Must | Uma página válida processada por um parser desatualizado produz sinal de quebra, e não lista vazia silenciosa. |
 | 🟡 RF-08 | O sistema deve sinalizar quebra de parser quando mais de 30% dos lotes extraídos de uma busca estiverem sem ao menos um campo obrigatório. | Must | Uma página em que 5 de 10 lotes vêm sem preço produz sinal de quebra para aquela busca. |
 | 🟡 RF-09 | O sistema deve descartar individualmente o lote que não tiver link ou identificador canônico, registrando o descarte. | Must | Um lote sem link é descartado e o contador de descartes daquela busca é incrementado. |
 | 🟡 RF-10 | O sistema deve isolar falhas por busca, de modo que a exceção em um parser não impeça o processamento das demais buscas. | Must | Com 5 buscas, uma delas lançando exceção no parser, as outras 4 são processadas normalmente. |
 | 🟡 RF-11 | O sistema deve registrar, por busca, quantos lotes foram extraídos, quantos descartados e se houve sinal de quebra. | Must | O `agendador-observabilidade` monta o relatório de saúde dos parsers a partir desses números. |
+| 🟢 RF-12 | O sistema deve traduzir a marca extraída para um **nome canônico**, usando uma tabela de sinônimos comum a todos os parsers (ex.: `mmc` → `mitsubishi`, `gm` → `chevrolet`, `vw` → `volkswagen`), que cada parser pode ampliar com as grafias próprias do seu leiloeiro. Marca fora da tabela passa como veio, com registro em log. | Must | Um card com marca `MMC` produz `marca = mitsubishi` e casa com um alvo de marca `Mitsubishi`; uma marca desconhecida aparece no log da execução. |
 
 ### 6.2 Fluxo Principal (Happy Path)
 
@@ -210,6 +211,8 @@ ResultadoParsing {
 | 🟡 EC-09: Tipo de leilão com nomenclatura desconhecida | Site usa termo fora do conjunto fechado | Campo registrado como nulo, com o texto original na descrição, e registro para que o Rafael avalie ampliar o conjunto. |
 | 🟡 EC-10: Conteúdo recebido vazio | Coletor entregou resposta sem corpo | Não é quebra de parser. Registrado como busca sem conteúdo, atribuído ao coletor, sem falso alarme de parser desatualizado. |
 | 🟡 EC-11: Lote sem nenhum lance ainda | Pregão recém-aberto | Lance corrente registrado como nulo e lance inicial preenchido. O `motor-filtros` adota o inicial como valor de comparação nesse caso. |
+| 🟢 EC-13: Número do lote reiniciado a cada evento | Leiloeiro numera lotes por pregão, como o Vip ("Lote: 21" em vários eventos) | O número fica em `numero_lote` só para exibição, e o identificador canônico usa o identificador do anúncio (RF-06). Usar o número causaria colisão: o lote novo seria tratado como já notificado e nunca chegaria ao Rafael. |
+| 🟢 EC-14: Mesma marca com grafias diferentes no mesmo site | Cadastro do leiloeiro mistura `MMC` e `MITSUBISHI`, `GM` e `CHEVROLET` | Tradução para o nome canônico (RF-12). Sem ela, o alvo escrito por extenso perderia em silêncio os lotes da grafia abreviada. |
 | 🟡 EC-12: Site exibe apenas o lance inicial na listagem | Leiloeiro que só mostra o valor corrente ao abrir o lote | Lance corrente registrado como nulo com nota de indisponibilidade na origem, para que a limitação fique visível no relatório e não seja confundida com pregão sem lance. |
 
 ---
@@ -250,7 +253,8 @@ ResultadoParsing {
 | 🟡 Um parser por leiloeiro, em arquivo próprio | Um parser genérico configurável por seletores | É a mitigação que o PRD indica para o risco de mudança de layout. Cinco sites sem padronização entre si não se acomodam bem em um parser único, e um genérico concentraria todo o risco em um só arquivo. |
 | 🟡 Quebra sinalizada de forma ativa, e não inferida do silêncio | Devolver lista vazia e deixar o resto do sistema concluir | Atende ao critério de aceite do PRD de não falhar em silêncio. Lista vazia é ambígua: pode significar site sem novidade ou parser morto, e confundir os dois é a falha mais cara do sistema. |
 | 🟡 Lote com preço nulo é preservado, e não descartado | Descartar lote sem preço | Descartar perderia oportunidade real: preço sob consulta é comum em leilão e não significa lote irrelevante. A decisão sobre preço ausente pertence ao filtro, com o contexto do teto do alvo. |
-| 🟡 Identificador canônico derivado do número do lote, com a URL como alternativa | Usar sempre a URL; usar posição na página | A posição muda a cada execução, o que geraria notificação repetida. A URL costuma ser estável, e o número do lote é mais estável ainda quando o site o expõe. |
+| 🟢 Identificador canônico derivado de identificador **único no leiloeiro**: número do lote se global, senão id do anúncio na URL, senão hash da URL | Usar sempre o número do lote; usar sempre a URL; usar posição na página | A posição muda a cada execução, o que geraria notificação repetida. Emendado em 2026-10-03: a versão 1.0 preferia o número do lote, mas o Vip reinicia a numeração a cada evento, e o número colidiria entre eventos. Antes de escolher a fonte do identificador num leiloeiro novo, é preciso confirmar se o número se repete (`onboarding-leiloeiro-assistido` RF-10). |
+| 🟢 Tabela de sinônimos de marca comum a todos os parsers, ampliável por leiloeiro | Exigir que o Rafael escreva a marca como cada site escreve; sinônimos no YAML do alvo | Decidido em 2026-10-03, ao encontrar `MMC`/`MITSUBISHI` e `GM`/`CHEVROLET` como marcas distintas no formulário do Vip. Uma tabela comum faz o conhecimento de um leiloeiro valer para os outros, e mantém o YAML dos alvos simples. A regra de casamento por conteúdo do `motor-filtros` (RF-02) não resolve isso: `mmc` não contém `mitsubishi`. |
 | 🟡 Normalização de marca e modelo em minúsculas e sem acento | Comparar o texto como veio da origem | A comparação contra o veículo-alvo acontece no `motor-filtros`. Normalizar na tradução evita que cada leiloeiro imponha sua grafia ao filtro. |
 | 🟡 Extrair lance inicial e lance corrente como campos separados | Um único campo de preço | Decidido em 2026-09-22, junto da escolha de filtrar pelo lance corrente. Os dois valores divergem ao longo do pregão e respondem a perguntas diferentes: o corrente diz quanto custaria levar o carro agora, e o inicial diz de onde o pregão partiu, informação necessária para a margem de segurança em estudo no `motor-filtros`. |
 | 🟡 Extrair os dois anos, deixando ao filtro a escolha de qual comparar | Extrair apenas o ano de modelo | O Rafael escolheu comparar pelo ano de modelo em 2026-09-22. Preservar também o ano de fabricação custa um campo e permite rever o critério depois sem reescrever nenhum parser. |
@@ -268,3 +272,4 @@ ResultadoParsing {
 | Versão | Data | Autor | Mudanças |
 |---|---|---|---|
 | 1.0 | 2026-09-21 | reversa-spec-sdd | Criação inicial a partir do PRD |
+| 1.1 | 2026-10-03 | reversa-forward | Emenda com lições do Vip válidas para qualquer leiloeiro: RF-06 passa a exigir identificador único no leiloeiro (número do lote pode ser por evento); RF-12 e tabela comum de sinônimos de marca; EC-13 e EC-14. Origem: `_reversa_forward/001-mvp-varredura-ponta-a-ponta/investigation.md#1` |

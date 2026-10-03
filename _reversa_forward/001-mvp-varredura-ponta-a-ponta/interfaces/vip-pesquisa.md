@@ -104,7 +104,7 @@ Um `div.card-anuncio` por lote. Exemplo real, resumido:
 | `id_canonico` | Sufixo numérico do `href` (`310800`) | `vip-leiloes:310800` | 🟢 |
 | `modelo` | `h1`, trecho antes de ` - ` | Minúsculas, sem acento | 🟢 |
 | `ano_fabricacao`, `ano_modelo` | `h1`, trecho `AAAA/AAAA` depois de ` - ` | Inteiros; um único ano preenche os dois (RF-04 do `parser-lotes`) | 🟢 |
-| `marca` | Primeiro `span` de `.anc-info` | Minúsculas, sem acento, depois tradução de sinônimos: `mmc` → `mitsubishi`, `gm` → `chevrolet` (roadmap D-28). O formulário do site lista as duas grafias como marcas separadas | 🟢 |
+| `marca` | Primeiro `span` de `.anc-info` | Minúsculas, sem acento, depois tradução pela tabela comum de sinônimos (`parser-lotes` RF-12): `mmc` → `mitsubishi`, `gm` → `chevrolet` (roadmap D-28). O formulário do site lista as duas grafias como marcas separadas | 🟢 |
 | `quilometragem` | `span` de `.anc-info` terminado em `Km` | `228.227 Km` → `228227` | 🟢 |
 | `lance_corrente` | `.valor-atual` | `R$ 12.500,00` → `12500.00` | 🟢 |
 | `lance_inicial` | `b` dentro de `.anc-lel` com texto "Valor inicial" | Idem | 🟢 |

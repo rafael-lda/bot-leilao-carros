@@ -2,17 +2,17 @@
 
 > Selo 🟡 PLANEJADO em todos os itens. Nenhum fato aqui foi extraído de código existente.
 
-**Versão:** 1.0
+**Versão:** 1.1
 **Status:** Rascunho
 **Autor:** reversa-spec-sdd
-**Data:** 2026-09-21
+**Data:** 2026-09-21 (emenda em 2026-10-03)
 **Reviewers:** Rafael
 
 ---
 
 ## 1. Resumo
 
-🟡 Fluxo sob demanda, executado uma vez por leiloeiro novo, em que um agente de IA navega pelo site para mapear quais dados estão disponíveis em acesso público e quais exigem login. O resultado é um relatório de campos disponíveis e um bloco YAML pronto para ser colado em `config/leiloeiros.yaml`. O login, quando necessário, é feito pelo Rafael, com o agente pausando e aguardando.
+🟡 Fluxo sob demanda, executado uma vez por leiloeiro novo, em que um agente de IA navega pelo site para mapear quais dados estão disponíveis em acesso público e quais exigem login. O resultado é um relatório de campos disponíveis, do modo como o site recebe buscas e das armadilhas técnicas encontradas, e um bloco YAML pronto para ser colado em `config/leiloeiros.yaml`. O login, quando necessário, é feito pelo Rafael, com o agente pausando e aguardando.
 
 ---
 
@@ -71,7 +71,8 @@
 2. 🟡 O agente navega em modo público e lista os campos que encontrou.
 3. 🟡 O agente pausa e pede que o Rafael faça o login na sessão do navegador.
 4. 🟡 O agente repete a navegação autenticado e apresenta a diferença entre os dois modos.
-5. 🟡 Rafael cola no cadastro o bloco YAML gerado.
+5. 🟢 O agente verifica a lista de armadilhas conhecidas (Apêndice) e propõe uma busca ampla, declarada como filtros.
+6. 🟡 Rafael cola no cadastro o bloco YAML gerado.
 
 ---
 
@@ -83,30 +84,32 @@
 |---|---|---|---|
 | 🟡 RF-01 | O sistema deve oferecer um comando dedicado que inicie o onboarding recebendo o nome e a URL base de um leiloeiro. | Must | Executar o comando com a URL da Vip Leilões inicia a sessão de onboarding e gera um relatório ao final. |
 | 🟡 RF-02 | O sistema deve navegar em modo público por uma página de listagem e por ao menos uma página de lote, registrando quais campos de interesse estão visíveis. | Must | O relatório lista, para cada campo do conjunto de interesse, o veredito `disponivel` ou `ausente` no modo público. |
-| 🟡 RF-03 | O sistema deve verificar a presença dos campos: modelo, ano, preço ou lance inicial, link do lote, descrição, fotos, laudo e chassi. | Must | Os oito campos aparecem no relatório com veredito individual, sem omissão. |
+| 🟢 RF-03 | O sistema deve verificar a presença dos campos: marca, modelo, ano (indicando se traz fabricação e modelo), lance inicial, lance corrente, quilometragem, situação do lote, link do lote, descrição, fotos, laudo e chassi, registrando para cada um se aparece **na página de listagem** ou só na página do lote. | Must | Os doze campos aparecem no relatório com veredito individual e local, sem omissão. *(Emendado em 2026-10-03: lance corrente, quilometragem e situação entraram porque o filtro de preço, o critério de km e o descarte de retirados dependem deles, e campo que só existe na página do lote custa uma requisição por lote.)* |
 | 🟡 RF-04 | O sistema deve pausar e solicitar intervenção humana para o login, sem solicitar, ler ou gravar a senha do Rafael. | Must | Durante a pausa, nenhuma senha é pedida no chat nem gravada em disco; o agente apenas aguarda confirmação de que a sessão está autenticada. |
 | 🟡 RF-05 | O sistema deve repetir a navegação de RF-02 em modo autenticado e apresentar a diferença entre os dois modos. | Must | O relatório contém uma tabela comparativa com uma coluna para modo público e outra para modo logado. |
-| 🟡 RF-06 | O sistema deve validar que a URL de busca filtrada informada pelo Rafael retorna ao menos um lote antes de incluí-la no bloco YAML gerado. | Must | Uma URL que retorna zero lotes gera aviso e pedido de revisão, e não entra no bloco final. |
+| 🟢 RF-06 | O sistema deve validar que a busca proposta, declarada como conjunto de filtros chave-valor (`cadastro-leiloeiros` v1.1), retorna ao menos um lote e que o servidor de fato aplica cada filtro, comparando o total de resultados com e sem ele, antes de incluí-la no bloco YAML gerado. | Must | Uma busca que retorna zero lotes, ou um filtro que não altera o total de resultados, gera aviso e pedido de revisão, e não entra no bloco final. *(Emendado em 2026-10-03: a versão 1.0 validava uma URL filtrada; no Vip, os filtros vão no corpo de um POST e o redirecionamento descarta a query string.)* |
 | 🟡 RF-07 | O sistema deve gerar um bloco YAML compatível com o esquema do `cadastro-leiloeiros`, preenchendo `estrategia_acesso` conforme a conclusão do mapeamento. | Must | O bloco gerado, colado em `config/leiloeiros.yaml`, carrega sem erro de validação. |
 | 🟡 RF-08 | O sistema deve persistir o relatório de mapeamento em arquivo, nomeado pelo identificador do leiloeiro. | Must | Após o onboarding, existe um arquivo de relatório recuperável para consulta futura. |
 | 🟡 RF-09 | O sistema deve recomendar um `nivel_coleta` inicial com base nos obstáculos observados durante a navegação. | Should | Um site que respondeu sem bloqueio recebe a recomendação `script`; um site que apresentou bloqueio recebe a recomendação `apify`, com a justificativa registrada. |
+| 🟢 RF-10 | O sistema deve percorrer a lista de armadilhas conhecidas do Apêndice e registrar no relatório o veredito de cada uma para o leiloeiro mapeado: como o site recebe a busca (método, endpoint, onde vão os filtros), exigência de cookie ou sessão prévia, paginação, unicidade do número do lote entre eventos, grafias de marca fora da tabela de sinônimos do `parser-lotes`, presença de lotes retirados na listagem e proteção anti-bot. | Must | O relatório tem uma seção de armadilhas com veredito para cada item da lista, e cada grafia de marca nova encontrada é listada como proposta de acréscimo à tabela de sinônimos. |
+| 🟢 RF-11 | O sistema deve propor a busca seguindo a diretriz de busca ampla do `cadastro-leiloeiros` (seção 6.1.1), informando o total de resultados e o número de páginas medidos. | Must | O bloco YAML proposto não filtra por marca nem modelo, e o relatório traz o total e as páginas da busca, ou a justificativa de fatiamento quando a busca ampla exceder o teto de páginas. |
 
 ### 6.2 Fluxo Principal (Happy Path)
 
 1. 🟡 Rafael dispara o comando de onboarding informando nome e URL base do leiloeiro.
 2. 🟡 O agente acessa a página pública de listagem e coleta a estrutura encontrada.
-3. 🟡 O agente abre uma página de lote individual e verifica os oito campos de interesse.
+3. 🟡 O agente abre uma página de lote individual e verifica os doze campos de interesse.
 4. 🟡 O agente apresenta o resultado parcial do modo público e pausa, pedindo o login.
 5. 🟡 Rafael autentica a sessão e confirma ao agente que pode prosseguir.
 6. 🟡 O agente repete a navegação autenticado e compara os dois conjuntos de campos.
-7. 🟡 O agente pede a URL de busca já filtrada e confere que ela retorna lotes.
+7. 🟢 O agente identifica como o site recebe a busca, propõe os filtros da busca ampla, confere que o servidor aplica cada um e que a busca retorna lotes (RF-06, RF-11), e percorre a lista de armadilhas (RF-10).
 8. 🟡 O agente grava o relatório e apresenta o bloco YAML pronto.
 9. 🟡 Resultado: Rafael cola o bloco no cadastro e o leiloeiro entra na próxima varredura.
 
 ### 6.3 Fluxos Alternativos
 
 **Fluxo Alternativo A — Leiloeiro totalmente público:**
-1. 🟡 O mapeamento em modo público encontra os oito campos de interesse.
+1. 🟡 O mapeamento em modo público encontra os doze campos de interesse.
 2. 🟡 O agente informa que o login não acrescentaria dados e oferece pular a etapa autenticada.
 3. 🟡 Com o aval do Rafael, o bloco é gerado com `estrategia_acesso: publico` e sem `credencial_env`.
 
@@ -177,10 +180,21 @@ RelatorioMapeamento {
   obstaculos: string[]        // bloqueios, CAPTCHA ou lentidão observados
   recomendacao_acesso: enum   // publico | logado
   recomendacao_nivel: enum    // script | apify | apify_residencial
+  armadilhas: Armadilha[]     // veredito por item da lista do Apêndice (RF-10)
+  busca_proposta: map         // filtros da busca ampla (RF-11)
+  total_resultados: int       // medido com a busca proposta
+  paginas: int
+}
+
+Armadilha {
+  item: string                // ex.: cookie_previo, numero_lote_por_evento, sinonimos_marca
+  veredito: enum              // presente | ausente | nao_verificado
+  evidencia: string           // o que foi observado, com a URL
 }
 
 CampoMapeado {
-  nome: string                // um dos oito campos de interesse
+  nome: string                // um dos doze campos de interesse
+  na_listagem: bool           // true se aparece no card da listagem, e não só na página do lote
   publico: enum               // disponivel | parcial | ausente
   logado: enum                // disponivel | parcial | ausente | nao_verificado
 }
@@ -208,7 +222,8 @@ CampoMapeado {
 | 🟡 EC-01: Site fora do ar ou lento além do aceitável | Manutenção, instabilidade | Cada requisição tem timeout de 30 segundos. Após 2 tentativas de retry espaçadas, o fluxo encerra informando que o site não respondeu, sem gerar bloco YAML. |
 | 🟡 EC-02: CAPTCHA apresentado durante a navegação pública | Proteção anti-bot do site | Registra o obstáculo, encerra o mapeamento automatizado e recomenda `nivel_coleta: apify`, deixando a decisão com o Rafael (NG-02). |
 | 🟡 EC-03: Login falha ou exige segundo fator | 2FA habilitado na conta | O agente permanece na pausa até o Rafael confirmar ou desistir. Desistindo, segue o Fluxo Alternativo B. |
-| 🟡 EC-04: URL de busca filtrada retorna zero lotes | Filtro restritivo demais, ou URL com token expirado | Avisa que a URL não produziu resultado, pede revisão e não inclui a URL no bloco (RF-06). |
+| 🟢 EC-04: Busca proposta retorna zero lotes, ou um filtro não altera o total | Filtro restritivo demais, nome de campo errado, ou servidor ignorando o campo | Avisa qual filtro falhou na verificação, pede revisão e não inclui a busca no bloco (RF-06). |
+| 🟢 EC-09: Redirecionamento em laço na primeira requisição | Site exige cookie de sessão emitido por um endpoint próprio, como o Vip | Registra a armadilha `cookie_previo`, refaz o acesso com sessão que preserva cookies e limite de 3 redirecionamentos, e documenta no relatório qual requisição emite o cookie. |
 | 🟡 EC-05: Layout do site muda no meio da sessão | Deploy do leiloeiro durante o mapeamento | A falha de extração é registrada no relatório como campo `ausente` com nota de inconsistência, e o Rafael é avisado para refazer o mapeamento. |
 | 🟡 EC-06: Sessão autenticada expira antes da segunda navegação | Timeout de sessão curto no leiloeiro | Detecta a perda de sessão, retorna à pausa de RF-04 e pede novo login, sem descartar o que já foi mapeado. |
 | 🟡 EC-07: O site exige login já na página de listagem | Leiloeiro sem área pública | Registra que o modo público é inexistente, vai direto para a pausa de login e gera o bloco com `estrategia_acesso: logado`. |
@@ -249,7 +264,8 @@ CampoMapeado {
 | Decisão | Alternativas consideradas | Racional |
 |---|---|---|
 | 🟡 Login por intervenção humana, com o agente pausando | Agente autenticando com credencial do `.env` | Decidido na ideação como human-in-the-loop. Mantém a senha fora do alcance do agente e contorna 2FA sem esforço de engenharia. O custo é uma pausa em um fluxo que roda uma vez por leiloeiro. |
-| 🟡 Gerar bloco YAML para o Rafael colar, sem escrever no cadastro | Escrever direto em `config/leiloeiros.yaml` | Escrita direta tornaria o agente capaz de colocar um leiloeiro em operação sem revisão. A revisão humana custa segundos e evita cadastrar uma URL errada que só apareceria como ausência silenciosa de lotes. |
+| 🟡 Gerar bloco YAML para o Rafael colar, sem escrever no cadastro | Escrever direto em `config/leiloeiros.yaml` | Escrita direta tornaria o agente capaz de colocar um leiloeiro em operação sem revisão. A revisão humana custa segundos e evita cadastrar uma busca errada que só apareceria como ausência silenciosa de lotes. |
+| 🟢 Lista de armadilhas conhecidas, acumulada a cada leiloeiro | Investigar cada site do zero | Decidido em 2026-10-03. As armadilhas do Vip (cookie prévio, filtros no corpo do POST, número de lote por evento, sinônimos de marca) só foram descobertas por tentativa e erro, uma delas com um laço de requisições. Uma lista que cresce a cada onboarding transforma o aprendizado de um site em verificação barata nos seguintes. |
 | 🟡 Mapeamento comparativo público contra logado, em vez de assumir um dos dois | Assumir tudo público; assumir tudo logado | Vem direto da ideação, que registra que a maioria dos leiloeiros é pública com exceções relevantes. Assumir qualquer um dos extremos ou desperdiçaria dados ou exporia credenciais sem necessidade. |
 | 🟡 Encerrar diante de CAPTCHA em vez de contornar | Resolver CAPTCHA automaticamente | Contornar proteção anti-bot conflita com o requisito de respeitar os termos de uso registrado no PRD. A saída prevista é escalar para Apify, que é a estratégia já decidida na ideação. |
 
@@ -262,7 +278,26 @@ CampoMapeado {
 - `_reversa_sdd/ideation.md` — seção "Modo público vs. logado"
 - `_reversa_sdd/personas.md` — jornada principal, passo 3
 
+### Lista de armadilhas conhecidas
+
+Cada item foi encontrado num leiloeiro real e vira verificação obrigatória nos seguintes (RF-10). Ao terminar um onboarding, acrescente aqui toda armadilha nova.
+
+| Item | O que verificar | Por que importa | Primeiro visto |
+|---|---|---|---|
+| `filtros_no_corpo` | A busca vai na URL (GET) ou no corpo (POST)? Qual endpoint e quais nomes de campo? | Copiar a URL do navegador não reproduz uma busca feita por POST | Vip, 2026-09-27 |
+| `cookie_previo` | Alguma página exige cookie emitido por outro endpoint antes? | Sem sessão com cookies, o site redireciona em laço | Vip, 2026-09-27 |
+| `redirect_descarta_query` | O redirecionamento perde os parâmetros da URL? | A busca chega ao servidor sem os filtros, mais larga que o pretendido | Vip, 2026-09-27 |
+| `filtro_ignorado` | O total de resultados muda ao aplicar cada filtro? | Campo com nome errado é ignorado pelo servidor sem erro | Vip, 2026-10-03 |
+| `paginacao` | Quantos lotes por página, como pedir a página N, como saber que acabou? | Ler só a primeira página perde lotes em silêncio | Vip, 2026-09-27 |
+| `numero_lote_por_evento` | O número do lote se repete entre eventos diferentes? | Se repetir, não serve de identificador canônico (`parser-lotes` RF-06) | Vip, 2026-10-03 |
+| `sinonimos_marca` | O site usa mais de uma grafia para a mesma marca? Compare a lista de marcas do site com a tabela de sinônimos do `parser-lotes` | Alvo escrito por extenso perde os lotes da grafia abreviada (`parser-lotes` RF-12) | Vip, 2026-10-03 (`MMC`, `GM`) |
+| `retirados_listados` | Lotes retirados do pregão continuam na listagem? Com qual texto ou classe? | Notificaria carro que não está mais à venda | Vip, 2026-09-27 |
+| `lance_corrente_na_listagem` | O card traz o lance corrente, ou só o inicial? | Sem ele, o filtro de preço exige uma requisição por lote | Vip, 2026-09-27 (traz) |
+| `procedencia_fora_do_card` | Procedência e monta aparecem no card, ou só como filtro? | Se só como filtro, precisam ir na busca (busca ampla por esses atributos) | Vip, 2026-09-27 |
+| `anti_bot` | Há Cloudflare ou similar? Houve desafio? | Gatilho para escalar `nivel_coleta` | Vip, 2026-09-27 (presente, sem desafio) |
+
 ### Histórico de Revisões
 | Versão | Data | Autor | Mudanças |
 |---|---|---|---|
 | 1.0 | 2026-09-21 | reversa-spec-sdd | Criação inicial a partir do PRD |
+| 1.1 | 2026-10-03 | reversa-forward | Busca passa de URL para filtros (RF-06, EC-04); campos de interesse passam de 8 para 12, com local de exibição (RF-03); novos RF-10 (armadilhas), RF-11 (busca ampla), EC-09 e lista de armadilhas conhecidas no Apêndice. Origem: investigações do Vip de 2026-09-27 e 2026-10-03 |
