@@ -267,7 +267,7 @@ Precedida de investigação técnica do site do Vip Leilões, em três passadas.
 As três lacunas da versão inicial foram resolvidas na sessão de 2026-09-27, registrada na seção 9. Permanecem em aberto:
 
 - 🟡 **Pendência de dado, não de desenho:** os valores concretos do primeiro veículo-alvo, ou dos dois primeiros. O formato está fechado (marca, modelo, `ano_min`, `ano_max`, `preco_maximo` e `quilometragem_maxima` opcional), e falta o Rafael preencher. Necessário **antes da primeira execução real**, e não antes do plano nem da codificação, já que os testes podem usar um alvo de exemplo.
-- 🟡 **Verificação pendente, não bloqueante:** confirmar que o servidor do Vip respeita os filtros de procedência e de monta na requisição de busca. A existência das opções foi observada no formulário, e a aplicação efetiva pelo servidor não foi testada. Custa uma requisição e deve ser a primeira ação técnica do plano.
+- 🟢 ~~**Verificação pendente, não bloqueante:** confirmar que o servidor do Vip respeita os filtros de procedência e de monta na requisição de busca.~~ **Resolvida em 2026-10-03, durante o `/reversa-plan`:** `marca=NISSAN` devolveu 9 resultados; com `procedencia=4` e `monta=1`, 1 resultado. A mesma verificação revelou outros três achados (identificador do lote, sinônimos de marca e busca sem marca), registrados em `investigation.md#1` e nas decisões D-13, D-14, D-28 e D-29 do `roadmap.md`.
 - 🟡 **Herdado das specs, fora do escopo desta feature:** a margem de segurança sobre o teto de preço, para lotes que abrem encostados no limite, segue em `_reversa_sdd/sdd/motor-filtros.md#14`, OQ-01, aguardando série histórica.
 - 🟡 **Novo, revelado pela investigação:** o Vip opera com Lance Condicional, em que lance abaixo do mínimo fica sujeito à aceitação do comitente em 3 a 5 dias úteis. Isso significa que valor atual dentro do teto não garante arremate por aquele valor. Não afeta o MVP, que apenas notifica, e deve ser considerado quando houver avaliação de oportunidade.
 
@@ -279,3 +279,4 @@ As três lacunas da versão inicial foram resolvidas na sessão de 2026-09-27, r
 | 2026-09-27 | Sessão de esclarecimento: 3 lacunas resolvidas, 3 regras de negócio e 3 requisitos funcionais acrescentados a partir da investigação do Vip Leilões | `/reversa-clarify` |
 | 2026-09-27 | Confirmada a gestão dos alvos por edição direta do YAML e o início com 1 ou 2 veículos; última lacuna reclassificada como pendência de dado | `/reversa-clarify` |
 | 2026-10-03 | Emenda da spec `cadastro-leiloeiros` aplicada (v1.1); cenário de cadastro inválido ajustado de URL sem TLS para busca sem filtros | reversa-forward |
+| 2026-10-03 | Verificação dos filtros do Vip marcada como resolvida, com referência aos achados do plano | reversa-forward |
