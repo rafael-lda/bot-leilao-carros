@@ -116,7 +116,7 @@ Use esta lista para liberar `.reversa/reversa-config.json` (ação exclusiva do 
 {
   "version": 1,
   "allowLegacyEdits": true,
-  "allowedPaths": ["src/**", "tests/**", "config/**", "pyproject.toml", ".env.example", ".gitignore", "README.md"]
+  "allowedPaths": ["src/**", "tests/**", "scripts/**", "config/**", "pyproject.toml", ".env.example", ".gitignore", "README.md"]
 }
 ```
 
