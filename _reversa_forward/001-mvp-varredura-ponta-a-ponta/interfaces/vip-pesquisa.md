@@ -32,7 +32,7 @@ Referer: https://www.vipleiloes.com.br/pesquisa/index
 Cookie: __CBCanal=...
 ```
 
-`X-Requested-With` e `Referer` reproduzem a requisição do formulário AJAX do site. Não foi testado se são obrigatórios; mantê-los custa nada e evita uma diferença detectável. 🟡
+O `User-Agent` é o de navegador definido num único ponto do código, com `Accept-Language: pt-BR` (roadmap D-30). `X-Requested-With` e `Referer` reproduzem a requisição do formulário AJAX do site. Não foi testado se são obrigatórios; mantê-los custa nada e evita uma diferença detectável. 🟡
 
 ### 2.1 Corpo
 
@@ -127,7 +127,8 @@ Sem nenhum lance, `valor-atual` e `Valor inicial` coincidem (`requirements.md#9`
 | Desafio do Cloudflare | Status `403`/`503` com marcas `cf-chl` ou `Just a moment` no corpo | `bloqueado` | Sim |
 | `5xx` | Status | `falha_rede` | Sim |
 | `200` com corpo vazio | Tamanho zero | Falha de coleta (EC-06 do `coletor-lotes`) | Não |
-| `200` sem `#resultadosEncontrados` e sem cards | — | `ok` no coletor; o parser sinaliza quebra (RF-07 do `parser-lotes`) | Não |
+| `200` com `#resultadosEncontrados` = 0 e sem cards | Busca vazia legítima | `ok` no coletor; o parser devolve lista vazia **sem** quebra (roadmap D-31) | Não |
+| `200` com total > 0 e sem cards, ou sem `#resultadosEncontrados` e sem cards | Layout desconhecido | `ok` no coletor; o parser sinaliza quebra (RF-07 do `parser-lotes`) | Não |
 
 ## 5. Idempotência, ritmo e limites
 

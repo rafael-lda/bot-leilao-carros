@@ -41,6 +41,7 @@ Não existe `.reversa/principles.md` no projeto. Os princípios abaixo não são
 | D-07 | Trava de execução por arquivo `dados/varredura.lock` criado com abertura exclusiva, contendo PID e instante; órfã após 2 h | Portável entre o notebook Windows e um futuro Linux; atende RF-15 e EC-01 do `agendador-observabilidade` | `fcntl`/`msvcrt` (não portáveis entre si); `portalocker` (dependência para um caso simples) | 🟡 |
 | D-08 | `python-dotenv` para carregar `.env` | Padrão de mercado para o arranjo que as specs já decidiram | Exigir variáveis exportadas no shell (atrito no Windows) | 🟢 |
 | D-09 | `pyproject.toml` + `venv` + `pip install -e .[dev]`; testes com `pytest` | Funciona igual no Windows e no devcontainer, sem ferramenta extra a instalar | `uv`; `poetry` | 🟡 |
+| D-30 | Toda requisição aos leiloeiros leva um `User-Agent` de navegador atual, constante e definido num único ponto do código, junto de `Accept-Language: pt-BR`; o programa não se autoidentifica como robô | Decisão do Rafael em 2026-09-22 (`requirements.md` §2 e RF-03; Decision Log do `coletor-lotes`). O padrão do `httpx` (`python-httpx/<versão>`) se anuncia como robô e eleva o risco de recusa pelo Cloudflare. O limite continua valendo: sem resolver CAPTCHA (NG-03 do coletor) e sem escalar para IP residencial contra recusa deliberada | `User-Agent` padrão da biblioteca; rotação de `User-Agent` (é disfarce, não cortesia, e passa do limite decidido) | 🟢 |
 
 ### 3.2 Contrato com o Vip Leilões
 
@@ -59,6 +60,7 @@ Não existe `.reversa/principles.md` no projeto. Os princípios abaixo não são
 
 | ID | Decisão | Justificativa | Alternativas descartadas | Confidência |
 |----|---------|----------------|--------------------------|-------------|
+| D-31 | Zero resultados legítimos não é quebra: o parser lê o indicador de total do site (no Vip, `#resultadosEncontrados`) e, com total zero, devolve lista vazia **sem** sinal de quebra. Quebra passa a ser "total maior que zero e nenhum card extraído", ou "indicador de total ausente e nenhum card", que indica layout desconhecido | Achado do audit de 2026-10-03 (A001): a página de uma busca sem resultados é conteúdo não vazio sem cards, e a regra literal do RF-07 a trataria como layout quebrado, gerando alerta falso. Regra levada ao `parser-lotes` (EC-15) por valer para qualquer leiloeiro | Tratar toda página sem cards como quebra (alerta falso); tratar toda página sem cards como vazia (esconde quebra real) | 🟢 |
 | D-16 | Lote retirado: o parser preenche `situacao` com o texto do card e `retirado = true` quando o texto ou a classe CSS contiver "retirad" (sem caixa, sem acento); o motor descarta antes de filtrar, com contador próprio | RN-12 e RF-17; a investigação de 2026-09-27 viu retirados na listagem, mas o texto exato não foi capturado em 2026-10-03 (todos estavam "Aberto para lances") | Descartar no parser (parser não decide relevância, NG do `parser-lotes`) | 🟡 |
 | D-17 | `nivel_coleta` e `estrategia_acesso` são validados conforme o `cadastro-leiloeiros`, mas leiloeiro **ativo** com nível diferente de `script` ou acesso `logado` aborta a execução antes da rede, com mensagem "não implementado nesta versão" | Cumpre a regra de custo e a regra de "validação precede a rede" sem implementar Apify nem login | Ignorar o leiloeiro (falha silenciosa); tentar `script` mesmo assim (contraria a declaração do Rafael) | 🟢 |
 | D-18 | `frequencia` é aceita como texto opaco e não validada nesta feature | O formato está em aberto (OQ-04 do `cadastro-leiloeiros`, OQ-01 do `agendador-observabilidade`) e o agendamento automático está fora da fatia | Escolher um formato agora sem decisão do Rafael | 🟡 |
@@ -95,7 +97,7 @@ Greenfield: não há `architecture.md` de legado, então a origem citada é a sp
 | Componente | Arquivo de origem | Tipo de mudança | Recorte nesta feature |
 |------------|-------------------|-----------------|-----------------------|
 | `configuracao-veiculos-alvo` | `_reversa_sdd/sdd/configuracao-veiculos-alvo.md` | componente-novo | Completo, **mais** `quilometragem_maxima` opcional (RF-16 da feature, ainda ausente da spec) |
-| `cadastro-leiloeiros` | `_reversa_sdd/sdd/cadastro-leiloeiros.md` v1.1 | componente-novo | Validação completa; só `publico` + `script` são executáveis (D-17); `frequencia` opaca (D-18) |
+| `cadastro-leiloeiros` | `_reversa_sdd/sdd/cadastro-leiloeiros.md` v1.3 | componente-novo | Validação completa, incluindo adaptador **e parser** registrados para todo leiloeiro ativo (RF-10 v1.3); só `publico` + `script` são executáveis (D-17); `frequencia` opaca (D-18); aviso de coerência entre `tipos_leilao` dos alvos e o tipo que cada busca produz |
 | `coletor-lotes` | `_reversa_sdd/sdd/coletor-lotes.md` v1.1 | componente-novo | Nível `script`, sessão com cookie, paginação, busca atômica, retry, classificação de bloqueio, registro de adaptadores com o adaptador `vip-leiloes`. Sem Apify, sem autenticação |
 | `parser-lotes` | `_reversa_sdd/sdd/parser-lotes.md` | componente-novo | Registro de parsers, normalizadores, detecção de quebra, parser `vip-leiloes`. **Acrescenta** `quilometragem`, `situacao` e `retirado` ao `Lote` |
 | `motor-filtros` | `_reversa_sdd/sdd/motor-filtros.md` | componente-novo | Completo, **mais** critério de km (RF-16), descarte de retirados (RF-17) e semeadura por busca (D-20) |
@@ -182,3 +184,4 @@ Sequência de construção sugerida ao `/reversa-to-do`. Cada etapa termina com 
 | Data | Alteração | Autor |
 |------|-----------|-------|
 | 2026-10-03 | Versão inicial gerada por `/reversa-plan`, incluindo a verificação dos filtros do Vip que o requirements deixou como primeira ação técnica | reversa |
+| 2026-10-03 | Correções do `audit/cross-check.md`: D-30 (cabeçalho de navegador, A002), D-31 (zero resultados legítimos, A001), validação de parser registrado (A003) e aviso de coerência alvos × buscas (A004) | reversa-forward |

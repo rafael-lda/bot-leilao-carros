@@ -2,7 +2,7 @@
 
 > Selo 🟡 PLANEJADO em todos os itens. Nenhum fato aqui foi extraído de código existente.
 
-**Versão:** 1.1
+**Versão:** 1.2
 **Status:** Rascunho
 **Autor:** reversa-spec-sdd
 **Data:** 2026-09-21 (emenda em 2026-10-03)
@@ -211,6 +211,7 @@ ResultadoParsing {
 | 🟡 EC-09: Tipo de leilão com nomenclatura desconhecida | Site usa termo fora do conjunto fechado | Campo registrado como nulo, com o texto original na descrição, e registro para que o Rafael avalie ampliar o conjunto. |
 | 🟡 EC-10: Conteúdo recebido vazio | Coletor entregou resposta sem corpo | Não é quebra de parser. Registrado como busca sem conteúdo, atribuído ao coletor, sem falso alarme de parser desatualizado. |
 | 🟡 EC-11: Lote sem nenhum lance ainda | Pregão recém-aberto | Lance corrente registrado como nulo e lance inicial preenchido. O `motor-filtros` adota o inicial como valor de comparação nesse caso. |
+| 🟢 EC-15: Busca sem nenhum resultado | Filtro restritivo, leiloeiro pequeno, período sem pregões | O parser lê o indicador de total do site. Total zero devolve lista vazia **sem** sinal de quebra. Quebra é total maior que zero sem cards extraídos, ou indicador ausente sem cards (layout desconhecido). Sem essa distinção, toda busca vazia viraria alerta falso de layout quebrado. |
 | 🟢 EC-13: Número do lote reiniciado a cada evento | Leiloeiro numera lotes por pregão, como o Vip ("Lote: 21" em vários eventos) | O número fica em `numero_lote` só para exibição, e o identificador canônico usa o identificador do anúncio (RF-06). Usar o número causaria colisão: o lote novo seria tratado como já notificado e nunca chegaria ao Rafael. |
 | 🟢 EC-14: Mesma marca com grafias diferentes no mesmo site | Cadastro do leiloeiro mistura `MMC` e `MITSUBISHI`, `GM` e `CHEVROLET` | Tradução para o nome canônico (RF-12). Sem ela, o alvo escrito por extenso perderia em silêncio os lotes da grafia abreviada. |
 | 🟡 EC-12: Site exibe apenas o lance inicial na listagem | Leiloeiro que só mostra o valor corrente ao abrir o lote | Lance corrente registrado como nulo com nota de indisponibilidade na origem, para que a limitação fique visível no relatório e não seja confundida com pregão sem lance. |
@@ -273,3 +274,4 @@ ResultadoParsing {
 |---|---|---|---|
 | 1.0 | 2026-09-21 | reversa-spec-sdd | Criação inicial a partir do PRD |
 | 1.1 | 2026-10-03 | reversa-forward | Emenda com lições do Vip válidas para qualquer leiloeiro: RF-06 passa a exigir identificador único no leiloeiro (número do lote pode ser por evento); RF-12 e tabela comum de sinônimos de marca; EC-13 e EC-14. Origem: `_reversa_forward/001-mvp-varredura-ponta-a-ponta/investigation.md#1` |
+| 1.2 | 2026-10-03 | reversa-forward | EC-15: zero resultados legítimos não é quebra; o parser deve ler o indicador de total do site. Origem: audit da feature 001 (A001) |

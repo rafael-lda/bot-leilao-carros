@@ -2,7 +2,7 @@
 
 > Selo 🟡 PLANEJADO em todos os itens. Nenhum fato aqui foi extraído de código existente.
 
-**Versão:** 1.2
+**Versão:** 1.3
 **Status:** Rascunho
 **Autor:** reversa-spec-sdd
 **Data:** 2026-09-21 (emenda em 2026-10-03)
@@ -90,7 +90,7 @@
 | 🟡 RF-07 | O sistema deve aceitar uma expressão de frequência própria por leiloeiro, assumindo três execuções semanais quando o campo for omitido. | Must | Um leiloeiro sem o campo de frequência recebe o padrão de segunda, quarta e sexta; um leiloeiro com expressão inválida é rejeitado citando a expressão recebida. |
 | 🟡 RF-08 | O sistema deve ignorar na varredura todo leiloeiro com `ativo: false`, preservando sua definição no arquivo. | Must | Com 5 leiloeiros, um inativo, a varredura processa 4 e o quinto permanece íntegro no YAML. |
 | 🟡 RF-09 | O sistema deve atribuir a cada busca um identificador estável, derivado do leiloeiro e da forma canônica dos filtros, usado pelo `parser-lotes` para escolher o parser correto e pelo `agendador-observabilidade` para atribuir falhas. | Should | Dois carregamentos do mesmo arquivo produzem o mesmo identificador para a mesma busca, e reordenar as chaves de `filtros` no YAML não altera o identificador. |
-| 🟢 RF-10 | O sistema deve rejeitar o leiloeiro ativo para o qual não exista adaptador de coleta registrado no `coletor-lotes`. | Must | Um leiloeiro ativo com nome sem adaptador correspondente aborta a execução antes de qualquer fetch, citando o nome e listando os adaptadores disponíveis. |
+| 🟢 RF-10 | O sistema deve rejeitar o leiloeiro ativo para o qual não exista adaptador de coleta registrado no `coletor-lotes` **ou** parser registrado no `parser-lotes`. | Must | Um leiloeiro ativo sem adaptador, ou com adaptador e sem parser, aborta a execução antes de qualquer fetch, citando o nome, o que falta e listando os registrados. |
 
 ### 6.1.1 Diretriz de desenho de buscas: busca ampla
 
@@ -297,3 +297,4 @@ Escalar = string | int | float   // listas não podem ser vazias nem conter mapa
 | 1.0 | 2026-09-21 | reversa-spec-sdd | Criação inicial a partir do PRD |
 | 1.1 | 2026-10-03 | reversa-forward | Emenda: busca passa de URL absoluta para mapa `filtros` (RF-02, RF-09, modelo de dados, exemplo, EC-02, EC-06); `https` passa a valer para `base_url`; novos NG-05, RF-10 e EC-11 (adaptador por leiloeiro); OQ-01 fechada. Origem: esclarecimento de 2026-09-27 em `_reversa_forward/001-mvp-varredura-ponta-a-ponta/requirements.md#9` |
 | 1.2 | 2026-10-03 | reversa-forward | Diretriz de busca ampla (seção 6.1.1) e exemplo do Vip sem filtro de marca. Origem: decisão D-29 de `_reversa_forward/001-mvp-varredura-ponta-a-ponta/roadmap.md` |
+| 1.3 | 2026-10-03 | reversa-forward | RF-10 passa a exigir também parser registrado. Origem: audit da feature 001 (A003) |
