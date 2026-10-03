@@ -179,9 +179,9 @@ Cenário: Bloqueio do site é distinguido de falha de rede
   E o registro fica disponível para sustentar a proposta de escalar o nível de coleta
 
 Cenário: Cadastro de leiloeiro inválido é rejeitado
-  Dado um leiloeiro cadastrado com URL de busca sem TLS
+  Dado um leiloeiro cadastrado com uma busca sem nenhum filtro
   Quando a varredura é disparada
-  Então a execução aborta citando o nome do leiloeiro e a URL recebida
+  Então a execução aborta citando o nome do leiloeiro e a descrição da busca
   E nenhuma requisição HTTP é realizada
 
 Cenário: Execução que falha por completo fica registrada
@@ -233,7 +233,7 @@ Precedida de investigação técnica do site do Vip Leilões, em três passadas.
   **R:** Sim. O `robots.txt` é `User-agent: *` com `Allow: /`, sem `Disallow` e sem `Crawl-delay`. O Termo de Adesão não traz cláusula sobre robôs, scraping ou coleta automatizada; a cláusula mais próxima veda programa ou procedimento que possa interferir no funcionamento do site, o que três varreduras semanais não caracterizam. Não há página de termos de uso no rodapé, apenas política de privacidade, código de ética e o guia de como comprar.
 
 - **Q:** Como o YAML deve declarar uma busca, já que o Vip envia os filtros no corpo da requisição em vez de na URL?
-  **R:** Como **conjunto de filtros chave-valor** por busca, e não como URL. O coletor monta a requisição a partir desses filtros. Isso substitui a estratégia de copiar a URL filtrada registrada em `_reversa_sdd/ideation.md` e exige emenda na spec `cadastro-leiloeiros`, cujo RF-02 hoje exige URL absoluta.
+  **R:** Como **conjunto de filtros chave-valor** por busca, e não como URL. O coletor monta a requisição a partir desses filtros. Isso substitui a estratégia de copiar a URL filtrada registrada em `_reversa_sdd/ideation.md` e exigiu emenda na spec `cadastro-leiloeiros`, aplicada em 2026-10-03 na versão 1.1 (RF-02, RF-09, RF-10 e modelo de dados).
 
 - **Q:** Quais procedências entram na busca?
   **R:** Apenas **Recuperado de Financiamento**, valor 4 do filtro de procedência. Carro retomado por inadimplência, sem histórico de sinistro na origem, o que preserva o valor de revenda. Ampliar depois é barato; estreitar depois de acostumar com ruído, não.
@@ -278,3 +278,4 @@ As três lacunas da versão inicial foram resolvidas na sessão de 2026-09-27, r
 | 2026-09-25 | Versão inicial gerada por `/reversa-requirements` | reversa |
 | 2026-09-27 | Sessão de esclarecimento: 3 lacunas resolvidas, 3 regras de negócio e 3 requisitos funcionais acrescentados a partir da investigação do Vip Leilões | `/reversa-clarify` |
 | 2026-09-27 | Confirmada a gestão dos alvos por edição direta do YAML e o início com 1 ou 2 veículos; última lacuna reclassificada como pendência de dado | `/reversa-clarify` |
+| 2026-10-03 | Emenda da spec `cadastro-leiloeiros` aplicada (v1.1); cenário de cadastro inválido ajustado de URL sem TLS para busca sem filtros | reversa-forward |

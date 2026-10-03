@@ -2,17 +2,17 @@
 
 > Selo 🟡 PLANEJADO em todos os itens. Nenhum fato aqui foi extraído de código existente.
 
-**Versão:** 1.0
+**Versão:** 1.1
 **Status:** Rascunho
 **Autor:** reversa-spec-sdd
-**Data:** 2026-09-21
+**Data:** 2026-09-21 (emenda em 2026-10-03)
 **Reviewers:** Rafael
 
 ---
 
 ## 1. Resumo
 
-🟡 Componente que define **onde** o sistema procura. Mantém o registro dos leiloeiros monitorados — suas URLs de busca já filtradas, a estratégia de acesso (público ou logado), o nível de ferramenta de coleta e a frequência própria de varredura — em um arquivo YAML, com as credenciais mantidas fora dele, em variáveis de ambiente.
+🟡 Componente que define **onde** o sistema procura. Mantém o registro dos leiloeiros monitorados — suas buscas, declaradas como conjuntos de filtros chave-valor, a estratégia de acesso (público ou logado), o nível de ferramenta de coleta e a frequência própria de varredura — em um arquivo YAML, com as credenciais mantidas fora dele, em variáveis de ambiente.
 
 ---
 
@@ -25,7 +25,9 @@
 🟡 O `ideation.md` registra a decisão de "verificar leiloeiro a leiloeiro o que é público vs. restrito" e a estratégia de escalonamento progressivo de ferramenta por site. O `prd.md` fixa a meta de ≥ 5 leiloeiros monitorados em 3 meses.
 
 **Por que agora:**
-🟡 A estratégia de mapeamento por URL, escolhida na ideação em vez de automação de cliques, só funciona se existir um lugar estável para guardar essas URLs. Este componente é esse lugar.
+🟡 A estratégia de buscas pré-definidas, escolhida na ideação em vez de automação de cliques, só funciona se existir um lugar estável para guardar essas buscas. Este componente é esse lugar.
+
+🟢 **Emenda de 2026-10-03:** a ideação previa guardar a URL filtrada copiada do navegador. A investigação do Vip Leilões, em 2026-09-27, mostrou que os filtros viajam no corpo de um POST e que o redirecionamento de cookie descarta os parâmetros da URL. A busca passou a ser declarada como conjunto de filtros chave-valor, e cada leiloeiro tem um adaptador no `coletor-lotes` que traduz esses filtros na requisição real, seja ela POST com corpo ou GET com query string.
 
 ---
 
@@ -40,7 +42,7 @@
 | Métrica | Baseline atual | Target | Prazo |
 |---|---|---|---|
 | 🟡 Leiloeiros cadastrados e ativos | 0 | ≥ 5 | 3 meses |
-| 🟡 Tempo para cadastrar um leiloeiro novo com URL já em mãos | Não existe | < 5 minutos | MVP |
+| 🟡 Tempo para cadastrar uma busca nova em leiloeiro já suportado, com os filtros já em mãos | Não existe | < 5 minutos | MVP |
 | 🟡 Credenciais encontradas em arquivo versionado | Não existe | 0 | MVP |
 | 🟡 Execuções abortadas por credencial ausente depois do fetch iniciado | Não existe | 0 (validação sempre precede a rede) | MVP |
 
@@ -48,7 +50,8 @@
 
 ## 4. Non-Goals (Fora do Escopo)
 
-- 🟡 NG-01: **Descobrir sozinho a URL filtrada.** A URL é obtida pelo Rafael aplicando os filtros à mão no site uma única vez, conforme a estratégia decidida na ideação. A descoberta assistida é responsabilidade do componente `onboarding-leiloeiro-assistido`.
+- 🟡 NG-01: **Descobrir sozinho os filtros de busca.** Os pares chave-valor são obtidos pelo Rafael, ou pelo `onboarding-leiloeiro-assistido`, observando o formulário de busca do site uma única vez. A descoberta assistida é responsabilidade do componente de onboarding.
+- 🟢 NG-05: **Saber como os filtros viram requisição.** O registro trata chaves e valores como opacos: não sabe se o leiloeiro espera POST ou GET, qual o endpoint, nem o que significa `procedencia: 4`. Essa tradução é do adaptador do leiloeiro no `coletor-lotes`.
 - 🟡 NG-02: **Executar o login.** Este componente apenas declara que um leiloeiro exige autenticação e aponta onde a credencial vive. Quem abre sessão é o `coletor-lotes`.
 - 🟡 NG-03: **Interpretar o conteúdo das páginas.** O registro não sabe o que é um lote. Extração é responsabilidade do `parser-lotes`.
 - 🟡 NG-04: **Cadastro pelo Telegram ou por interface web.** A edição é feita no arquivo YAML, em editor de texto.
@@ -57,7 +60,7 @@
 
 ## 5. Usuários e Personas
 
-**Usuário primário:** 🟡 Rafael — cadastra os leiloeiros e cola as URLs filtradas que obteve navegando nos sites.
+**Usuário primário:** 🟡 Rafael — cadastra os leiloeiros e declara os filtros de cada busca, observados no formulário do site.
 **Usuário secundário:** 🟡 Agente de IA gestor, que edita o campo `nivel_coleta` de um leiloeiro ao propor a migração de script puro para Apify, e o campo `cron` ao sugerir mudança de frequência.
 
 **Jornada atual (sem a feature):**
@@ -66,8 +69,8 @@
 3. 🟡 Não tem registro de qual site exigiu login nem de qual exigiu qual conta.
 
 **Jornada futura (com a feature):**
-1. 🟡 Rafael aplica os filtros uma única vez no site e copia a URL resultante.
-2. 🟡 Cola a URL em um bloco novo no `config/leiloeiros.yaml`, declarando se o acesso é público ou logado.
+1. 🟡 Rafael aplica os filtros uma única vez no site e anota os pares chave-valor que o formulário envia.
+2. 🟡 Declara esses pares em um bloco de busca no `config/leiloeiros.yaml`, junto da estratégia de acesso do leiloeiro.
 3. 🟡 Na próxima execução agendada, aquele leiloeiro entra na varredura.
 
 ---
@@ -79,20 +82,21 @@
 | ID | Requisito | Prioridade | Critério de Aceite |
 |---|---|---|---|
 | 🟡 RF-01 | O sistema deve carregar o registro de leiloeiros de `config/leiloeiros.yaml` no início de cada execução. | Must | Um YAML com 5 leiloeiros válidos produz 5 objetos `Leiloeiro` com todos os campos acessíveis. |
-| 🟡 RF-02 | O sistema deve exigir que cada leiloeiro tenha ao menos uma busca cadastrada, cada busca com uma URL absoluta em `https`. | Must | Um leiloeiro sem buscas, ou com URL iniciada em `http://`, é rejeitado com erro citando o nome do leiloeiro. |
+| 🟢 RF-02 | O sistema deve exigir que cada leiloeiro tenha `base_url` absoluta em `https` e ao menos uma busca cadastrada, cada busca com um mapa `filtros` não vazio cujos valores sejam escalares (texto ou número) ou listas não vazias de escalares. | Must | Uma busca com `marca: NISSAN`, `procedencia: 4` e `monta: 1` carrega com os três filtros acessíveis. Um leiloeiro sem buscas, uma busca sem filtros, um filtro com valor aninhado ou uma `base_url` iniciada em `http://` são rejeitados com erro citando o nome do leiloeiro e, quando houver, a descrição da busca. |
 | 🟡 RF-03 | O sistema deve aceitar `estrategia_acesso` com valor `publico` ou `logado`, e exigir o campo `credencial_env` quando o valor for `logado`. | Must | Um leiloeiro `logado` sem `credencial_env` é rejeitado; um leiloeiro `publico` sem `credencial_env` carrega sem erro. |
 | 🟡 RF-04 | O sistema deve armazenar no YAML apenas o **nome** da variável de ambiente que guarda a credencial, nunca a credencial em si. | Must | Uma busca por padrões de senha no YAML de exemplo não retorna nenhuma ocorrência; o campo contém somente um identificador como `FREITAS_LOGIN`. |
 | 🟡 RF-05 | O sistema deve verificar, antes de qualquer requisição de rede, que toda variável de ambiente referenciada por um leiloeiro ativo e logado existe e não está vazia. | Must | Com `FREITAS_LOGIN` ausente do ambiente, a execução aborta citando o nome da variável, sem ter feito nenhum fetch. |
 | 🟡 RF-06 | O sistema deve aceitar `nivel_coleta` com valor `script`, `apify` ou `apify_residencial`, assumindo `script` quando o campo for omitido. | Must | Um leiloeiro sem `nivel_coleta` carrega com o valor `script`; um leiloeiro com valor fora do conjunto é rejeitado listando os três valores aceitos. |
 | 🟡 RF-07 | O sistema deve aceitar uma expressão de frequência própria por leiloeiro, assumindo três execuções semanais quando o campo for omitido. | Must | Um leiloeiro sem o campo de frequência recebe o padrão de segunda, quarta e sexta; um leiloeiro com expressão inválida é rejeitado citando a expressão recebida. |
 | 🟡 RF-08 | O sistema deve ignorar na varredura todo leiloeiro com `ativo: false`, preservando sua definição no arquivo. | Must | Com 5 leiloeiros, um inativo, a varredura processa 4 e o quinto permanece íntegro no YAML. |
-| 🟡 RF-09 | O sistema deve atribuir a cada busca um identificador estável, usado pelo `parser-lotes` para escolher o parser correto e pelo `agendador-observabilidade` para atribuir falhas. | Should | Dois carregamentos do mesmo arquivo produzem o mesmo identificador para a mesma busca. |
+| 🟡 RF-09 | O sistema deve atribuir a cada busca um identificador estável, derivado do leiloeiro e da forma canônica dos filtros, usado pelo `parser-lotes` para escolher o parser correto e pelo `agendador-observabilidade` para atribuir falhas. | Should | Dois carregamentos do mesmo arquivo produzem o mesmo identificador para a mesma busca, e reordenar as chaves de `filtros` no YAML não altera o identificador. |
+| 🟢 RF-10 | O sistema deve rejeitar o leiloeiro ativo para o qual não exista adaptador de coleta registrado no `coletor-lotes`. | Must | Um leiloeiro ativo com nome sem adaptador correspondente aborta a execução antes de qualquer fetch, citando o nome e listando os adaptadores disponíveis. |
 
 ### 6.2 Fluxo Principal (Happy Path)
 
 1. 🟡 O agendador dispara uma execução de varredura.
 2. 🟡 O componente lê `config/leiloeiros.yaml` do disco.
-3. 🟡 O componente valida cada leiloeiro contra as regras de RF-02, RF-03, RF-06 e RF-07.
+3. 🟡 O componente valida cada leiloeiro contra as regras de RF-02, RF-03, RF-06, RF-07 e RF-10.
 4. 🟡 O componente descarta os leiloeiros com `ativo: false`.
 5. 🟡 Para cada leiloeiro ativo com `estrategia_acesso: logado`, o componente confere que a variável de ambiente declarada existe e está preenchida.
 6. 🟡 O componente calcula o identificador estável de cada busca.
@@ -106,7 +110,7 @@
 3. 🟡 Com o aval do Rafael, o campo é alterado no YAML e a execução seguinte já usa o novo nível, sem afetar os demais leiloeiros.
 
 **Fluxo Alternativo B — Leiloeiro com várias buscas:**
-1. 🟡 Rafael cadastra, para o mesmo leiloeiro, uma URL de leilões de financiamento e outra de leilões de seguradora.
+1. 🟡 Rafael cadastra, para o mesmo leiloeiro, uma busca com o filtro de procedência de financiamento e outra com o de seguradora.
 2. 🟡 Ambas herdam a estratégia de acesso e o nível de coleta do leiloeiro.
 3. 🟡 Cada uma é coletada de forma independente, e a falha de uma não impede a coleta da outra.
 
@@ -141,8 +145,11 @@ leiloeiros:
     nivel_coleta: script
     frequencia: seg-qua-sex-08h
     buscas:
-      - descricao: Nissan Versa em leilão de financiamento
-        url: https://www.vipleiloes.com.br/busca?tipo=financiamento&marca=nissan&modelo=versa
+      - descricao: Nissan recuperado de financiamento, conservado
+        filtros:
+          marca: NISSAN
+          procedencia: 4      # Recuperado de Financiamento
+          monta: 1            # Conservado
 
   - nome: Copart
     base_url: https://www.copart.com.br
@@ -153,7 +160,9 @@ leiloeiros:
     frequencia: seg-qua-sex-08h
     buscas:
       - descricao: Sedãs recuperados de seguradora
-        url: https://www.copart.com.br/lots?type=seguradora&body=sedan
+        filtros:
+          tipo: seguradora
+          carroceria: [sedan, hatch]   # lista = múltipla escolha no formulário
 ```
 
 **Estados da UI (saída em log):**
@@ -182,10 +191,12 @@ Leiloeiro {
 }
 
 Busca {
-  id: string                // derivado de leiloeiro.id + url, estável
+  id: string                // derivado de leiloeiro.id + forma canônica dos filtros (chaves ordenadas), estável
   descricao: string         // texto livre, para o Rafael se localizar
-  url: string               // obrigatório, absoluta, https
+  filtros: map<string, Escalar | Escalar[]>   // >= 1 par; chaves e valores opacos ao registro
 }
+
+Escalar = string | int | float   // listas não podem ser vazias nem conter mapas
 ```
 
 **Migrações necessárias:** 🟡 Não. O componente apenas lê arquivos. O identificador da busca é derivado, não persistido em banco por este componente.
@@ -199,7 +210,8 @@ Busca {
 | 🟡 Arquivo `config/leiloeiros.yaml` | Obrigatória | Execução abortada; arquivo de exemplo comentado é criado para orientar o cadastro. |
 | 🟡 Arquivo `.env` com as credenciais referenciadas | Obrigatória quando há leiloeiro logado ativo | Execução abortada citando a variável faltante, antes de qualquer requisição. |
 | 🟡 Biblioteca de parsing YAML | Obrigatória | Falha de import encerra o processo. |
-| 🟡 Sites dos leiloeiros | Obrigatória em tempo de coleta, não em tempo de cadastro | Este componente valida apenas o formato da URL, e não se ela responde. A checagem de resposta é do `coletor-lotes`. |
+| 🟡 Sites dos leiloeiros | Obrigatória em tempo de coleta, não em tempo de cadastro | Este componente valida apenas o formato da `base_url` e a forma dos filtros, e não se o site os aceita. A checagem de resposta é do `coletor-lotes`. |
+| 🟢 Registro de adaptadores do `coletor-lotes` | Obrigatória | Consultado apenas para listar os nomes disponíveis (RF-10); sem adaptador, o leiloeiro ativo é rejeitado. |
 
 ---
 
@@ -208,11 +220,12 @@ Busca {
 | Cenário | Trigger | Comportamento esperado |
 |---|---|---|
 | 🟡 EC-01: Arquivo de leiloeiros ausente | Primeira execução | Cria arquivo de exemplo comentado e aborta com mensagem orientando o cadastro. |
-| 🟡 EC-02: URL de busca relativa ou em `http` | Rafael colou um caminho parcial | Rejeita citando o leiloeiro, a descrição da busca e a URL recebida. |
+| 🟢 EC-02: Busca sem filtros, com filtro de valor aninhado ou lista vazia, ou `base_url` relativa ou em `http` | Bloco de busca incompleto, ou URL colada pela metade | Rejeita citando o leiloeiro, a descrição da busca e o campo ou valor recebido. |
 | 🟡 EC-03: Leiloeiro `logado` com variável de ambiente inexistente ou vazia | `.env` não carregado, ou nome digitado errado | Aborta antes do primeiro fetch, citando o nome exato da variável esperada (RF-05). |
 | 🟡 EC-04: Credencial escrita direto no YAML | Rafael cola a senha no campo em vez do nome da variável | O carregamento é rejeitado com aviso de segurança, orientando a mover o valor para o `.env`. |
 | 🟡 EC-05: Leiloeiro declarado sem nenhuma busca | Bloco criado e esquecido pela metade | Rejeita citando o nome do leiloeiro (RF-02). |
-| 🟡 EC-06: Duas buscas com a mesma URL | Duplicação por copiar e colar | Emite aviso, mantém a primeira ocorrência e prossegue. |
+| 🟡 EC-06: Duas buscas com os mesmos filtros, em qualquer ordem de chaves | Duplicação por copiar e colar | Emite aviso, mantém a primeira ocorrência e prossegue. |
+| 🟢 EC-11: Leiloeiro ativo sem adaptador de coleta | Leiloeiro novo cadastrado antes de o adaptador ser implementado | Rejeita citando o nome e listando os adaptadores disponíveis (RF-10). Com `ativo: false`, carrega sem erro, permitindo cadastrar antes de implementar. |
 | 🟡 EC-07: Expressão de frequência inválida | Erro de digitação no campo | Rejeita citando a expressão recebida e o formato esperado. |
 | 🟡 EC-08: `nivel_coleta` fora do conjunto aceito | Rafael escreve `apify-residencial` com hífen | Rejeita listando os três valores válidos. |
 | 🟡 EC-09: Arquivo inacessível ou leitura travada | Arquivo em lock, ou pasta de nuvem sincronizando | A leitura tem timeout de 5 segundos. Estourado o limite, a falha é reportada com o caminho absoluto e a execução aborta, sem retry silencioso. |
@@ -241,7 +254,7 @@ Busca {
 
 | # | Pergunta | Impacto | Dono | Prazo |
 |---|---|---|---|---|
-| 🟡 OQ-01 | As URLs filtradas dos leiloeiros expiram, ou carregam token de sessão que as invalida depois de um tempo? Se sim, o cadastro precisa de uma estratégia de renovação. | Alto | Rafael | Antes de cadastrar o segundo leiloeiro |
+| 🟢 OQ-01 | ~~As URLs filtradas dos leiloeiros expiram?~~ **Resolvida em 2026-10-03:** a busca deixou de ser URL. Filtros declarados não expiram; o estado de sessão, como o cookie de canal do Vip, é obtido pelo `coletor-lotes` a cada execução. | — | Rafael | Fechada |
 | 🟡 OQ-02 | Uma credencial pode servir a mais de um leiloeiro do mesmo grupo econômico? O modelo atual assume uma variável de ambiente por leiloeiro. | Baixo | Rafael | Pós-MVP |
 | 🟡 OQ-03 | O acesso logado deve usar login e senha ou é viável reaproveitar um cookie de sessão exportado do navegador? A segunda opção evitaria lidar com 2FA. | Alto | Rafael | Antes de cadastrar o primeiro leiloeiro logado |
 | 🟡 OQ-04 | Qual o formato exato da expressão de frequência: cron padrão de cinco campos ou um vocabulário simplificado? A decisão pertence ao `agendador-observabilidade` e é apenas consumida aqui. | Médio | Rafael | Antes de implementar o agendador |
@@ -253,7 +266,8 @@ Busca {
 | Decisão | Alternativas consideradas | Racional |
 |---|---|---|
 | 🟡 Credencial por referência a variável de ambiente | Senha no YAML; cofre de segredos dedicado | Escolhido em 2026-09-21. Senha no YAML seria versionada em git, o que é inaceitável. Um cofre dedicado é complexidade desproporcional para ferramenta pessoal de usuário único. |
-| 🟡 URL filtrada cadastrada à mão em vez de descoberta por automação de cliques | Automação de navegador percorrendo os filtros | Decidido na ideação. Automação de cliques é frágil, lenta e quebra a cada mudança de layout. Uma URL colada uma vez é estável e barata de refazer. |
+| 🟡 ~~URL filtrada cadastrada à mão~~ (substituída em 2026-10-03, ver linha seguinte) | Automação de navegador percorrendo os filtros | Decidido na ideação. Automação de cliques é frágil, lenta e quebra a cada mudança de layout. |
+| 🟢 Busca como conjunto de filtros chave-valor, opacos ao registro, traduzidos por adaptador por leiloeiro | Manter URL; guardar o corpo HTTP bruto; aceitar URL ou filtros como formas alternativas | Decidido em 2026-09-27 e incorporado em 2026-10-03. O Vip envia filtros no corpo de um POST e o redirecionamento de cookie descarta a query string, então a URL não reproduz a busca. Guardar o corpo bruto acoplaria o YAML ao formato HTTP. Duas formas alternativas dobrariam a validação; um leiloeiro que filtra por query string é atendido pelo adaptador montando a URL a partir dos mesmos filtros. Mantém o espírito da ideação: a busca é definida uma vez, à mão, sem automação de cliques. |
 | 🟡 `nivel_coleta` e frequência declarados por leiloeiro | Configuração global única | Vem direto da estratégia de escalonamento progressivo da ideação: um site que exige Apify não deve forçar todos os outros a pagar esse custo, e um site frágil não deve ditar o ritmo dos demais. |
 | 🟡 Config inválida aborta a execução inteira | Ignorar o leiloeiro inválido e seguir com os demais | Ignorar em silêncio criaria a falha mais cara do sistema: o Rafael acreditando que monitora 5 leiloeiros enquanto monitora 4. O PRD exige explicitamente que o sistema não falhe em silêncio. |
 
@@ -270,3 +284,4 @@ Busca {
 | Versão | Data | Autor | Mudanças |
 |---|---|---|---|
 | 1.0 | 2026-09-21 | reversa-spec-sdd | Criação inicial a partir do PRD |
+| 1.1 | 2026-10-03 | reversa-forward | Emenda: busca passa de URL absoluta para mapa `filtros` (RF-02, RF-09, modelo de dados, exemplo, EC-02, EC-06); `https` passa a valer para `base_url`; novos NG-05, RF-10 e EC-11 (adaptador por leiloeiro); OQ-01 fechada. Origem: esclarecimento de 2026-09-27 em `_reversa_forward/001-mvp-varredura-ponta-a-ponta/requirements.md#9` |
