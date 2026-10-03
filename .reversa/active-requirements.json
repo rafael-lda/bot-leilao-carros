@@ -4,10 +4,11 @@
   "feature-id": "001",
   "short-name": "mvp-varredura-ponta-a-ponta",
   "started-at": "2026-09-25T15:15:56-03:00",
-  "current-stage": "clarify",
+  "current-stage": "plan",
   "stages-completed": [
     "requirements",
-    "clarify"
+    "clarify",
+    "plan"
   ],
   "paused-features": []
 }
