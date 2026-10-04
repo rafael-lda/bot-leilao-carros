@@ -70,32 +70,32 @@ Lógica de cada componente, ordenada pela dependência.
 
 | ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
 |----|-----------|--------------|-------------|--------------|-------------|--------|
-| T027 | Implementar `normalizar_texto` e `gerar_id` | T006 | - | `src/bot_leilao/texto.py` | 🟢 | `[ ]` |
-| T028 | Implementar `logsetup`: log em console e `dados/logs/bot-leilao.log` com rotação de 1 MB e 5 arquivos, e filtro que mascara valores de segredos, inclusive em exceções | T007 | `[//]` | `src/bot_leilao/logsetup.py` | 🟢 | `[ ]` |
-| T029 | Implementar leitura segura de YAML e criação dos arquivos de exemplo comentados, com o conteúdo de `interfaces/arquivos-configuracao.md` | T008 | `[//]` | `src/bot_leilao/config/arquivos.py` | 🟢 | `[ ]` |
-| T030 | Implementar o carregamento e a validação de `veiculos-alvo.yaml` com `VeiculoAlvo`, id estável e avisos | T009, T029, T027 | `[//]` | `src/bot_leilao/config/veiculos.py` | 🟢 | `[ ]` |
-| T031 | Implementar o carregamento e a validação de `leiloeiros.yaml` com `Leiloeiro`, `Busca`, ids estáveis e consulta aos registros de adaptadores e de parsers recebidos como parâmetro | T010, T029, T027 | `[//]` | `src/bot_leilao/config/leiloeiros.py` | 🟢 | `[ ]` |
-| T032 | Implementar o carregamento do `.env` e a validação de `TELEGRAM_BOT_TOKEN` e `TELEGRAM_CHAT_ID`, expondo a lista de valores a mascarar | T011 | `[//]` | `src/bot_leilao/config/ambiente.py` | 🟢 | `[ ]` |
-| T033 | Implementar a conexão SQLite com os pragmas e o timeout de bloqueio | T012 | `[//]` | `src/bot_leilao/db/conexao.py` | 🟢 | `[ ]` |
-| T034 | Implementar as migrações por `user_version`, versão 1 com as cinco tabelas e índices de `data-delta.md` | T012, T033 | - | `src/bot_leilao/db/migracoes.py` | 🟢 | `[ ]` |
-| T035 | Implementar a trava de execução por arquivo exclusivo com PID, instante e regra de órfã de 2 h | T013 | `[//]` | `src/bot_leilao/db/trava.py` | 🟡 | `[ ]` |
-| T036 | Implementar o repositório de `lote_conhecido` e `busca_semeada` | T014, T034 | `[//]` | `src/bot_leilao/db/lotes.py` | 🟢 | `[ ]` |
-| T037 | Implementar o repositório de `execucao`, `execucao_leiloeiro` e `execucao_busca`, com a consulta de alerta já enviado no dia | T015, T034 | `[//]` | `src/bot_leilao/db/execucoes.py` | 🟡 | `[ ]` |
-| T038 | Implementar os modelos do coletor: `RespostaBruta`, `Pagina`, `Veredito` e o protocolo `Adaptador` | T016 | `[//]` | `src/bot_leilao/coleta/modelos.py` | 🟢 | `[ ]` |
-| T039 | Implementar o registro de adaptadores por `leiloeiro_id`, com listagem dos nomes disponíveis | T038 | - | `src/bot_leilao/coleta/registro.py` | 🟢 | `[ ]` |
-| T040 | Implementar o cliente HTTP: sessão com cookies, redirecionamentos, timeout, retry com espera crescente, classificação de veredito, espaçamento entre requisições e limite de tamanho, com os cabeçalhos de navegador definidos num único ponto (D-30) | T016, T038 | `[//]` | `src/bot_leilao/coleta/http.py` | 🟢 | `[ ]` |
-| T041 | Implementar o coletor: preparação de sessão por leiloeiro, paginação com teto, busca atômica, isolamento entre buscas e registro por busca | T017, T040, T039 | - | `src/bot_leilao/coleta/coletor.py` | 🟢 | `[ ]` |
-| T042 | Implementar o adaptador `vip-leiloes` conforme `interfaces/vip-pesquisa.md` e registrá-lo | T018, T039 | `[//]` | `src/bot_leilao/coleta/vip.py` | 🟢 | `[ ]` |
-| T043 | Implementar os modelos de parsing: `Lote` com `quilometragem`, `situacao`, `retirado` e `ResultadoParsing` | T021 | `[//]` | `src/bot_leilao/parsing/modelos.py` | 🟢 | `[ ]` |
-| T044 | Implementar os normalizadores de preço, ano, quilometragem e link | T019, T027 | `[//]` | `src/bot_leilao/parsing/normalizadores.py` | 🟢 | `[ ]` |
-| T045 | Implementar a tabela comum de sinônimos de marca e a função de tradução | T020, T027 | `[//]` | `src/bot_leilao/parsing/marcas.py` | 🟢 | `[ ]` |
-| T046 | Implementar o núcleo de parsing: registro de parsers, detecção de quebra, descartes, isolamento de falha e deduplicação por busca, com a regra de zero resultados legítimos (D-31) | T021, T043 | - | `src/bot_leilao/parsing/nucleo.py` | 🟢 | `[ ]` |
-| T047 | Implementar o parser `vip-leiloes` e registrá-lo | T022, T044, T045, T043, T046 | - | `src/bot_leilao/parsing/vip.py` | 🟢 | `[ ]` |
-| T048 | Implementar os critérios do motor de filtros, incluindo km opcional, retirados e preço ou km ausentes | T023, T043, T030, T027 | `[//]` | `src/bot_leilao/filtro/motor.py` | 🟢 | `[ ]` |
-| T049 | Implementar o fluxo do motor: deduplicação, semeadura, contagens e gravação pós-confirmação | T024, T048, T036 | - | `src/bot_leilao/filtro/fluxo.py` | 🟢 | `[ ]` |
-| T050 | Implementar a formatação do digest e do alerta, com escape HTML e divisão em blocos | T025, T043 | `[//]` | `src/bot_leilao/notificacao/digest.py` | 🟢 | `[ ]` |
-| T051 | Implementar o envio ao Telegram com retry, tratamento por código de resposta e confirmação e espera de 1 s entre blocos | T026, T050, T032 | - | `src/bot_leilao/notificacao/telegram.py` | 🟢 | `[ ]` |
-| T063 | Implementar o aviso de coerência entre alvos e buscas, recebendo a função de tipo da busca de cada adaptador como parâmetro | T030, T031, T062 | `[//]` | `src/bot_leilao/config/coerencia.py` | 🟡 | `[ ]` |
+| T027 | Implementar `normalizar_texto` e `gerar_id` | T006 | - | `src/bot_leilao/texto.py` | 🟢 | `[X]` |
+| T028 | Implementar `logsetup`: log em console e `dados/logs/bot-leilao.log` com rotação de 1 MB e 5 arquivos, e filtro que mascara valores de segredos, inclusive em exceções | T007 | `[//]` | `src/bot_leilao/logsetup.py` | 🟢 | `[X]` |
+| T029 | Implementar leitura segura de YAML e criação dos arquivos de exemplo comentados, com o conteúdo de `interfaces/arquivos-configuracao.md` | T008 | `[//]` | `src/bot_leilao/config/arquivos.py` | 🟢 | `[X]` |
+| T030 | Implementar o carregamento e a validação de `veiculos-alvo.yaml` com `VeiculoAlvo`, id estável e avisos | T009, T029, T027 | `[//]` | `src/bot_leilao/config/veiculos.py` | 🟢 | `[X]` |
+| T031 | Implementar o carregamento e a validação de `leiloeiros.yaml` com `Leiloeiro`, `Busca`, ids estáveis e consulta aos registros de adaptadores e de parsers recebidos como parâmetro | T010, T029, T027 | `[//]` | `src/bot_leilao/config/leiloeiros.py` | 🟢 | `[X]` |
+| T032 | Implementar o carregamento do `.env` e a validação de `TELEGRAM_BOT_TOKEN` e `TELEGRAM_CHAT_ID`, expondo a lista de valores a mascarar | T011 | `[//]` | `src/bot_leilao/config/ambiente.py` | 🟢 | `[X]` |
+| T033 | Implementar a conexão SQLite com os pragmas e o timeout de bloqueio | T012 | `[//]` | `src/bot_leilao/db/conexao.py` | 🟢 | `[X]` |
+| T034 | Implementar as migrações por `user_version`, versão 1 com as cinco tabelas e índices de `data-delta.md` | T012, T033 | - | `src/bot_leilao/db/migracoes.py` | 🟢 | `[X]` |
+| T035 | Implementar a trava de execução por arquivo exclusivo com PID, instante e regra de órfã de 2 h | T013 | `[//]` | `src/bot_leilao/db/trava.py` | 🟡 | `[X]` |
+| T036 | Implementar o repositório de `lote_conhecido` e `busca_semeada` | T014, T034 | `[//]` | `src/bot_leilao/db/lotes.py` | 🟢 | `[X]` |
+| T037 | Implementar o repositório de `execucao`, `execucao_leiloeiro` e `execucao_busca`, com a consulta de alerta já enviado no dia | T015, T034 | `[//]` | `src/bot_leilao/db/execucoes.py` | 🟡 | `[X]` |
+| T038 | Implementar os modelos do coletor: `RespostaBruta`, `Pagina`, `Veredito` e o protocolo `Adaptador` | T016 | `[//]` | `src/bot_leilao/coleta/modelos.py` | 🟢 | `[X]` |
+| T039 | Implementar o registro de adaptadores por `leiloeiro_id`, com listagem dos nomes disponíveis | T038 | - | `src/bot_leilao/coleta/registro.py` | 🟢 | `[X]` |
+| T040 | Implementar o cliente HTTP: sessão com cookies, redirecionamentos, timeout, retry com espera crescente, classificação de veredito, espaçamento entre requisições e limite de tamanho, com os cabeçalhos de navegador definidos num único ponto (D-30) | T016, T038 | `[//]` | `src/bot_leilao/coleta/http.py` | 🟢 | `[X]` |
+| T041 | Implementar o coletor: preparação de sessão por leiloeiro, paginação com teto, busca atômica, isolamento entre buscas e registro por busca | T017, T040, T039 | - | `src/bot_leilao/coleta/coletor.py` | 🟢 | `[X]` |
+| T042 | Implementar o adaptador `vip-leiloes` conforme `interfaces/vip-pesquisa.md` e registrá-lo | T018, T039 | `[//]` | `src/bot_leilao/coleta/vip.py` | 🟢 | `[X]` |
+| T043 | Implementar os modelos de parsing: `Lote` com `quilometragem`, `situacao`, `retirado` e `ResultadoParsing` | T021 | `[//]` | `src/bot_leilao/parsing/modelos.py` | 🟢 | `[X]` |
+| T044 | Implementar os normalizadores de preço, ano, quilometragem e link | T019, T027 | `[//]` | `src/bot_leilao/parsing/normalizadores.py` | 🟢 | `[X]` |
+| T045 | Implementar a tabela comum de sinônimos de marca e a função de tradução | T020, T027 | `[//]` | `src/bot_leilao/parsing/marcas.py` | 🟢 | `[X]` |
+| T046 | Implementar o núcleo de parsing: registro de parsers, detecção de quebra, descartes, isolamento de falha e deduplicação por busca, com a regra de zero resultados legítimos (D-31) | T021, T043 | - | `src/bot_leilao/parsing/nucleo.py` | 🟢 | `[X]` |
+| T047 | Implementar o parser `vip-leiloes` e registrá-lo | T022, T044, T045, T043, T046 | - | `src/bot_leilao/parsing/vip.py` | 🟢 | `[X]` |
+| T048 | Implementar os critérios do motor de filtros, incluindo km opcional, retirados e preço ou km ausentes | T023, T043, T030, T027 | `[//]` | `src/bot_leilao/filtro/motor.py` | 🟢 | `[X]` |
+| T049 | Implementar o fluxo do motor: deduplicação, semeadura, contagens e gravação pós-confirmação | T024, T048, T036 | - | `src/bot_leilao/filtro/fluxo.py` | 🟢 | `[X]` |
+| T050 | Implementar a formatação do digest e do alerta, com escape HTML e divisão em blocos | T025, T043 | `[//]` | `src/bot_leilao/notificacao/digest.py` | 🟢 | `[X]` |
+| T051 | Implementar o envio ao Telegram com retry, tratamento por código de resposta e confirmação e espera de 1 s entre blocos | T026, T050, T032 | - | `src/bot_leilao/notificacao/telegram.py` | 🟢 | `[X]` |
+| T063 | Implementar o aviso de coerência entre alvos e buscas, recebendo a função de tipo da busca de cada adaptador como parâmetro | T030, T031, T062 | `[//]` | `src/bot_leilao/config/coerencia.py` | 🟡 | `[X]` |
 
 ## Fase 4, Integração
 

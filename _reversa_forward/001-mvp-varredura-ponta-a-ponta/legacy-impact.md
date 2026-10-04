@@ -1,7 +1,7 @@
 # Legacy Impact: MVP de Varredura Ponta a Ponta
 
 > Identificador: `001-mvp-varredura-ponta-a-ponta`
-> Atualizado em: `2026-10-04` (etapa 1 de 3: T001–T026, T062)
+> Atualizado em: `2026-10-04` (etapa 2 de 3: T001–T051, T062, T063)
 > Feature greenfield, sem legado pré-existente. Âncora: `prd.md` + specs SDD em `_reversa_sdd/sdd/`.
 > Política de edição no momento da execução: `allowLegacyEdits: true`, `allowedPaths: []` (projeto inteiro liberado pelo Rafael). Escritas restritas, por conduta, aos caminhos do `roadmap.md` §5.
 
@@ -21,10 +21,17 @@
 | `tests/test_normalizadores.py`, `tests/test_marcas.py`, `tests/test_parsing_*.py` | `parser-lotes` | componente-novo | LOW | Especificação do parsing |
 | `tests/test_motor_*.py` | `motor-filtros` | componente-novo | LOW | Especificação dos critérios, semeadura e deduplicação |
 | `tests/test_digest.py`, `tests/test_telegram.py` | `notificador-telegram` | componente-novo | LOW | Especificação do digest e do envio |
+| `src/bot_leilao/texto.py`, `src/bot_leilao/logsetup.py` | transversal | componente-novo | LOW | Normalização e ids estáveis (D-24); log com mascaramento de segredos (D-26, RN-08) |
+| `src/bot_leilao/config/arquivos.py`, `veiculos.py`, `leiloeiros.py`, `ambiente.py`, `coerencia.py` | `configuracao-veiculos-alvo`, `cadastro-leiloeiros` v1.3 | componente-novo | MEDIUM | Validação antes da rede; `quilometragem_maxima` (delta sobre a spec); adaptador e parser exigidos; aviso alvos × buscas |
+| `src/bot_leilao/db/conexao.py`, `migracoes.py`, `trava.py`, `lotes.py`, `execucoes.py` | `motor-filtros`, `agendador-observabilidade` | delta-de-dados | MEDIUM | Esquema v1 com cinco tabelas (data-delta.md §2), duas delas novas sobre as specs |
+| `src/bot_leilao/coleta/modelos.py`, `registro.py`, `http.py`, `coletor.py`, `vip.py` | `coletor-lotes` v1.1 | componente-novo, delta-de-contrato-externo | MEDIUM | Nível `script`; cabeçalho de navegador (D-30); sessão, paginação, busca atômica; contrato do Vip |
+| `src/bot_leilao/parsing/modelos.py`, `normalizadores.py`, `marcas.py`, `nucleo.py`, `vip.py` | `parser-lotes` v1.2 | componente-novo | MEDIUM | Campos novos no `Lote`; sinônimos de marca; busca vazia legítima (D-31) |
+| `src/bot_leilao/filtro/motor.py`, `fluxo.py` | `motor-filtros` | componente-novo | MEDIUM | Km opcional, retirados, semeadura por busca (D-20); `lote_conhecido` no lugar de `LoteNotificado` |
+| `src/bot_leilao/notificacao/digest.py`, `telegram.py` | `notificador-telegram` | componente-novo, delta-de-contrato-externo | LOW | Digest em HTML, divisão em blocos, envio com confirmação |
 
 ## Diff conceitual por componente
 
-Nesta etapa só existem testes e infraestrutura: nenhum comportamento de produção foi implementado. Os testes fixam o contrato descrito em `api-interna.md`, que a etapa 2 implementa.
+Etapa 2: todos os componentes do recorte da feature existem e passam nos testes da etapa 1. Ainda falta a cola (orquestrador, alertas, CLI) e os cenários de ponta a ponta, que vêm na etapa 3. Deltas sobre as specs, a convergir pelo `/reversa-sync`: `quilometragem_maxima`; campos `quilometragem`, `situacao` e `retirado` no `Lote`; critério de km e descarte de retirados no motor; tabelas `lote_conhecido` (com `origem`), `busca_semeada` e `execucao_busca`.
 
 ## Preservadas
 
