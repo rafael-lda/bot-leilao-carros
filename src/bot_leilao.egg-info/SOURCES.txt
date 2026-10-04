@@ -1,0 +1,9 @@
+README.md
+pyproject.toml
+src/bot_leilao/__init__.py
+src/bot_leilao/__main__.py
+src/bot_leilao.egg-info/PKG-INFO
+src/bot_leilao.egg-info/SOURCES.txt
+src/bot_leilao.egg-info/dependency_links.txt
+src/bot_leilao.egg-info/requires.txt
+src/bot_leilao.egg-info/top_level.txt

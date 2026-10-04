@@ -19,3 +19,6 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+
+# Dados locais do bot — banco, trava e logs
+dados/

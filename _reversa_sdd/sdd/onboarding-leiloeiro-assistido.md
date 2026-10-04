@@ -288,7 +288,7 @@ Cada item foi encontrado num leiloeiro real e vira verificação obrigatória no
 | `cookie_previo` | Alguma página exige cookie emitido por outro endpoint antes? | Sem sessão com cookies, o site redireciona em laço | Vip, 2026-09-27 |
 | `redirect_descarta_query` | O redirecionamento perde os parâmetros da URL? | A busca chega ao servidor sem os filtros, mais larga que o pretendido | Vip, 2026-09-27 |
 | `filtro_ignorado` | O total de resultados muda ao aplicar cada filtro? | Campo com nome errado é ignorado pelo servidor sem erro | Vip, 2026-10-03 |
-| `zero_resultados` | Como o site mostra uma busca sem resultados? Existe indicador de total? | Sem indicador, página vazia legítima e layout quebrado ficam indistinguíveis e geram alerta falso (`parser-lotes` EC-15) | Vip, 2026-10-03 (`0 resultados encontrados`) |
+| `zero_resultados` | Como o site mostra uma busca sem resultados? Existe indicador de total? | Sem indicador, página vazia legítima e layout quebrado ficam indistinguíveis e geram alerta falso (`parser-lotes` EC-15) | Vip, 2026-10-04 ("Nenhum lote encontrado." em `div.filter-wait`; o indicador de total some) |
 | `paginacao` | Quantos lotes por página, como pedir a página N, como saber que acabou? | Ler só a primeira página perde lotes em silêncio | Vip, 2026-09-27 |
 | `numero_lote_por_evento` | O número do lote se repete entre eventos diferentes? | Se repetir, não serve de identificador canônico (`parser-lotes` RF-06) | Vip, 2026-10-03 |
 | `sinonimos_marca` | O site usa mais de uma grafia para a mesma marca? Compare a lista de marcas do site com a tabela de sinônimos do `parser-lotes` | Alvo escrito por extenso perde os lotes da grafia abreviada (`parser-lotes` RF-12) | Vip, 2026-10-03 (`MMC`, `GM`) |

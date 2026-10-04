@@ -1,0 +1,27 @@
+{"ts": "2026-10-04T00:14:58Z", "action": "T001", "status": "done", "files": ["pyproject.toml", "README.md"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T002", "status": "done", "files": [".env.example", ".gitignore"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T003", "status": "done", "files": ["src/bot_leilao/__init__.py", "src/bot_leilao/__main__.py"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T004", "status": "done", "files": ["scripts/capturar_fixtures.py", "tests/fixtures/vip/"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T005", "status": "done", "files": ["tests/conftest.py", "tests/apoio.py"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T006", "status": "done", "files": ["tests/test_texto.py"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T007", "status": "done", "files": ["tests/test_logsetup.py"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T008", "status": "done", "files": ["tests/test_config_arquivos.py"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T009", "status": "done", "files": ["tests/test_config_veiculos.py"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T010", "status": "done", "files": ["tests/test_config_leiloeiros.py"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T011", "status": "done", "files": ["tests/test_ambiente.py"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T012", "status": "done", "files": ["tests/test_db_migracoes.py"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T013", "status": "done", "files": ["tests/test_trava.py"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T014", "status": "done", "files": ["tests/test_repo_lotes.py"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T015", "status": "done", "files": ["tests/test_repo_execucoes.py"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T016", "status": "done", "files": ["tests/test_coleta_http.py"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T017", "status": "done", "files": ["tests/test_coletor.py"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T018", "status": "done", "files": ["tests/test_coleta_vip.py"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T019", "status": "done", "files": ["tests/test_normalizadores.py"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T020", "status": "done", "files": ["tests/test_marcas.py"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T021", "status": "done", "files": ["tests/test_parsing_nucleo.py"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T022", "status": "done", "files": ["tests/test_parsing_vip.py"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T023", "status": "done", "files": ["tests/test_motor_criterios.py"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T024", "status": "done", "files": ["tests/test_motor_fluxo.py"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T025", "status": "done", "files": ["tests/test_digest.py"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T026", "status": "done", "files": ["tests/test_telegram.py"]}
+{"ts": "2026-10-04T00:14:58Z", "action": "T062", "status": "done", "files": ["tests/test_config_coerencia.py"]}

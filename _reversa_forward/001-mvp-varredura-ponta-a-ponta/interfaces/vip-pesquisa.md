@@ -71,7 +71,8 @@ Valor de lista no YAML vira o mesmo campo repetido no corpo. Nenhum campo do Vip
 
 | Elemento | Seletor | Exemplo | Confidência |
 |----------|---------|---------|-------------|
-| Total | `#resultadosEncontrados` | `201 resultados encontrados` | 🟢 |
+| Total | `#resultadosEncontrados` | `201 resultados encontrados` (ausente quando não há resultados) | 🟢 |
+| Busca vazia | `div.filter-wait h4` | `Nenhum lote encontrado.` | 🟢 |
 | Página atual | `input#CurrentPage` | `value="2"` | 🟢 |
 | Existe próxima | `.main-pagination li.page-go` que contém `a[aria-label="Next"]`, **sem** a classe `disabled` | — | 🟢 |
 
@@ -120,15 +121,15 @@ Sem nenhum lance, `valor-atual` e `Valor inicial` coincidem (`requirements.md#9`
 
 | Situação | Detecção | Veredito no coletor | Retry |
 |----------|----------|---------------------|-------|
-| Timeout de 30 s | Exceção de timeout | `falha_rede` | Sim, até 3 tentativas com espera de 2 s e 4 s |
+| Timeout de 30 s | Exceção de timeout | `falha_rede` | Sim, até 3 tentativas com espera de 5 s e 15 s (a espera nunca fica abaixo do intervalo mínimo de 5 s entre requisições ao mesmo host, por isso não 2 s e 4 s) |
 | DNS ou conexão recusada | Exceção de conexão | `falha_rede` | Sim |
 | Mais de 3 redirecionamentos | Exceção de excesso de redirecionamentos | `falha_rede`, `motivo: laco_redirecionamento` | Sim |
 | `403` ou `429` | Status | `bloqueado` | Sim; em `429`, respeita `Retry-After` até 60 s |
 | Desafio do Cloudflare | Status `403`/`503` com marcas `cf-chl` ou `Just a moment` no corpo | `bloqueado` | Sim |
 | `5xx` | Status | `falha_rede` | Sim |
 | `200` com corpo vazio | Tamanho zero | Falha de coleta (EC-06 do `coletor-lotes`) | Não |
-| `200` com `#resultadosEncontrados` = 0 e sem cards | Busca vazia legítima | `ok` no coletor; o parser devolve lista vazia **sem** quebra (roadmap D-31) | Não |
-| `200` com total > 0 e sem cards, ou sem `#resultadosEncontrados` e sem cards | Layout desconhecido | `ok` no coletor; o parser sinaliza quebra (RF-07 do `parser-lotes`) | Não |
+| `200` com `div.filter-wait` contendo "Nenhum lote encontrado." (cerca de 233 bytes, **sem** `#resultadosEncontrados` e sem paginação) | Busca vazia legítima | `ok` no coletor; o parser devolve lista vazia **sem** quebra (roadmap D-31) | Não |
+| `200` sem cards e sem o marcador de busca vazia | Layout desconhecido | `ok` no coletor; o parser sinaliza quebra (RF-07 do `parser-lotes`) | Não |
 
 ## 5. Idempotência, ritmo e limites
 
