@@ -146,6 +146,13 @@ def test_429_respeita_retry_after_com_teto(roteiro, relogio):
     assert 600.0 not in relogio.dormidas
 
 
+def test_429_sem_retry_after_espera_30s(roteiro, relogio):
+    """Observado no Vip em 2026-10-04: 429 sem Retry-After na 17ª requisição a 5 s."""
+    transp = roteiro([httpx.Response(429), httpx.Response(200, text="ok")])
+    assert _cliente(transp, relogio).requisitar(Requisicao("GET", URL)).ok
+    assert 30.0 in relogio.dormidas
+
+
 def test_desafio_cloudflare_e_bloqueio(roteiro, relogio):
     transp = roteiro(lambda r: httpx.Response(503, text="<title>Just a moment...</title> cf-chl"))
     resultado = _cliente(transp, relogio).requisitar(Requisicao("GET", URL))

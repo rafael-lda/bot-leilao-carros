@@ -1,7 +1,7 @@
 # Legacy Impact: MVP de Varredura Ponta a Ponta
 
 > Identificador: `001-mvp-varredura-ponta-a-ponta`
-> Atualizado em: `2026-10-04` (etapa 2 de 3: T001–T051, T062, T063)
+> Atualizado em: `2026-10-04` (concluída: T001–T063, três etapas)
 > Feature greenfield, sem legado pré-existente. Âncora: `prd.md` + specs SDD em `_reversa_sdd/sdd/`.
 > Política de edição no momento da execução: `allowLegacyEdits: true`, `allowedPaths: []` (projeto inteiro liberado pelo Rafael). Escritas restritas, por conduta, aos caminhos do `roadmap.md` §5.
 
@@ -28,10 +28,14 @@
 | `src/bot_leilao/parsing/modelos.py`, `normalizadores.py`, `marcas.py`, `nucleo.py`, `vip.py` | `parser-lotes` v1.2 | componente-novo | MEDIUM | Campos novos no `Lote`; sinônimos de marca; busca vazia legítima (D-31) |
 | `src/bot_leilao/filtro/motor.py`, `fluxo.py` | `motor-filtros` | componente-novo | MEDIUM | Km opcional, retirados, semeadura por busca (D-20); `lote_conhecido` no lugar de `LoteNotificado` |
 | `src/bot_leilao/notificacao/digest.py`, `telegram.py` | `notificador-telegram` | componente-novo, delta-de-contrato-externo | LOW | Digest em HTML, divisão em blocos, envio com confirmação |
+| `src/bot_leilao/notificacao/alertas.py` | `notificador-telegram`, `agendador-observabilidade` | componente-novo | LOW | Alerta de quebra limitado a 1 por dia por leiloeiro (D-22); alerta único de falha geral |
+| `src/bot_leilao/orquestrador.py`, `src/bot_leilao/cli.py` | `agendador-observabilidade` (parcial) | componente-novo | MEDIUM | Pipeline com registro garantido em `finally`, trava, dry-run; comandos `varrer` e `testar-telegram`. Sem agendamento automático, recomendações de frequência nem relatório de saúde |
+| `tests/test_e2e_*.py`, `tests/test_cli.py`, `tests/test_seguranca.py`, `tests/RASTREABILIDADE.md` | testes | componente-novo | LOW | 11 cenários de aceitação, CLI, segurança do token e matriz RF → teste |
+
 
 ## Diff conceitual por componente
 
-Etapa 2: todos os componentes do recorte da feature existem e passam nos testes da etapa 1. Ainda falta a cola (orquestrador, alertas, CLI) e os cenários de ponta a ponta, que vêm na etapa 3. Deltas sobre as specs, a convergir pelo `/reversa-sync`: `quilometragem_maxima`; campos `quilometragem`, `situacao` e `retirado` no `Lote`; critério de km e descarte de retirados no motor; tabelas `lote_conhecido` (com `origem`), `busca_semeada` e `execucao_busca`.
+Todos os componentes do recorte da feature existem e passam em 339 testes, incluindo os 11 cenários de aceitação de ponta a ponta. Uma execução real em dry-run contra o Vip leu 17 páginas e 201 lotes sem quebra. Deltas sobre as specs, a convergir pelo `/reversa-sync`: `quilometragem_maxima`; campos `quilometragem`, `situacao` e `retirado` no `Lote`; critério de km e descarte de retirados no motor; tabelas `lote_conhecido` (com `origem`), `busca_semeada` e `execucao_busca`.
 
 ## Preservadas
 

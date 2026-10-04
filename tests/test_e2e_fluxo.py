@@ -1,0 +1,105 @@
+"""Cenários 1 a 4 do requirements.md §7, de ponta a ponta, sem rede."""
+
+from apoio import pagina_vazia, pagina_vip
+
+
+def test_cenario_1_primeira_execucao_popula_a_base_sem_notificar(cenario):
+    cenario.vip = pagina_vip()
+    resultado = cenario.varrer()
+
+    assert resultado.veredito == "sucesso"
+    assert resultado.codigo_saida == 0
+    assert cenario.mensagens == [], "nenhuma mensagem na semeadura (RN-07)"
+    con = cenario.banco()
+    assert [r["origem"] for r in con.execute("SELECT origem FROM lote_conhecido")] == ["semeadura"]
+    assert con.execute("SELECT COUNT(*) FROM busca_semeada").fetchone()[0] == 1
+    (execucao,) = cenario.execucoes()
+    assert execucao["finalizado_em"] is not None
+    assert (execucao["lotes_vistos"], execucao["lotes_candidatos"], execucao["lotes_novos"],
+            execucao["lotes_semeados"]) == (1, 1, 0, 1)
+
+
+def test_cenario_2_lote_novo_gera_digest(cenario):
+    cenario.vip = pagina_vazia()
+    assert cenario.varrer().veredito == "sucesso"  # semeia a busca, ainda sem lotes
+
+    notificados_no_envio = []
+    cenario.ao_enviar = lambda: notificados_no_envio.append(cenario.notificados())
+    cenario.vip = pagina_vip(titulo="VERSA 1.6 SV - 2017/2018", valor_atual="R$ 41.900,00")
+    resultado = cenario.varrer()
+
+    assert resultado.veredito == "sucesso"
+    (digest,) = cenario.mensagens
+    assert "1 lote novo" in digest
+    assert "Nissan Versa 1.6 Sv — 2018" in digest, "marca, modelo e ano de modelo"
+    assert "R$ 41.900 — Vip Leilões" in digest, "preço e leiloeiro"
+    assert "https://www.vipleiloes.com.br/evento/anuncio/nissan-versa-16-sv-400001" in digest
+    assert notificados_no_envio == [[]], "nada gravado antes da confirmação (RN-06)"
+    assert cenario.notificados() == ["vip-leiloes:400001"]
+    assert cenario.execucoes()[-1]["digest_enviado"] == 1
+
+
+def test_cenario_3_lote_acima_do_teto_nao_e_notificado(cenario):
+    cenario.vip = pagina_vazia()
+    cenario.varrer()
+    cenario.vip = pagina_vip(valor_inicial="R$ 30.000,00", valor_atual="R$ 52.000,00")
+    resultado = cenario.varrer()
+
+    assert resultado.veredito == "sucesso"
+    assert cenario.mensagens == []
+    assert cenario.execucoes()[-1]["lotes_candidatos"] == 0
+
+
+def test_cenario_4_execucao_repetida_nao_renotifica(cenario):
+    cenario.vip = pagina_vazia()
+    cenario.varrer()
+    cenario.vip = pagina_vip()
+    cenario.varrer()
+    assert len(cenario.mensagens) == 1
+
+    cenario.varrer()
+    assert len(cenario.mensagens) == 1, "nenhuma mensagem nova"
+    ultima = cenario.execucoes()[-1]
+    assert ultima["lotes_novos"] == 0
+    assert ultima["lotes_ja_conhecidos"] == 1
+
+
+def test_retirado_nao_e_notificado(cenario):
+    """RN-12 / RF-17 de ponta a ponta."""
+    cenario.vip = pagina_vazia()
+    cenario.varrer()
+    cenario.vip = pagina_vip(situacao="Lote Retirado")
+    cenario.varrer()
+    assert cenario.mensagens == []
+    assert cenario.execucoes()[-1]["descartados_retirados"] == 1
+
+
+def test_dry_run_nao_envia_nem_grava(cenario):
+    cenario.vip = pagina_vazia()
+    cenario.varrer()
+    cenario.vip = pagina_vip()
+    resultado = cenario.varrer(dry_run=True)
+
+    assert cenario.mensagens == []
+    assert cenario.notificados() == []
+    assert len(resultado.digest) == 1 and "Versa" in resultado.digest[0]
+    assert cenario.execucoes()[-1]["modo"] == "dry_run"
+
+
+def test_dry_run_na_estreia_avisa_semeadura_e_nao_semeia(cenario):
+    cenario.vip = pagina_vip()
+    resultado = cenario.varrer(dry_run=True)
+    assert resultado.em_semeadura is True
+    assert resultado.digest == []
+    assert len(resultado.candidatos) == 1
+    assert cenario.banco().execute("SELECT COUNT(*) FROM busca_semeada").fetchone()[0] == 0
+
+
+def test_sem_alvo_ativo_termina_com_sucesso_sem_varrer(cenario):
+    """RF-01 da feature (A006)."""
+    from apoio import ALVO_VERSA, escrever
+
+    escrever(cenario.raiz / "config" / "veiculos-alvo.yaml", ALVO_VERSA + "    ativo: false\n")
+    resultado = cenario.varrer()
+    assert resultado.veredito == "sucesso"
+    assert cenario.chamadas == []

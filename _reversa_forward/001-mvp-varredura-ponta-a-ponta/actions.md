@@ -105,13 +105,13 @@ Cola dos componentes, CLI e os cenários de aceitação ponta a ponta.
 
 | ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
 |----|-----------|--------------|-------------|--------------|-------------|--------|
-| T052 | Implementar o alerta operacional com limite de 1 por dia por leiloeiro e o alerta único de falha geral, consultando `execucao_leiloeiro.alerta_enviado` | T050, T051, T037 | `[//]` | `src/bot_leilao/notificacao/alertas.py` | 🟡 | `[ ]` |
-| T053 | Implementar o orquestrador: trava, banco, `INSERT execucao`, configuração, coleta, parsing, filtragem, notificação e `UPDATE execucao` em `finally`; modo `dry_run`; vereditos `sucesso`, `sucesso_parcial`, `falha` e `recusada` | T028, T030, T031, T032, T035, T037, T041, T042, T046, T047, T049, T051, T052, T063 | - | `src/bot_leilao/orquestrador.py` | 🟡 | `[ ]` |
-| T054 | Implementar a CLI com `varrer [--dry-run] [--raiz]` e `testar-telegram [--raiz]` e os códigos de saída de `interfaces/cli.md` | T053 | - | `src/bot_leilao/cli.py` | 🟢 | `[ ]` |
-| T055 | Testes de ponta a ponta dos cenários 1 a 4 do requirements: semeadura sem notificar, lote novo gera digest, lote acima do teto, execução repetida não renotifica | T053 | `[//]` | `tests/test_e2e_fluxo.py` | 🟢 | `[ ]` |
-| T056 | Testes de ponta a ponta dos cenários 5 a 8: parser quebrado avisa, falha no envio preserva lotes, configuração inválida aborta antes da rede, bloqueio distinto de falha de rede | T053 | `[//]` | `tests/test_e2e_falhas.py` | 🟢 | `[ ]` |
-| T057 | Testes de ponta a ponta dos cenários 9 a 11: cadastro de leiloeiro inválido, falha total de rede registrada com encerramento, segunda execução recusada | T053 | `[//]` | `tests/test_e2e_robustez.py` | 🟢 | `[ ]` |
-| T058 | Testes da CLI: códigos de saída 0, 1, 2 e 3, `--dry-run` sem envio e sem gravar `lote_conhecido`, `testar-telegram` | T054 | `[//]` | `tests/test_cli.py` | 🟢 | `[ ]` |
+| T052 | Implementar o alerta operacional com limite de 1 por dia por leiloeiro e o alerta único de falha geral, consultando `execucao_leiloeiro.alerta_enviado` | T050, T051, T037 | `[//]` | `src/bot_leilao/notificacao/alertas.py` | 🟡 | `[X]` |
+| T053 | Implementar o orquestrador: trava, banco, `INSERT execucao`, configuração, coleta, parsing, filtragem, notificação e `UPDATE execucao` em `finally`; modo `dry_run`; vereditos `sucesso`, `sucesso_parcial`, `falha` e `recusada` | T028, T030, T031, T032, T035, T037, T041, T042, T046, T047, T049, T051, T052, T063 | - | `src/bot_leilao/orquestrador.py` | 🟡 | `[X]` |
+| T054 | Implementar a CLI com `varrer [--dry-run] [--raiz]` e `testar-telegram [--raiz]` e os códigos de saída de `interfaces/cli.md` | T053 | - | `src/bot_leilao/cli.py` | 🟢 | `[X]` |
+| T055 | Testes de ponta a ponta dos cenários 1 a 4 do requirements: semeadura sem notificar, lote novo gera digest, lote acima do teto, execução repetida não renotifica | T053 | `[//]` | `tests/test_e2e_fluxo.py` | 🟢 | `[X]` |
+| T056 | Testes de ponta a ponta dos cenários 5 a 8: parser quebrado avisa, falha no envio preserva lotes, configuração inválida aborta antes da rede, bloqueio distinto de falha de rede | T053 | `[//]` | `tests/test_e2e_falhas.py` | 🟢 | `[X]` |
+| T057 | Testes de ponta a ponta dos cenários 9 a 11: cadastro de leiloeiro inválido, falha total de rede registrada com encerramento, segunda execução recusada | T053 | `[//]` | `tests/test_e2e_robustez.py` | 🟢 | `[X]` |
+| T058 | Testes da CLI: códigos de saída 0, 1, 2 e 3, `--dry-run` sem envio e sem gravar `lote_conhecido`, `testar-telegram` | T054 | `[//]` | `tests/test_cli.py` | 🟢 | `[X]` |
 
 ## Fase 5, Polimento
 
@@ -121,9 +121,9 @@ Segurança comprovada, rastreabilidade e documentação curta.
 
 | ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
 |----|-----------|--------------|-------------|--------------|-------------|--------|
-| T059 | Teste de segurança: forçar exceção do `httpx` com a URL do bot no rastreamento e verificar que o token não aparece no log nem na saída; varrer o log de uma execução completa em busca de valores do `.env` | T053, T028 | `[//]` | `tests/test_seguranca.py` | 🟢 | `[ ]` |
-| T060 | Criar a matriz de rastreabilidade RF-01 a RF-18 e dos 11 cenários para os arquivos de teste, e conferir que nenhum requisito ficou sem teste | T055, T056, T057, T058, T059 | - | `tests/RASTREABILIDADE.md` | 🟢 | `[ ]` |
-| T061 | Criar `README.md` curto: o que é, instalação, os comandos, estrutura de pastas e ponteiro para `onboarding.md` | T054 | `[//]` | `README.md` | 🟢 | `[ ]` |
+| T059 | Teste de segurança: forçar exceção do `httpx` com a URL do bot no rastreamento e verificar que o token não aparece no log nem na saída; varrer o log de uma execução completa em busca de valores do `.env` | T053, T028 | `[//]` | `tests/test_seguranca.py` | 🟢 | `[X]` |
+| T060 | Criar a matriz de rastreabilidade RF-01 a RF-18 e dos 11 cenários para os arquivos de teste, e conferir que nenhum requisito ficou sem teste | T055, T056, T057, T058, T059 | - | `tests/RASTREABILIDADE.md` | 🟢 | `[X]` |
+| T061 | Criar `README.md` curto: o que é, instalação, os comandos, estrutura de pastas e ponteiro para `onboarding.md` | T054 | `[//]` | `README.md` | 🟢 | `[X]` |
 
 ## Notas de execução
 
@@ -136,4 +136,5 @@ Segurança comprovada, rastreabilidade e documentação curta.
 | Data | Alteração | Autor |
 |------|-----------|-------|
 | 2026-10-03 | Versão inicial gerada por `/reversa-to-do` | reversa |
+| 2026-10-04 | Codificação concluída em três etapas: 63 ações `[X]` | reversa-coding |
 | 2026-10-03 | Correções do `audit/cross-check.md`: T062 e T063 novas (A004); descrições de T008, T009, T010, T016, T018, T021, T022, T026, T029, T031, T040, T046, T051 ajustadas (A001, A002, A003, A005, A006, A007); T053 passa a depender de T063 | reversa-forward |

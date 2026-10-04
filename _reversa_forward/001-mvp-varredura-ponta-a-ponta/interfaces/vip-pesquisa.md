@@ -124,7 +124,7 @@ Sem nenhum lance, `valor-atual` e `Valor inicial` coincidem (`requirements.md#9`
 | Timeout de 30 s | Exceção de timeout | `falha_rede` | Sim, até 3 tentativas com espera de 5 s e 15 s (a espera nunca fica abaixo do intervalo mínimo de 5 s entre requisições ao mesmo host, por isso não 2 s e 4 s) |
 | DNS ou conexão recusada | Exceção de conexão | `falha_rede` | Sim |
 | Mais de 3 redirecionamentos | Exceção de excesso de redirecionamentos | `falha_rede`, `motivo: laco_redirecionamento` | Sim |
-| `403` ou `429` | Status | `bloqueado` | Sim; em `429`, respeita `Retry-After` até 60 s |
+| `403` ou `429` | Status | `bloqueado` | Sim; em `429`, respeita `Retry-After` até 60 s e, sem ele, espera 30 s. Observado em 2026-10-04: `429` sem `Retry-After` na 17ª requisição a 5 s de intervalo, resolvido na tentativa seguinte |
 | Desafio do Cloudflare | Status `403`/`503` com marcas `cf-chl` ou `Just a moment` no corpo | `bloqueado` | Sim |
 | `5xx` | Status | `falha_rede` | Sim |
 | `200` com corpo vazio | Tamanho zero | Falha de coleta (EC-06 do `coletor-lotes`) | Não |

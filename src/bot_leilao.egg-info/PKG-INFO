@@ -14,4 +14,70 @@ Requires-Dist: pytest>=8; extra == "dev"
 
 # Bot Leilão Carros
 
-Documentação completa em construção (T061).
+Varre sites de leilão de carros, filtra os lotes pelos veículos que você procura e avisa no Telegram, com marca, modelo, ano, preço e o link do lote.
+
+Hoje monitora o **Vip Leilões** (recuperados de financiamento, estado conservado). O bot só observa e avisa: ele nunca dá lance.
+
+## Como funciona
+
+1. Lê os carros que você quer em `config/veiculos-alvo.yaml` e os leiloeiros em `config/leiloeiros.yaml`.
+2. Busca no site do leiloeiro todas as páginas de resultado, devagar (5 s entre requisições).
+3. Compara cada lote com os seus alvos: marca, modelo, **ano de modelo**, **lance corrente** contra o teto, quilometragem (opcional) e tipo de leilão.
+4. Manda **um único resumo** no Telegram com os lotes novos. Lote já avisado não volta.
+5. Na primeira vez que uma busca roda, ele só registra o que já existe, sem avisar (senão você receberia o catálogo inteiro).
+6. Se o site mudar de layout e o bot parar de entender a página, você recebe um **alerta** em vez de silêncio.
+
+Cada execução fica registrada em `dados/bot-leilao.sqlite3`, e o log em `dados/logs/bot-leilao.log`.
+
+## Instalação
+
+Requer Python 3.12 ou mais novo.
+
+```
+python -m venv .venv
+.venv\Scripts\Activate.ps1        # Windows (PowerShell)
+source .venv/bin/activate         # Linux/macOS
+pip install -e .[dev]
+pytest                            # todos verdes, sem internet
+```
+
+Copie `.env.example` para `.env` e preencha o token do bot e o seu chat id. O passo a passo, incluindo como criar o bot no Telegram, está em [`onboarding.md`](_reversa_forward/001-mvp-varredura-ponta-a-ponta/onboarding.md).
+
+## Comandos
+
+| Comando | O que faz |
+|---|---|
+| `python -m bot_leilao varrer` | Executa uma varredura completa |
+| `python -m bot_leilao varrer --dry-run` | Coleta de verdade, mas só mostra no console o que enviaria; não grava lotes |
+| `python -m bot_leilao testar-telegram` | Envia uma mensagem de teste para conferir o `.env` |
+
+Todos aceitam `--raiz <pasta>` (a pasta com `config/`, `dados/` e `.env`; padrão: a atual).
+
+Códigos de saída: `0` sucesso (inclusive parcial), `1` falha, `2` uso incorreto, `3` outra varredura em andamento.
+
+## Configuração
+
+Na primeira execução, os dois arquivos de `config/` são criados como exemplo, com tudo desativado. Edite-os e troque `ativo` para `true`.
+
+- **Veículos-alvo:** adicionar é colar um bloco, pausar é `ativo: false`. Escreva a marca por extenso (Mitsubishi, Chevrolet): as abreviações do site são traduzidas.
+- **Leiloeiros:** a busca é declarada como filtros do formulário do site. Não filtre por marca ou modelo ali; esse recorte é feito pelos veículos-alvo.
+- **Segredos:** token e credenciais ficam só no `.env`, que nunca vai para o git e nunca aparece em log.
+
+## Estrutura
+
+```
+src/bot_leilao/
+  config/        veículos-alvo, leiloeiros, .env, coerência entre alvos e buscas
+  coleta/        cliente HTTP, coletor, adaptador por leiloeiro (vip.py)
+  parsing/       normalização, sinônimos de marca, parser por leiloeiro (vip.py)
+  filtro/        critérios, deduplicação e semeadura
+  notificacao/   resumo, alertas e envio ao Telegram
+  db/            SQLite, migrações e trava de execução
+  orquestrador.py, cli.py
+tests/           testes sem rede; fixtures reais do Vip em tests/fixtures/vip/
+scripts/         captura das fixtures do Vip
+```
+
+## Documentação de projeto
+
+Especificações em `_reversa_sdd/` e plano da feature em `_reversa_forward/001-mvp-varredura-ponta-a-ponta/` (roadmap, contratos em `interfaces/`, rastreabilidade em `tests/RASTREABILIDADE.md`). Para adicionar um leiloeiro, siga a lista de armadilhas conhecidas da spec `onboarding-leiloeiro-assistido`.

@@ -42,6 +42,7 @@ class ClienteHTTP:
         limite_bytes: int = 20 * _MEBIBYTE,
         esperas: Sequence[float] = (5.0, 15.0),
         espera_max_retry_after: float = 60.0,
+        espera_429: float = 30.0,
         relogio: Callable[[], float] = time.monotonic,
         dormir: Callable[[float], None] = time.sleep,
     ) -> None:
@@ -50,6 +51,9 @@ class ClienteHTTP:
         self.limite_bytes = limite_bytes
         self.esperas = tuple(esperas)
         self.espera_max_retry_after = espera_max_retry_after
+        # Observado em 2026-10-04: o Vip devolveu 429 na 17ª requisição a 5 s de intervalo, sem Retry-After.
+        # Sem indicação do site, uma pausa maior é mais respeitosa que insistir no intervalo mínimo.
+        self.espera_429 = espera_429
         self.relogio = relogio
         self.dormir = dormir
         self._ultimo_envio: dict[str, float] = {}
@@ -111,7 +115,7 @@ class ClienteHTTP:
                 try:
                     retry_after = float(cabecalhos.get("Retry-After", ""))
                 except ValueError:
-                    retry_after = None
+                    retry_after = self.espera_429
             return Veredito.BLOQUEADO, status, None, url_final, f"http_{status}", True, retry_after
         if status >= 500:
             return Veredito.FALHA_REDE, status, None, url_final, f"http_{status}", True, None

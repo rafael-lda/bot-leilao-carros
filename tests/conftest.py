@@ -100,3 +100,28 @@ class AgoraFalso:
 def agora() -> AgoraFalso:
     return AgoraFalso()
 
+
+
+@pytest.fixture
+def cenario(raiz, relogio, agora):
+    from apoio import CenarioE2E
+
+    return CenarioE2E(raiz, relogio, agora)
+
+
+@pytest.fixture(autouse=True)
+def _logger_limpo():
+    """`configurar_logs` desliga a propagação e põe handlers; cada teste começa e termina com o logger neutro."""
+    import logging
+
+    def limpar():
+        logger = logging.getLogger("bot_leilao")
+        for handler in list(logger.handlers):
+            handler.close()
+            logger.removeHandler(handler)
+        logger.propagate = True
+        logger.setLevel(logging.NOTSET)
+
+    limpar()
+    yield
+    limpar()
