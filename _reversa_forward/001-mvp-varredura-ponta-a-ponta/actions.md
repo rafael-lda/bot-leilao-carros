@@ -131,10 +131,26 @@ Segurança comprovada, rastreabilidade e documentação curta.
 - `[//]` indica ações que não compartilham arquivo alvo nem dependência entre si **dentro da mesma leva**. Na fase 2, todos os testes são paralelizáveis entre si depois de T005; na fase 3, o paralelismo existe entre módulos de componentes diferentes.
 - Revisão futura que remover uma ação não reaproveita o ID.
 
+### Registro da codificação
+
+- **Etapa 1 (2026-10-04):** T001–T026 e T062 concluídas. Os testes da fase 2 falhavam na coleta por `ModuleNotFoundError` até o núcleo existir, como esperado em TDD. O contrato entre testes e núcleo está resumido em `api-interna.md`.
+- **Achado na captura das fixtures (T004):** a busca sem resultados do Vip devolve `div.filter-wait` com "Nenhum lote encontrado." e **sem** `#resultadosEncontrados`. A D-31 foi ajustada antes dos testes (roadmap, `vip-pesquisa.md`, `parser-lotes` EC-15).
+- **Ajuste de desenho (T016):** espera entre tentativas de 5 s e 15 s para leiloeiros, porque 2 s e 4 s ficariam abaixo do intervalo mínimo de 5 s por host. O Telegram mantém 2 s e 4 s.
+- **`data=` do httpx** exige dicionário: `Requisicao.dados` é `dict`, e o Vip não usa múltipla escolha.
+- **Etapa 2 (2026-10-04):** T027–T051 e T063 concluídas; 302 testes passando, sem acesso à rede.
+- **Ajuste (T036):** `INSERT OR IGNORE` do SQLite engole também violações de CHECK; o repositório usa `ON CONFLICT (...) DO NOTHING`, que só ignora a chave duplicada (o teste de atomicidade pegou isso).
+- **Ajuste (T048):** o motor traduz sinônimos de marca sem registrar em log, para não repetir o aviso de marca desconhecida a cada combinação lote × alvo; o registro fica no parser.
+- **Etapa 3 (2026-10-04):** T052–T061 concluídas; 339 testes passando, sem acesso à rede. Os 11 cenários do requirements passam de ponta a ponta.
+- **Vazamento corrigido (T059):** o motivo de um erro inesperado ia para `execucao.motivo` com o texto da exceção; se contivesse o token, ele ficaria no SQLite. Todo texto gravado no banco passa pelo mascaramento de segredos, e o teste de segurança cobre console, arquivo de log e banco.
+- **Execução real em `--dry-run` contra o Vip (2026-10-04):** 17 páginas, 201 lotes, 0 descartados, sem quebra, 1min31s. O Vip devolveu um `429` sem `Retry-After` na 17ª requisição a 5 s de intervalo; resolvido na tentativa seguinte. Decisão: em `429` sem `Retry-After`, esperar 30 s (`ClienteHTTP.espera_429`), mantendo o intervalo de 5 s. Responde em parte à OQ-02 do `coletor-lotes`; acompanhar a frequência de `429` nas primeiras semanas.
+- **Mensagem do dry-run (T053):** o log dizia "registrado(s) como conhecido(s)" mesmo sem gravar; agora diz "seriam registrados (dry-run)".
+- **Ajuste pós-entrega (2026-10-05, D-32):** km `0` ou ≥ 900.000 passa a valer "não informada" (`parsing/normalizadores.py`), para que o teto `quilometragem_maxima` não esconda carros sem km. 349 testes passando. Registrado fora das ações T001–T063, que seguem todas `[X]`.
+
 ## Histórico de alterações
 
 | Data | Alteração | Autor |
 |------|-----------|-------|
 | 2026-10-03 | Versão inicial gerada por `/reversa-to-do` | reversa |
 | 2026-10-04 | Codificação concluída em três etapas: 63 ações `[X]` | reversa-coding |
+| 2026-10-05 | Notas de execução das três etapas registradas; ajuste D-32 (km sentinela) | reversa-coding |
 | 2026-10-03 | Correções do `audit/cross-check.md`: T062 e T063 novas (A004); descrições de T008, T009, T010, T016, T018, T021, T022, T026, T029, T031, T040, T046, T051 ajustadas (A001, A002, A003, A005, A006, A007); T053 passa a depender de T063 | reversa-forward |

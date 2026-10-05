@@ -57,5 +57,6 @@
 | RNF segurança — SQLite fora do versionamento | `.gitignore` (`dados/`, `*.sqlite3`); sem teste automatizado |
 | RNF desempenho — execução < 10 min | Sem teste automatizado (depende da rede); medido em 2026-10-04: 1min31s para 17 páginas |
 | D-28 — sinônimos de marca | `test_parsing_vip.py::test_sinonimos_de_marca_do_vip_sao_traduzidos`, `test_motor_criterios.py::test_marca_do_alvo_tambem_passa_pela_tabela_de_sinonimos` |
+| D-32 — km sentinela (0, ≥ 900.000) vale "não informada" | `test_normalizadores.py::test_quilometragem_sentinela_vale_nao_informada`, `test_parsing_vip.py::test_km_sentinela_do_site_vira_nao_informada`, `test_e2e_fluxo.py::test_km_sentinela_nao_esconde_o_carro_com_teto_de_km`, `test_e2e_fluxo.py::test_km_real_acima_do_teto_continua_eliminada` |
 | D-30 — cabeçalho de navegador | `test_coleta_http.py::test_toda_requisicao_leva_cabecalho_de_navegador` |
 | D-31 — busca vazia legítima | `test_parsing_vip.py::test_zero_resultados_e_busca_vazia_declarada`, `test_e2e_falhas.py::test_busca_vazia_legitima_nao_alerta` |

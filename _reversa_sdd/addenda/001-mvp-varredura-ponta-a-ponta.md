@@ -49,3 +49,9 @@ W001, W002, W003, W004, W005, W006, W007, W008, W009, todos na seção "Observa�
 - `_reversa_forward/001-mvp-varredura-ponta-a-ponta/data-delta.md`
 - `_reversa_forward/001-mvp-varredura-ponta-a-ponta/actions.md` (notas de execução)
 - `_reversa_forward/001-mvp-varredura-ponta-a-ponta/interfaces/`
+
+## Atualização 2026-10-05
+
+| Artefato | Seção | Tipo de impacto | Delta |
+|----------|-------|-----------------|-------|
+| `_reversa_sdd/sdd/parser-lotes.md` | §11 EC-16 | regra-nova | Quilometragem `0` ou a partir de `900.000` é registrada como nula ("não informada"); com isso `quilometragem_maxima` não elimina carros sem km. Já incorporada à spec na v1.3; ver roadmap D-32 da feature. |

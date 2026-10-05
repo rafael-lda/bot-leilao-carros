@@ -12,6 +12,9 @@ _ANOS = re.compile(r"(?<!\d)(\d{4})(?:\s*/\s*(\d{4}))?(?!\d)")
 _KM = re.compile(r"(\d[\d.]*)\s*km\b", re.IGNORECASE)
 _INTEIRO = re.compile(r"\d+")
 ANO_MINIMO = 1900
+# Roadmap D-32: leiloeiros preenchem 0 ou 999.999 quando não sabem a km (carro sem chave, bateria arriada).
+# Nenhum carro de verdade roda 900 mil km, e 0 km é o "não informado" mais comum; os dois valem "desconhecida".
+KM_SENTINELA_MINIMO = 900_000
 
 
 def normalizar_preco(texto: str | None) -> Decimal | None:
@@ -48,10 +51,14 @@ def normalizar_anos(texto: str | None) -> tuple[int | None, int | None]:
 
 
 def normalizar_km(texto: str | None) -> int | None:
+    """`228.227 Km` → 228227. Valor 0 ou a partir de 900.000 é "não informado" (D-32): devolve None."""
     if not texto:
         return None
     achado = _KM.search(texto)
-    return int(achado.group(1).replace(".", "")) if achado else None
+    if not achado:
+        return None
+    km = int(achado.group(1).replace(".", ""))
+    return None if km == 0 or km >= KM_SENTINELA_MINIMO else km
 
 
 def link_absoluto(href: str | None, base_url: str) -> str | None:

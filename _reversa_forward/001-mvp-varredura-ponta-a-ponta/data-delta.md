@@ -34,7 +34,7 @@ Sem mudança sobre a v1.1.
 
 | Campo | Situação | Tipo | Regra | Confidência |
 |-------|----------|------|-------|-------------|
-| `quilometragem` | **novo** | `int?` | Texto `228.227 Km` → `228227`; ausente ou ilegível → `null` | 🟢 |
+| `quilometragem` | **novo** | `int?` | Texto `228.227 Km` → `228227`; ausente, ilegível, `0` ou a partir de `900.000` → `null` (sentinela de "não informada", roadmap D-32) | 🟢 |
 | `situacao` | **novo** | `string?` | Texto do card como veio da origem (`Aberto para lances`) | 🟢 |
 | `retirado` | **novo** | `bool` | `true` quando `situacao` ou a classe CSS do card contiver "retirad" (sem caixa, sem acento); padrão `false` | 🟡 |
 | `id_canonico` | mantido, regra concretizada para o Vip | `string` | `vip-leiloes:<id numérico do anúncio>`, tirado do sufixo da URL `/evento/anuncio/<slug>-<id>`. O número "Lote: N" do card é por evento e **não** serve (roadmap D-14) | 🟢 |

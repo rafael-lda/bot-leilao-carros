@@ -108,6 +108,14 @@ def _variacao(ler_fixture, *trocas):
     return html.encode("utf-8")
 
 
+@pytest.mark.parametrize("km_no_site", ["999.999 Km", "0 Km"])
+def test_km_sentinela_do_site_vira_nao_informada(parser, ler_fixture, km_no_site):
+    """D-32: 999.999 e 0 são como o leiloeiro diz 'não sei'; o lote não pode ser tratado como muito rodado."""
+    conteudo = _variacao(ler_fixture, ("228.227 Km", km_no_site))
+    (sentra,) = parser.extrair(conteudo, CTX).lotes
+    assert sentra.quilometragem is None
+
+
 def test_retirado_pelo_texto(parser, ler_fixture):
     """D-16 / RN-12."""
     conteudo = _variacao(ler_fixture, ("Aberto para lances", "Lote Retirado"))

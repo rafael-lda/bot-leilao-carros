@@ -44,13 +44,20 @@ def test_ano_de_modelo_invalido_nao_contamina_o_de_fabricacao():
     ("228.227 Km", 228227),
     ("5.458 Km", 5458),
     ("80000 km", 80000),
-    ("0 Km", 0),
+    ("899.999 Km", 899999),
     ("", None),
     (None, None),
     ("placa final 1", None),
 ])
 def test_quilometragem(texto, esperado):
     assert normalizar_km(texto) == esperado
+
+
+@pytest.mark.parametrize("texto", ["0 Km", "0", "999.999 Km", "999999 km", "900.000 Km", "1.234.567 Km"])
+def test_quilometragem_sentinela_vale_nao_informada(texto):
+    """Leiloeiros preenchem 0 ou 999.999 quando a km não é conhecida (carro sem chave, bateria arriada...).
+    Tratar como número real eliminaria o carro por engano (roadmap D-32)."""
+    assert normalizar_km(texto) is None
 
 
 @pytest.mark.parametrize("href, esperado", [

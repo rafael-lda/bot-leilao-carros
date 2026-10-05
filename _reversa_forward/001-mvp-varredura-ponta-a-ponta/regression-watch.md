@@ -22,6 +22,7 @@ Requisitos especificados por teste nesta feature, sem peso de regressão até co
 | W006 | `requirements.md` RF-12, RF-15 | Histórico e trava | Implementado e testado, inclusive de ponta a ponta |
 | W007 | `requirements.md` RN-08 | Nenhum segredo em log, console ou banco | Implementado e testado, inclusive de ponta a ponta |
 | W008 | `requirements.md` RF-14, RF-15 | CLI `varrer`/`testar-telegram`, códigos de saída, trava | Implementado e testado, inclusive de ponta a ponta |
+| W010 | `parser-lotes.md` EC-16, roadmap D-32 | Km 0 ou ≥ 900.000 vale "não informada" e não elimina por teto de km | Implementado e testado |
 | W009 | `interfaces/vip-pesquisa.md` §4 | `429` sem `Retry-After` espera 30 s | Implementado e testado; observar a frequência de `429` nas execuções reais |
 
 ## Histórico de re-extrações

@@ -103,3 +103,31 @@ def test_sem_alvo_ativo_termina_com_sucesso_sem_varrer(cenario):
     resultado = cenario.varrer()
     assert resultado.veredito == "sucesso"
     assert cenario.chamadas == []
+
+
+def _cenario_com_teto_de_km(raiz, relogio, agora):
+    from apoio import ALVO_VERSA, CenarioE2E
+
+    return CenarioE2E(raiz, relogio, agora, alvos=ALVO_VERSA + "    quilometragem_maxima: 120000\n")
+
+
+def test_km_sentinela_nao_esconde_o_carro_com_teto_de_km(raiz, relogio, agora):
+    """Roadmap D-32: com teto de 120.000, um lote com km 999.999 (não informada) ainda é notificado."""
+    cenario = _cenario_com_teto_de_km(raiz, relogio, agora)
+    cenario.vip = pagina_vazia()
+    cenario.varrer()
+    cenario.vip = pagina_vip(km="999.999 Km")
+    cenario.varrer()
+    (digest,) = cenario.mensagens
+    assert "Versa" in digest
+    assert "999.999" not in digest, "o resumo não pode exibir a km sentinela como se fosse real"
+
+
+def test_km_real_acima_do_teto_continua_eliminada(raiz, relogio, agora):
+    cenario = _cenario_com_teto_de_km(raiz, relogio, agora)
+    cenario.vip = pagina_vazia()
+    cenario.varrer()
+    cenario.vip = pagina_vip(km="167.387 Km")
+    cenario.varrer()
+    assert cenario.mensagens == []
+    assert cenario.execucoes()[-1]["lotes_candidatos"] == 0

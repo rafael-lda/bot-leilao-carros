@@ -99,7 +99,8 @@ leiloeiros:
 
 
 def pagina_vip(titulo="VERSA 1.6 SV - 2017/2018", anuncio="nissan-versa-16-sv-400001", valor_atual="R$ 41.900,00",
-               valor_inicial="R$ 30.000,00", lances="3 Lances", situacao="Aberto para lances") -> bytes:
+               valor_inicial="R$ 30.000,00", lances="3 Lances", situacao="Aberto para lances",
+               km="228.227 Km") -> bytes:
     """Página real de 1 resultado do Vip, com o card trocado pelos valores pedidos."""
     html = (FIXTURES / "vip" / "busca_um_resultado.html").read_text(encoding="utf-8")
     trocas = [
@@ -109,6 +110,7 @@ def pagina_vip(titulo="VERSA 1.6 SV - 2017/2018", anuncio="nissan-versa-16-sv-40
         ("Valor inicial: <b>R$ 12.500,00</b>", f"Valor inicial: <b>{valor_inicial}</b>"),
         ("<span>1 Lance</span>", f"<span>{lances}</span>"),
         ("Aberto para lances", situacao),
+        ("228.227 Km", km),
     ]
     for antes, depois in trocas:
         assert antes in html, antes
