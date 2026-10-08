@@ -1,0 +1,18 @@
+# Leiloeiros monitorados.
+# A senha nunca entra aqui: credencial_env aponta para uma variável no .env.
+# Os filtros são os do formulário de busca do site; veja os valores aceitos
+# em _reversa_forward/001-mvp-varredura-ponta-a-ponta/interfaces/vip-pesquisa.md
+# Não filtre por marca nem modelo: esse recorte é feito pelos veículos-alvo
+# (cadastro-leiloeiros, seção 6.1.1, "busca ampla").
+leiloeiros:
+  - nome: Vip Leilões
+    base_url: https://www.vipleiloes.com.br
+    ativo: true
+    estrategia_acesso: publico
+    nivel_coleta: script
+    frequencia: seg-qua-sex-08h      # ainda não usada; o agendamento automático vem em feature futura
+    buscas:
+      - descricao: Recuperados de financiamento, conservados, qualquer marca
+        filtros:
+          procedencia: 4   # Recuperado Financiamento
+          monta: 1         # Conservado

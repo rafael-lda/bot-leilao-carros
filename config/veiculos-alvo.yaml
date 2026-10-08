@@ -1,0 +1,43 @@
+# Veículos que quero encontrar.
+# Desative um alvo com `ativo: false` em vez de apagar o bloco.
+# ano_min e ano_max referem-se ao ANO DE MODELO (o segundo número em 2018/2019).
+# preco_maximo é comparado contra o LANCE CORRENTE do lote.
+# quilometragem_maxima é opcional: sem ela, qualquer quilometragem serve.
+# Escreva a marca por extenso (Mitsubishi, Chevrolet): o sistema traduz as abreviações do site.
+# tipos_leilao aceita: judicial, extrajudicial, financiamento, seguradora, recuperado.
+# A busca do Vip traz só recuperados de financiamento: mantenha "financiamento" na lista.
+#
+# PREFERÊNCIA ATUAL DO RAFAEL (2026-10-06): só câmbio AUTOMÁTICO. O bot ainda não filtra câmbio
+# (o filtro do site é ignorado pelo servidor); descarte manualmente os lotes manuais que chegarem.
+# Os tetos abaixo já usam a FIPE da melhor versão AUTOMÁTICA do ano mais novo.
+veiculos:
+  - marca: Nissan
+    modelo: Versa
+    ano_min: 2016
+    ano_max: 2019
+    preco_maximo: 43700   # 70% da FIPE out/2026 do VERSA SL 1.6 Aut. 2019 (R$ 62.464, cód. 023140-1)
+   #quilometragem_maxima: 120000 # sem km maxima 
+    tipos_leilao:
+      - financiamento
+    ativo: true
+
+  - marca: Nissan
+    modelo: Sentra
+    ano_min: 2014
+    ano_max: 2017
+    preco_maximo: 50100   # 70% da FIPE out/2026 do Sentra SL 2.0 Aut. 2017 (R$ 71.685, cód. 023136-3)
+   #quilometragem_maxima: 140000
+    tipos_leilao:
+      - financiamento
+    ativo: true
+
+  # >>> TEMPORÁRIO (2026-10-06): só para testar o resumo no Telegram. REMOVER DEPOIS DO TESTE. <<<
+  - marca: Nissan
+    modelo: Versa
+    ano_min: 2023
+    ano_max: 2024
+    preco_maximo: 69300   # 70% da FIPE out/2026 do VERSA Exclusive 1.6 Aut. 2024 (R$ 99.011, cód. 023174-6)
+    tipos_leilao:
+      - financiamento
+    ativo: true
+  # >>> FIM DO BLOCO TEMPORÁRIO <<<
