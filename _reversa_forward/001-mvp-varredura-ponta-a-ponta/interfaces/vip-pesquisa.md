@@ -61,6 +61,8 @@ Campos vindos de `filtros` no `config/leiloeiros.yaml`. A chave do YAML é conve
 
 Valor de lista no YAML vira o mesmo campo repetido no corpo. Nenhum campo do Vip observado aceita múltipla escolha, então lista é aceita pelo cadastro, mas o adaptador recusa lista para esses campos. 🟡
 
+**Filtro de câmbio ignorado (2026-10-06):** o formulário tem `Filtro.Caracteristicas[5]` (`CaracteristicaId=105694b7-09b9-4e09-a275-b370014ec03c`, `Tipo=Lista`, `MultiplosValores=<Manual|Automático|-->|<id>`), que é o câmbio. Enviado nesse formato, o servidor devolveu os mesmos 332 resultados com qualquer valor e sem o filtro: não é aplicado, ou é montado pelo JavaScript da página de outro jeito. Não usar até ser investigado no navegador. Armadilha `filtro_ignorado` confirmada. 🟢
+
 **Teste de aplicação dos filtros (2026-10-03):** `marca=NISSAN` → 9 resultados; `marca=NISSAN, procedencia=4, monta=1` → 1 resultado; `procedencia=4, monta=1` → 201 resultados. O servidor aplica os filtros. 🟢
 
 ## 3. Resposta
