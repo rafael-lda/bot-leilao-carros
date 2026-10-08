@@ -125,6 +125,12 @@ Segurança comprovada, rastreabilidade e documentação curta.
 | T060 | Criar a matriz de rastreabilidade RF-01 a RF-18 e dos 11 cenários para os arquivos de teste, e conferir que nenhum requisito ficou sem teste | T055, T056, T057, T058, T059 | - | `tests/RASTREABILIDADE.md` | 🟢 | `[X]` |
 | T061 | Criar `README.md` curto: o que é, instalação, os comandos, estrutura de pastas e ponteiro para `onboarding.md` | T054 | `[//]` | `README.md` | 🟢 | `[X]` |
 
+## Emendas
+
+| ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
+|----|-----------|--------------|-------------|--------------|-------------|--------|
+| E001 | Relatório Markdown por varredura real em `1OUTPUT/` (data, hora, veredito, duração, lotes novos com alvo e teto); nunca sobrescreve; fora do git; falha ao gravar não derruba a varredura | - | - | `src/bot_leilao/notificacao/relatorio.py` | 🟢 | `[X]` |
+
 ## Notas de execução
 
 - **Etapa 9 do roadmap (execução real contra o Vip, com o Telegram do Rafael) não é uma ação de código.** É o passo a passo de `onboarding.md`, conduzido pelo Rafael depois que todas as ações estiverem `[X]`. Depende de o Rafael preencher os valores do primeiro veículo-alvo (`requirements.md` §10).

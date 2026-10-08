@@ -36,12 +36,14 @@ from bot_leilao.logsetup import mascarar
 from bot_leilao.filtro.fluxo import FluxoFiltragem
 from bot_leilao.notificacao.alertas import AlertaPendente, processar_alertas
 from bot_leilao.notificacao.digest import AlertaOperacional, item_de, montar_digest
+from bot_leilao.notificacao.relatorio import DadosRelatorio, LoteRelatorio, gravar_relatorio, lote_de
 from bot_leilao.notificacao.telegram import NotificadorTelegram
 from bot_leilao.parsing import nucleo
 from bot_leilao.parsing.modelos import ContextoParsing, ResultadoParsing
 
 log = logging.getLogger(__name__)
 
+PASTA_RELATORIOS = "1OUTPUT"  # emenda E001: um relatório Markdown por varredura real, fora do git
 CODIGO_SAIDA = {"sucesso": 0, "sucesso_parcial": 0, "falha": 1, "recusada": 3}
 
 
@@ -90,6 +92,11 @@ class _Execucao:
         self.digest_enviado = False
         self.saida = _resultado("falha")
         self.segredos: list[str] = []      # RN-08: nada que vai para o banco pode conter um segredo
+        # Emenda E001 (relatório Markdown)
+        self.novos: list[LoteRelatorio] = []
+        self.telegram: str | None = None
+        self.semeados = 0
+        self.em_semeadura = False
 
     def seguro(self, texto: str | None) -> str | None:
         return None if texto is None else mascarar(texto, self.segredos)
@@ -137,12 +144,26 @@ def varrer(raiz: Path, dry_run: bool = False, deps: Dependencias | None = None) 
             log.info("exec    | %s em %dm%02ds | registro %s%s", estado.veredito, segundos // 60, segundos % 60,
                      execucao_id[:8], f" | motivo: {estado.motivo}" if estado.motivo else "")
             con.close()
+            if not dry_run:
+                _gravar_relatorio(raiz, estado, inicio.astimezone(fuso), segundos)
         saida = estado.saida
         saida.veredito, saida.codigo_saida = estado.veredito, CODIGO_SAIDA[estado.veredito]
         saida.execucao_id, saida.motivo, saida.contagens = execucao_id, estado.motivo, estado.contagens
         return saida
     finally:
         trava.liberar()
+
+
+def _gravar_relatorio(raiz: Path, estado: "_Execucao", inicio_local: datetime, segundos: float) -> None:
+    """Emenda E001. Uma falha aqui fica no log e nunca derruba a varredura."""
+    try:
+        caminho = gravar_relatorio(raiz / PASTA_RELATORIOS, DadosRelatorio(
+            inicio=inicio_local, duracao_s=segundos, veredito=estado.veredito, motivo=estado.motivo,
+            novos=estado.novos, telegram=estado.seguro(estado.telegram), semeados=estado.semeados,
+            em_semeadura=estado.em_semeadura))
+        log.info("exec    | relatório gravado em %s", caminho)
+    except Exception as erro:  # noqa: BLE001
+        log.warning("exec    | não consegui gravar o relatório em %s: %s", raiz / PASTA_RELATORIOS, erro)
 
 
 def _abrir_banco(dados: Path):
@@ -238,8 +259,10 @@ def _executar(raiz: Path, dry_run: bool, deps: Dependencias, fuso: tzinfo, con, 
                                           for c in filtragem.novos + filtragem.semeaveis])
     if not dry_run:
         fluxo.registrar_semeadura(filtragem, execucao_id, deps.agora())
+    estado.semeados, estado.em_semeadura = len(filtragem.semeaveis), bool(filtragem.buscas_a_semear)
 
     nomes = {l.id: l.nome for l in leiloeiros.ativos}
+    estado.novos = [lote_de(c, nomes[c.lote.leiloeiro_id]) for c in filtragem.novos]
     digest = montar_digest([item_de(c, nomes[c.lote.leiloeiro_id]) for c in filtragem.novos], agora_local)
     estado.saida.digest = digest
     notificador = None if dry_run else NotificadorTelegram(ambiente.telegram_token, ambiente.telegram_chat_id,
@@ -251,9 +274,11 @@ def _executar(raiz: Path, dry_run: bool, deps: Dependencias, fuso: tzinfo, con, 
             if envio.ok:
                 fluxo.confirmar_notificacao(filtragem.novos, deps.agora())
                 estado.digest_enviado = True
+                estado.telegram = "enviado"
                 log.info("notif   | digest enviado: %d lote(s), %d mensagem(ns)", len(filtragem.novos), len(digest))
             else:
                 envio_falhou = envio.erro
+                estado.telegram = f"não enviado: {envio.erro}"
                 log.error("notif   | digest não enviado; os lotes voltam na próxima execução: %s", envio.erro)
 
         # Alertas: quebra por leiloeiro e falha geral (EC-08 do agendador).

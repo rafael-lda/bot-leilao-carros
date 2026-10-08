@@ -15,6 +15,8 @@ Hoje monitora o **Vip Leilões** (recuperados de financiamento, estado conservad
 
 Cada execução fica registrada em `dados/bot-leilao.sqlite3`, e o log em `dados/logs/bot-leilao.log`.
 
+Cada varredura real também grava um relatório em Markdown em `1OUTPUT/` (por exemplo `2026-10-08_19h37_varredura.md`), com data, hora, veredito, duração e os lotes novos. Lotes já avisados não aparecem. Um relatório existente nunca é sobrescrito, então dá para anotar nele a análise de cada lote. A pasta fica fora do git.
+
 ## Instalação
 
 Requer Python 3.12 ou mais novo.

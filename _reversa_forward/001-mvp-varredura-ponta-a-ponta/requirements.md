@@ -281,3 +281,11 @@ As três lacunas da versão inicial foram resolvidas na sessão de 2026-09-27, r
 | 2026-10-03 | Emenda da spec `cadastro-leiloeiros` aplicada (v1.1); cenário de cadastro inválido ajustado de URL sem TLS para busca sem filtros | reversa-forward |
 | 2026-10-03 | Verificação dos filtros do Vip marcada como resolvida, com referência aos achados do plano | reversa-forward |
 | 2026-10-03 | Correções do audit: RF-01 explicita que lista sem alvo ativo é aviso, e não erro (A006); RF-07 exclui zero resultados legítimos (A001) | reversa-forward |
+
+## Emendas
+
+### E001, 2026-10-08
+
+O que muda: cada varredura real (não `--dry-run`) grava um relatório em Markdown na pasta `1OUTPUT/`, na raiz do projeto, com data, hora, veredito e duração da execução e a lista dos lotes **novos** dela (marca, modelo, ano, preço, leiloeiro, km, link, alvo e teto). Lotes já avisados antes não aparecem. Cada execução gera um arquivo próprio, que nunca é sobrescrito, porque o Rafael vai pedir ao Claude para anotar nele, depois, a análise da FIPE de cada lote (% da FIPE do lance atual e estimativa de lance final). A pasta fica fora do git, como o banco, por conter o histórico de interesse de compra (RNF de segurança). Falha ao gravar o relatório não derruba a varredura.
+Motivo: o Rafael quer uma segunda fonte do resultado além do Telegram, em arquivo, sobre a qual possa pedir análises posteriores.
+Arquivos previstos: `src/bot_leilao/notificacao/relatorio.py` (novo), `src/bot_leilao/orquestrador.py`, `tests/test_relatorio.py` (novo), `tests/test_e2e_fluxo.py`, `.gitignore`, `README.md`

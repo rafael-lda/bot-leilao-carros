@@ -22,3 +22,6 @@ venv/
 
 # Dados locais do bot — banco, trava e logs
 dados/
+
+# Relatórios por varredura (emenda E001) — histórico de interesse de compra, fora do git
+1OUTPUT/

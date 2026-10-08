@@ -32,6 +32,7 @@
 | `src/bot_leilao/orquestrador.py`, `src/bot_leilao/cli.py` | `agendador-observabilidade` (parcial) | componente-novo | MEDIUM | Pipeline com registro garantido em `finally`, trava, dry-run; comandos `varrer` e `testar-telegram`. Sem agendamento automático, recomendações de frequência nem relatório de saúde |
 | `tests/test_e2e_*.py`, `tests/test_cli.py`, `tests/test_seguranca.py`, `tests/RASTREABILIDADE.md` | testes | componente-novo | LOW | 11 cenários de aceitação, CLI, segurança do token e matriz RF → teste |
 
+| `src/bot_leilao/notificacao/relatorio.py`, `src/bot_leilao/orquestrador.py`, `.gitignore` | `notificador-telegram`, `agendador-observabilidade` | regra-nova | LOW | Emenda E001: relatório Markdown por varredura real em `1OUTPUT/`, fora do git, nunca sobrescrito |
 
 ## Diff conceitual por componente
 

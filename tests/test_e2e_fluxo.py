@@ -131,3 +131,72 @@ def test_km_real_acima_do_teto_continua_eliminada(raiz, relogio, agora):
     cenario.varrer()
     assert cenario.mensagens == []
     assert cenario.execucoes()[-1]["lotes_candidatos"] == 0
+
+
+# --- Emenda E001: relatório Markdown por varredura -------------------------------------------
+
+def _relatorios(cenario):
+    pasta = cenario.raiz / "1OUTPUT"
+    return sorted(pasta.glob("*.md")) if pasta.exists() else []
+
+
+def test_cada_varredura_gera_um_relatorio_so_com_os_lotes_novos(cenario):
+    cenario.vip = pagina_vazia()
+    cenario.varrer()
+    cenario.vip = pagina_vip()
+    cenario.varrer()
+    cenario.varrer()
+
+    estreia, com_novo, repetida = [p.read_text(encoding="utf-8") for p in _relatorios(cenario)]
+    assert "Nenhum lote novo nesta varredura." in estreia
+    assert "### 1. Nissan Versa 1.6 Sv — 2018" in com_novo
+    assert "| Telegram | enviado |" in com_novo
+    assert "Versa" not in repetida, "lote já avisado não aparece de novo"
+    assert "Nenhum lote novo nesta varredura." in repetida
+
+
+def test_dry_run_nao_gera_relatorio(cenario):
+    cenario.vip = pagina_vip()
+    cenario.varrer(dry_run=True)
+    assert _relatorios(cenario) == []
+
+
+def test_varredura_com_falha_tambem_gera_relatorio(cenario):
+    import httpx
+
+    cenario.vip = httpx.ConnectError
+    cenario.varrer()
+    (relatorio,) = _relatorios(cenario)
+    texto = relatorio.read_text(encoding="utf-8")
+    assert "| Veredito | falha |" in texto
+    assert "| Motivo | nenhuma_busca_coletada |" in texto
+
+
+def test_execucao_recusada_pela_trava_nao_gera_relatorio(cenario):
+    from bot_leilao.db.trava import Trava
+
+    trava = Trava(cenario.raiz / "dados" / "varredura.lock", agora=cenario.agora)
+    trava.adquirir()
+    try:
+        cenario.varrer()
+    finally:
+        trava.liberar()
+    assert _relatorios(cenario) == []
+
+
+def test_relatorio_nao_contem_o_token(cenario):
+    from apoio import TOKEN_TESTE
+
+    cenario.vip = pagina_vazia()
+    cenario.varrer()
+    cenario.vip = pagina_vip()
+    cenario.telegram = 401
+    cenario.varrer()
+    for relatorio in _relatorios(cenario):
+        assert TOKEN_TESTE not in relatorio.read_text(encoding="utf-8")
+
+
+def test_falha_ao_gravar_relatorio_nao_derruba_a_varredura(cenario):
+    (cenario.raiz / "1OUTPUT").write_text("um arquivo no lugar da pasta", encoding="utf-8")
+    cenario.vip = pagina_vazia()
+    assert cenario.varrer().veredito == "sucesso"
