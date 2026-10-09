@@ -296,3 +296,9 @@ O que muda: além do relatório por varredura, o bot mantém `1OUTPUT/lotes-a-mo
 Motivo: o Rafael quer acompanhar, entre varreduras, os lotes ainda em disputa, sem perder as anotações de análise FIPE que fará sobre eles.
 Arquivos previstos: `src/bot_leilao/notificacao/relatorio.py`, `src/bot_leilao/orquestrador.py`, `tests/test_relatorio.py`, `tests/test_e2e_fluxo.py`, `README.md`
 
+### E003, 2026-10-09
+
+O que muda: as regras no topo de `1OUTPUT/lotes-a-monitorar.md` passam a orientar quem revisa a lista (o Rafael ou um agente a pedido dele) a identificar **reaparições**: o mesmo carro que não vendeu e voltou em outro evento com outro número de anúncio. A identificação é por marca, modelo e versão, ano, quilometragem e final de placa; a reaparição é anotada nos dois blocos ("Reaparição de ..."), sem apagar nenhum, para o Rafael analisar caso a caso (pode ser oportunidade ou problema oculto). O bot continua tratando a reaparição como lote novo.
+Motivo: a auditoria de 2026-10-09 mostrou o Sentra 2.0S 2012/2013 com 228.227 km de volta como anúncio 319723 (antes 310800). O Rafael quer saber quando isso acontece com lotes da lista.
+Arquivos previstos: `src/bot_leilao/notificacao/relatorio.py`, `tests/test_relatorio.py`
+

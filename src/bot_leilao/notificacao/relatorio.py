@@ -138,6 +138,11 @@ arquivo: nunca reescreve, reordena nem apaga nada. Quem tira lotes daqui é o Ra
 - **Ao atualizar um lote** (lance atual, análise FIPE): edite só as linhas daquele bloco e não mexa no
   comentário `<!-- lote: ... -->`, que identifica o lote para o bot não repeti-lo.
 - **Lote tirado não volta:** o bot avisa cada lote uma única vez.
+- **Reaparições:** um carro que não vendeu pode voltar em outro evento com **outro número de anúncio**, e o
+  bot o avisa como lote novo. Ao revisar a lista, compare marca, modelo e versão, ano, **quilometragem** e
+  **final de placa** (aparece no card do site); se coincidirem, é o mesmo carro. Anote nos dois blocos
+  `- **Reaparição de:** <link do outro>` e não apague nenhum: pode ser oportunidade (sem lances antes) ou
+  problema oculto, e o Rafael decide caso a caso.
 """
 
 

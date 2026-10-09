@@ -34,6 +34,7 @@
 
 | `src/bot_leilao/notificacao/relatorio.py`, `src/bot_leilao/orquestrador.py`, `.gitignore` | `notificador-telegram`, `agendador-observabilidade` | regra-nova | LOW | Emenda E001: relatório Markdown por varredura real em `1OUTPUT/`, fora do git, nunca sobrescrito |
 | `src/bot_leilao/notificacao/relatorio.py`, `src/bot_leilao/orquestrador.py` | `notificador-telegram` | regra-nova | LOW | Emenda E002: lista acumulada de lotes a monitorar em `1OUTPUT/`, só acréscimo, mantida pelo Rafael e por agentes a pedido |
+| `src/bot_leilao/notificacao/relatorio.py` | `notificador-telegram` | regra-nova | LOW | Emenda E003: regras da lista de monitoramento passam a cobrir reaparições de lotes |
 
 ## Diff conceitual por componente
 

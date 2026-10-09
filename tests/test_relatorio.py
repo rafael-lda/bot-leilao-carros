@@ -117,7 +117,8 @@ def test_lista_criada_com_regras_de_manutencao_no_topo(tmp_path):
                                      "2026-10-08_19h37_varredura.md") == 1
     texto = caminho.read_text(encoding="utf-8")
     assert texto.startswith("# Lotes a monitorar")
-    for regra in ("só ACRESCENTA", "apague o bloco inteiro", "martelo", "teto", "<!-- lote:"):
+    for regra in ("só ACRESCENTA", "apague o bloco inteiro", "martelo", "teto", "<!-- lote:", "Reaparições",
+                  "final de placa", "quilometragem"):
         assert regra in texto
     assert "### Nissan Versa Excl Cvt — 2024" in texto
     assert "<!-- lote: vip-leiloes:1 -->" in texto

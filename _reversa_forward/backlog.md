@@ -39,6 +39,10 @@
 - **Decisão (2026-10-09):** por enquanto só "Conservado". Pequena monta tende a somar desvalorização à passagem por leilão (que já custa 10 a 20% na revenda), o custo de funilaria ainda é desconhecido e carro batido e parado tem mais risco de problemas mecânicos.
 - **Custo de incluir depois (baixo):** (1) uma busca a mais no `leiloeiros.yaml` com `monta: 2`, sem código, que semeia sozinha; (2) emenda pequena para mostrar no Telegram e nos relatórios de qual busca o lote veio; (3) a pensar: teto por busca ou "desconto por monta", porque hoje o teto é por alvo.
 
+### 7. Reaparições detectadas pelo bot — futuro
+
+- Um lote que não vende volta com outro número de anúncio (visto em 2026-10-09: Sentra 2.0S 2012/2013, 228.227 km, 310800 → 319723), e o bot o avisa de novo. Hoje a identificação é manual na revisão da lista (emenda E003). Futuro: o bot marcar no aviso "possível reaparição de ..." comparando modelo, ano, km e final de placa.
+
 ## Em andamento
 
 _(nenhuma)_
