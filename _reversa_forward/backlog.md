@@ -34,6 +34,11 @@
 
 - O log repete o aviso para marcas de implementos e caminhões (`librelato`, `massey`, `new holland`, `noma`, `facchini`, `guerra`) e para `--`, `automovel` e `outros`. Pequeno; emenda.
 
+### 6. Lotes de pequena monta — baixa prioridade, decisão adiada pelo Rafael
+
+- **Decisão (2026-10-09):** por enquanto só "Conservado". Pequena monta tende a somar desvalorização à passagem por leilão (que já custa 10 a 20% na revenda), o custo de funilaria ainda é desconhecido e carro batido e parado tem mais risco de problemas mecânicos.
+- **Custo de incluir depois (baixo):** (1) uma busca a mais no `leiloeiros.yaml` com `monta: 2`, sem código, que semeia sozinha; (2) emenda pequena para mostrar no Telegram e nos relatórios de qual busca o lote veio; (3) a pensar: teto por busca ou "desconto por monta", porque hoje o teto é por alvo.
+
 ## Em andamento
 
 _(nenhuma)_
