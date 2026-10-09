@@ -13,7 +13,8 @@ if not exist "venv\Scripts\python.exe" (
     exit /b 1
 )
 "venv\Scripts\python.exe" -m bot_leilao varrer %*
+set CODIGO=%errorlevel%
 echo.
-if %errorlevel%==0 (echo Varredura concluida. Relatorio em 1OUTPUT\) else (echo A varredura terminou com codigo %errorlevel%. Veja as mensagens acima.)
+if "%CODIGO%"=="0" (echo Varredura concluida. Relatorio na pasta 1OUTPUT.) else (echo A varredura terminou com codigo %CODIGO%. Veja as mensagens acima.)
 echo.
 pause
