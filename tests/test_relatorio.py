@@ -104,3 +104,53 @@ def test_nunca_sobrescreve_relatorio_existente(tmp_path):
     segundo = gravar_relatorio(tmp_path, _dados())
     assert segundo.name == "2026-10-08_19h37_varredura_2.md"
     assert primeiro.read_text(encoding="utf-8") == "ANOTADO PELO RAFAEL"
+
+
+# --- Emenda E002: lista acumulada de lotes a monitorar ----------------------------------------
+
+from bot_leilao.notificacao.relatorio import acrescentar_monitoramento  # noqa: E402
+
+
+def test_lista_criada_com_regras_de_manutencao_no_topo(tmp_path):
+    caminho = tmp_path / "lotes-a-monitorar.md"
+    assert acrescentar_monitoramento(caminho, [lote_de(_candidato(), "Vip Leilões")], INICIO,
+                                     "2026-10-08_19h37_varredura.md") == 1
+    texto = caminho.read_text(encoding="utf-8")
+    assert texto.startswith("# Lotes a monitorar")
+    for regra in ("só ACRESCENTA", "apague o bloco inteiro", "martelo", "teto", "<!-- lote:"):
+        assert regra in texto
+    assert "### Nissan Versa Excl Cvt — 2024" in texto
+    assert "<!-- lote: vip-leiloes:1 -->" in texto
+    assert "- **Entrou na lista:** 08/10/2026 19:37 (varredura `2026-10-08_19h37_varredura.md`)" in texto
+    assert "- **Lance ao entrar:** R$ 61.000" in texto
+    assert "- **Alvo:** nissan-versa-2023-2024 (teto R$ 69.300)" in texto
+    assert "- **Análise FIPE:** _pendente_" in texto
+
+
+def test_acrescenta_no_fim_sem_tocar_no_que_ja_existe(tmp_path):
+    """Anotações do Rafael e dos agentes nunca podem ser perdidas."""
+    caminho = tmp_path / "lotes-a-monitorar.md"
+    acrescentar_monitoramento(caminho, [lote_de(_candidato(), "Vip Leilões")], INICIO, "a.md")
+    editado = caminho.read_text(encoding="utf-8").replace("_pendente_", "62% da FIPE — ANOTADO")
+    caminho.write_text(editado, encoding="utf-8")
+
+    outro = lote_de(_candidato(id_canonico="vip-leiloes:2", titulo="Nissan Sentra Sl"), "Vip Leilões")
+    assert acrescentar_monitoramento(caminho, [outro], INICIO, "b.md") == 1
+    texto = caminho.read_text(encoding="utf-8")
+    assert texto.startswith(editado), "o conteúdo anterior fica intacto, byte a byte"
+    assert texto.index("Nissan Sentra Sl") > texto.index("ANOTADO")
+
+
+def test_nao_repete_lote_que_ja_esta_na_lista(tmp_path):
+    caminho = tmp_path / "lotes-a-monitorar.md"
+    novo = lote_de(_candidato(), "Vip Leilões")
+    acrescentar_monitoramento(caminho, [novo], INICIO, "a.md")
+    antes = caminho.read_text(encoding="utf-8")
+    assert acrescentar_monitoramento(caminho, [novo], INICIO, "b.md") == 0
+    assert caminho.read_text(encoding="utf-8") == antes
+
+
+def test_sem_lotes_novos_nao_cria_nem_altera(tmp_path):
+    caminho = tmp_path / "lotes-a-monitorar.md"
+    assert acrescentar_monitoramento(caminho, [], INICIO, "a.md") == 0
+    assert not caminho.exists()

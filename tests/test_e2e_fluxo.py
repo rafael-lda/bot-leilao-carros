@@ -137,7 +137,7 @@ def test_km_real_acima_do_teto_continua_eliminada(raiz, relogio, agora):
 
 def _relatorios(cenario):
     pasta = cenario.raiz / "1OUTPUT"
-    return sorted(pasta.glob("*.md")) if pasta.exists() else []
+    return sorted(pasta.glob("*_varredura*.md")) if pasta.exists() else []
 
 
 def test_cada_varredura_gera_um_relatorio_so_com_os_lotes_novos(cenario):
@@ -200,3 +200,59 @@ def test_falha_ao_gravar_relatorio_nao_derruba_a_varredura(cenario):
     (cenario.raiz / "1OUTPUT").write_text("um arquivo no lugar da pasta", encoding="utf-8")
     cenario.vip = pagina_vazia()
     assert cenario.varrer().veredito == "sucesso"
+
+
+# --- Emenda E002: lista acumulada de lotes a monitorar ----------------------------------------
+
+def _monitorar(cenario):
+    caminho = cenario.raiz / "1OUTPUT" / "lotes-a-monitorar.md"
+    return caminho.read_text(encoding="utf-8") if caminho.exists() else None
+
+
+def test_lote_avisado_entra_na_lista_uma_unica_vez(cenario):
+    cenario.vip = pagina_vazia()
+    cenario.varrer()
+    assert _monitorar(cenario) is None, "semeadura sem lotes não cria a lista"
+    cenario.vip = pagina_vip()
+    cenario.varrer()
+    cenario.varrer()
+    texto = _monitorar(cenario)
+    assert texto.count("<!-- lote: vip-leiloes:400001 -->") == 1
+
+
+def test_lote_semeado_nao_entra_na_lista(cenario):
+    cenario.vip = pagina_vip()
+    cenario.varrer()
+    assert _monitorar(cenario) is None
+
+
+def test_lote_so_entra_depois_que_o_telegram_confirma(cenario):
+    cenario.vip = pagina_vazia()
+    cenario.varrer()
+    cenario.vip = pagina_vip()
+    cenario.telegram = 500
+    cenario.varrer()
+    assert _monitorar(cenario) is None, "envio falhou: o lote volta na próxima, e só então entra"
+    cenario.telegram = 200
+    cenario.varrer()
+    assert _monitorar(cenario).count("<!-- lote: vip-leiloes:400001 -->") == 1
+
+
+def test_lote_tirado_da_lista_nao_volta(cenario):
+    cenario.vip = pagina_vazia()
+    cenario.varrer()
+    cenario.vip = pagina_vip()
+    cenario.varrer()
+    caminho = cenario.raiz / "1OUTPUT" / "lotes-a-monitorar.md"
+    texto = caminho.read_text(encoding="utf-8")
+    caminho.write_text(texto[:texto.index("---\n\n### ")], encoding="utf-8")  # Rafael apaga o bloco
+    cenario.varrer()
+    assert "vip-leiloes:400001" not in caminho.read_text(encoding="utf-8")
+
+
+def test_dry_run_nao_escreve_na_lista(cenario):
+    cenario.vip = pagina_vazia()
+    cenario.varrer()
+    cenario.vip = pagina_vip()
+    cenario.varrer(dry_run=True)
+    assert _monitorar(cenario) is None

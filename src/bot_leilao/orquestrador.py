@@ -36,7 +36,8 @@ from bot_leilao.logsetup import mascarar
 from bot_leilao.filtro.fluxo import FluxoFiltragem
 from bot_leilao.notificacao.alertas import AlertaPendente, processar_alertas
 from bot_leilao.notificacao.digest import AlertaOperacional, item_de, montar_digest
-from bot_leilao.notificacao.relatorio import DadosRelatorio, LoteRelatorio, gravar_relatorio, lote_de
+from bot_leilao.notificacao.relatorio import (DadosRelatorio, LoteRelatorio, acrescentar_monitoramento,
+                                             gravar_relatorio, lote_de)
 from bot_leilao.notificacao.telegram import NotificadorTelegram
 from bot_leilao.parsing import nucleo
 from bot_leilao.parsing.modelos import ContextoParsing, ResultadoParsing
@@ -44,6 +45,7 @@ from bot_leilao.parsing.modelos import ContextoParsing, ResultadoParsing
 log = logging.getLogger(__name__)
 
 PASTA_RELATORIOS = "1OUTPUT"  # emenda E001: um relatório Markdown por varredura real, fora do git
+LISTA_MONITORAMENTO = "lotes-a-monitorar.md"  # emenda E002: lista acumulada, o bot só acrescenta
 CODIGO_SAIDA = {"sucesso": 0, "sucesso_parcial": 0, "falha": 1, "recusada": 3}
 
 
@@ -162,8 +164,19 @@ def _gravar_relatorio(raiz: Path, estado: "_Execucao", inicio_local: datetime, s
             novos=estado.novos, telegram=estado.seguro(estado.telegram), semeados=estado.semeados,
             em_semeadura=estado.em_semeadura))
         log.info("exec    | relatório gravado em %s", caminho)
+        nome_relatorio = caminho.name
     except Exception as erro:  # noqa: BLE001
         log.warning("exec    | não consegui gravar o relatório em %s: %s", raiz / PASTA_RELATORIOS, erro)
+        nome_relatorio = "relatório não gravado"
+    if estado.telegram != "enviado" or not estado.novos:
+        return
+    try:
+        lista = raiz / PASTA_RELATORIOS / LISTA_MONITORAMENTO
+        entraram = acrescentar_monitoramento(lista, estado.novos, inicio_local, nome_relatorio)
+        if entraram:
+            log.info("exec    | %d lote(s) acrescentado(s) a %s", entraram, lista)
+    except Exception as erro:  # noqa: BLE001
+        log.warning("exec    | não consegui atualizar a lista de lotes a monitorar: %s", erro)
 
 
 def _abrir_banco(dados: Path):

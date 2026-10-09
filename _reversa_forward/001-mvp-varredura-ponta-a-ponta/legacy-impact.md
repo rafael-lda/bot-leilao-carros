@@ -33,6 +33,7 @@
 | `tests/test_e2e_*.py`, `tests/test_cli.py`, `tests/test_seguranca.py`, `tests/RASTREABILIDADE.md` | testes | componente-novo | LOW | 11 cenários de aceitação, CLI, segurança do token e matriz RF → teste |
 
 | `src/bot_leilao/notificacao/relatorio.py`, `src/bot_leilao/orquestrador.py`, `.gitignore` | `notificador-telegram`, `agendador-observabilidade` | regra-nova | LOW | Emenda E001: relatório Markdown por varredura real em `1OUTPUT/`, fora do git, nunca sobrescrito |
+| `src/bot_leilao/notificacao/relatorio.py`, `src/bot_leilao/orquestrador.py` | `notificador-telegram` | regra-nova | LOW | Emenda E002: lista acumulada de lotes a monitorar em `1OUTPUT/`, só acréscimo, mantida pelo Rafael e por agentes a pedido |
 
 ## Diff conceitual por componente
 

@@ -130,6 +130,7 @@ Segurança comprovada, rastreabilidade e documentação curta.
 | ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
 |----|-----------|--------------|-------------|--------------|-------------|--------|
 | E001 | Relatório Markdown por varredura real em `1OUTPUT/` (data, hora, veredito, duração, lotes novos com alvo e teto); nunca sobrescreve; fora do git; falha ao gravar não derruba a varredura | - | - | `src/bot_leilao/notificacao/relatorio.py` | 🟢 | `[X]` |
+| E002 | Lista acumulada `1OUTPUT/lotes-a-monitorar.md`: o bot só acrescenta os lotes avisados (após confirmação do Telegram), sem repetir; regras de manutenção no topo para o Rafael e os agentes | E001 | - | `src/bot_leilao/notificacao/relatorio.py` | 🟢 | `[X]` |
 
 ## Notas de execução
 

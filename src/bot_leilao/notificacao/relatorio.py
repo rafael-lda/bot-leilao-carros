@@ -33,6 +33,7 @@ class LoteRelatorio:
     rotulo_preco: str
     alvo: str
     teto: str
+    id_canonico: str = ""
 
 
 def lote_de(candidato: Candidato, nome_leiloeiro: str) -> LoteRelatorio:
@@ -42,6 +43,7 @@ def lote_de(candidato: Candidato, nome_leiloeiro: str) -> LoteRelatorio:
         rotulo_preco="Lance atual" if tem_lance else "Lance inicial (ainda sem lances)",
         alvo=candidato.alvo.id,
         teto=formatar_preco(candidato.alvo.preco_maximo),
+        id_canonico=candidato.lote.id_canonico or "",
     )
 
 
@@ -118,3 +120,64 @@ def gravar_relatorio(pasta: Path, dados: DadosRelatorio) -> Path:
         except FileExistsError:
             continue
     raise FileExistsError(f"Relatórios demais com o nome {base} em {pasta}")
+
+
+# --- Emenda E002: lista acumulada de lotes a monitorar ----------------------------------------
+
+CABECALHO_MONITORAMENTO = """# Lotes a monitorar
+
+Lista acumulada dos lotes avisados pelo bot no Telegram. O bot só ACRESCENTA lotes no fim deste
+arquivo: nunca reescreve, reordena nem apaga nada. Quem tira lotes daqui é o Rafael, ou um agente
+(Claude, Antigravity, Codex) a pedido dele.
+
+## Como manter
+
+- **Para tirar um lote:** apague o bloco inteiro dele, da linha `---` até a linha antes do próximo `---`
+  (ou até o fim do arquivo, se for o último).
+- **Quando tirar:** o martelo bateu (leilão encerrado), o lote foi retirado, ou o lance passou do teto.
+- **Ao atualizar um lote** (lance atual, análise FIPE): edite só as linhas daquele bloco e não mexa no
+  comentário `<!-- lote: ... -->`, que identifica o lote para o bot não repeti-lo.
+- **Lote tirado não volta:** o bot avisa cada lote uma única vez.
+"""
+
+
+def _bloco_monitoramento(novo: LoteRelatorio, entrada: datetime, relatorio: str) -> str:
+    item = novo.item
+    titulo = _escapar(item.titulo) + (f" — {item.ano}" if item.ano else "")
+    linhas = [
+        "", "---", "",
+        f"### {titulo}",
+        f"<!-- lote: {novo.id_canonico} -->",
+        "",
+        f"- **Entrou na lista:** {entrada:%d/%m/%Y %H:%M} (varredura `{relatorio}`)",
+        f"- **{'Lance ao entrar' if novo.rotulo_preco == 'Lance atual' else novo.rotulo_preco}:** {item.preco}",
+        f"- **Leiloeiro:** {_escapar(item.leiloeiro)}",
+    ]
+    if item.km:
+        linhas.append(f"- **Km:** {item.km}")
+    linhas += [
+        f"- **Link:** {item.link}",
+        f"- **Alvo:** {novo.alvo} (teto {novo.teto})",
+        "- **Análise FIPE:** _pendente_",
+    ]
+    return "\n".join(linhas) + "\n"
+
+
+def acrescentar_monitoramento(caminho: Path, novos: list[LoteRelatorio], entrada: datetime, relatorio: str) -> int:
+    """Acrescenta no fim da lista os lotes que ainda não estão nela. Devolve quantos entraram.
+
+    Só abre o arquivo para leitura (deduplicação pelo comentário de id) e para acréscimo: o conteúdo
+    existente, inclusive anotações, nunca é reescrito.
+    """
+    existente = caminho.read_text(encoding="utf-8") if caminho.exists() else None
+    pendentes = [n for n in novos if n.id_canonico and f"<!-- lote: {n.id_canonico} -->" not in (existente or "")]
+    if not pendentes:
+        return 0
+    caminho.parent.mkdir(parents=True, exist_ok=True)
+    if existente is None:
+        with caminho.open("x", encoding="utf-8", newline="\n") as arquivo:
+            arquivo.write(CABECALHO_MONITORAMENTO)
+    with caminho.open("a", encoding="utf-8", newline="\n") as arquivo:
+        for novo in pendentes:
+            arquivo.write(_bloco_monitoramento(novo, entrada, relatorio))
+    return len(pendentes)
