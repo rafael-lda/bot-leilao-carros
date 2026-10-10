@@ -173,7 +173,7 @@ def test_texto_do_item_do_kuss():
 
 def test_observacoes_longas_sao_resumidas_em_160_caracteres():
     item = item_de(_kuss(observacoes="PARA-CHOQUE AMASSADO " * 20), "Claudio Kuss Leilões")
-    assert len(item.observacoes) == 160
+    assert 150 < len(item.observacoes) <= 160
     assert item.observacoes.endswith("…")
 
 

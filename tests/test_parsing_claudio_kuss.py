@@ -241,6 +241,26 @@ def test_entidades_e_espacos_sao_limpos():
     assert alvo.observacoes == "PARA-CHOQUE & FAROL QUEBRADOS"
 
 
+def test_detalhe_real_de_sucata():
+    """O JSON da lista não traz o prefixo SUCATA; só o detalhe diz (2026-10-10, Clio 282327)."""
+    alvo = _novo()
+    parser.aplicar_detalhe(alvo, _fixture("detalhe_282327_sucata.json"))
+    assert alvo.situacao == "sucata"
+    assert alvo.observacoes.startswith("SUCATA SEM DOCUMENTOS - BAIXADO JUNTO AO DETRAN")
+
+
+def test_sucata_so_pelo_local_do_documento():
+    alvo = _novo()
+    parser.aplicar_detalhe(alvo, bytes_json(detalhe_kuss(tblInformacoes="", tblTransf="SUCATA")))
+    assert alvo.situacao == "sucata"
+
+
+def test_sinistrado_nao_e_sucata():
+    alvo = _novo()
+    parser.aplicar_detalhe(alvo, _fixture("detalhe_282622_sinistrado.json"))
+    assert alvo.situacao != "sucata"
+
+
 def test_detalhe_retirado():
     alvo = _novo()
     parser.aplicar_detalhe(alvo, bytes_json(detalhe_kuss(retirado="S")))

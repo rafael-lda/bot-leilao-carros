@@ -4,7 +4,7 @@ import logging
 
 import httpx
 
-from apoio import SiteKuss, alvo, detalhe_kuss, lote
+from apoio import SiteKuss, alvo, detalhe_kuss, json_kuss, lote
 from bot_leilao.coleta import registro
 from bot_leilao.coleta.enriquecimento import enriquecer
 from bot_leilao.coleta.http import ClienteHTTP
@@ -85,3 +85,10 @@ def test_falha_num_lote_nao_impede_os_outros(relogio):
     resultado = _enriquecer([_kuss("1"), _kuss("2")], site, relogio)
     assert [c.lote.detalhe_lido for c in resultado.novos] == [False, True]
     assert (resultado.detalhados, resultado.falhas) == (1, 1)
+
+
+def test_sucata_no_detalhe_sai_da_lista_e_e_contada(relogio):
+    site = SiteKuss(detalhes={"282622": json_kuss("detalhe_282327_sucata.json")})
+    resultado = _enriquecer([_kuss(), _vip()], site, relogio)
+    assert [c.lote.leiloeiro_id for c in resultado.novos] == ["vip-leiloes"]
+    assert (resultado.sucatas, resultado.retirados) == (1, 0)

@@ -63,7 +63,7 @@ depois da filtragem, por lote novo:
 | `logo`, `foto`, `linkVideo` | caminhos | não usados |
 
 - **Página além da última:** `[]` (2 bytes) 🟢
-- **Grafias de `bem` (censo de 391 lotes):** marcas com prefixo `IMP ` (importados), `SUCATA ` (17 lotes), `CHEV`, `GM`, `CHEVROLET`, `VW`, `MMC`, `M BENZ`, `CAOACHERY`, `IMP LR`; `RETIRADO` sozinho para lote retirado; não veículos sem `/` (`MODULOS FOTOVOLTAICOS`) 🟢
+- **Grafias de `bem` (censo de 391 lotes na lista HTML):** marcas com prefixo `IMP ` (importados), `SUCATA ` (17 lotes, **só na lista HTML**: no `op=P` o mesmo lote vem sem o prefixo, ex.: seq 282327 `IMP RENAULT/CLIO EXP 10 16V H`), `CHEV`, `GM`, `CHEVROLET`, `VW`, `MMC`, `M BENZ`, `CAOACHERY`, `IMP LR`; `RETIRADO` sozinho para lote retirado; não veículos sem `/` (`MODULOS FOTOVOLTAICOS`) 🟢
 - **Erros:** corpo que não é lista JSON, ou item sem `seq` ou `bem` → exceção no parser → quebra.
 
 ## 5. Detalhe do lote: `POST /json_lance_info_lote.php` `op=D`
@@ -75,10 +75,10 @@ depois da filtragem, por lote novo:
 | Campo | Exemplo | Uso |
 |-------|---------|-----|
 | `retirado` | `"N"` / `"S"` | `S` → lote descartado (RN-05) |
-| `tblInformacoes` | `"SINISTRADO - NOS DOCUMENTOS CONSTA RECUPERADO DE SINISTRO. ..."` | `observacoes` (RF-07); vazio ou `&nbsp;` → `None` |
+| `tblInformacoes` | `"SINISTRADO - NOS DOCUMENTOS CONSTA RECUPERADO DE SINISTRO. ..."` | `observacoes` (RF-07); vazio ou `&nbsp;` → `None`; começando com `"SUCATA SEM DOCUMENTOS - BAIXADO JUNTO AO DETRAN"` → sucata (D-43) |
 | `tblDespAdm` | `"2.750,00"` | `despesas_adm` |
 | `tblPlaca` | `"F**-**35"` | `placa_parcial` |
-| `tblTransf` | `" SÃO PAULO"` | `local_documento` (aparado) |
+| `tblTransf` | `" SÃO PAULO"` | `local_documento` (aparado); `"SUCATA"` em lote de sucata |
 | `tblTxtInfo` | texto padrão de todo lote | **não usado** (D-52) |
 | `descLote`, `tblAno`, `tblCor`, `tblComb`, `tblCRLV`, `tblDUT`, `tblIPVA`, `incr`, `sequencia` | | não usados nesta feature |
 

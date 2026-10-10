@@ -16,10 +16,13 @@ from pathlib import Path
 
 import httpx
 
+import bot_leilao.coleta.claudio_kuss  # noqa: F401 — registra o adaptador (feature 002)
 import bot_leilao.coleta.vip  # noqa: F401 — registra o adaptador
+import bot_leilao.parsing.claudio_kuss  # noqa: F401 — registra o parser (feature 002)
 import bot_leilao.parsing.vip  # noqa: F401 — registra o parser
 from bot_leilao.coleta import registro
 from bot_leilao.coleta.coletor import Coletor
+from bot_leilao.coleta.enriquecimento import enriquecer
 from bot_leilao.coleta.http import ClienteHTTP
 from bot_leilao.coleta.modelos import Veredito
 from bot_leilao.config.ambiente import carregar_ambiente
@@ -237,32 +240,23 @@ def _executar(raiz: Path, dry_run: bool, deps: Dependencias, fuso: tzinfo, con, 
         estado.saida = _resultado("sucesso")
         return
 
-    # Coleta e parsing.
+    # Coleta, parsing, filtragem e enriquecimento. O cliente HTTP vive até o detalhe dos lotes novos
+    # (feature 002, D-48), que usa a mesma sessão e o mesmo espaçamento por host.
     cliente = ClienteHTTP(deps.transporte_leiloeiros, relogio=deps.relogio, dormir=deps.dormir)
     try:
         respostas = Coletor(cliente, adaptadores, relogio=deps.relogio, agora=deps.agora).coletar(leiloeiros.ativos)
+        parsings, aptas = _processar(respostas, leiloeiros.ativos, adaptadores)
+        fluxo = FluxoFiltragem(RepositorioLotes(con))
+        filtragem = fluxo.filtrar(list(parsings.values()), veiculos.ativos, aptas)
+        log.info("filtro  | %d lotes vistos, %d retirados | %d candidatos | %d já conhecidos | %d novos",
+                 filtragem.vistos, filtragem.descartados_retirados, filtragem.candidatos, filtragem.ja_conhecidos,
+                 len(filtragem.novos))
+        _enriquecer(filtragem, cliente, adaptadores)
     finally:
         cliente.fechar()
-
-    buscas = {b.id: (l, b) for l in leiloeiros.ativos for b in l.buscas}
-    parsings: dict[str, ResultadoParsing] = {}
-    for resposta in respostas:
-        leiloeiro, busca = buscas[resposta.busca_id]
-        contexto = ContextoParsing(leiloeiro_id=leiloeiro.id, busca_id=busca.id, base_url=leiloeiro.base_url,
-                                   coletado_em=resposta.iniciado_em,
-                                   tipo_leilao=adaptadores[leiloeiro.id].tipo_leilao_da_busca(busca.filtros))
-        parsings[busca.id] = nucleo.processar(resposta, contexto)
-    aptas = {r.busca_id for r in respostas
-             if r.veredito is Veredito.OK and not parsings[r.busca_id].quebra_suspeita
-             and not parsings[r.busca_id].sem_conteudo}
-
-    # Filtragem, semeadura e digest.
-    fluxo = FluxoFiltragem(RepositorioLotes(con))
-    filtragem = fluxo.filtrar(list(parsings.values()), veiculos.ativos, aptas)
     estado.contagens.update(filtragem.contagens())
-    log.info("filtro  | %d lotes vistos, %d retirados | %d candidatos | %d já conhecidos | %d novos",
-             filtragem.vistos, filtragem.descartados_retirados, filtragem.candidatos, filtragem.ja_conhecidos,
-             len(filtragem.novos))
+
+    # Semeadura e digest.
     if filtragem.buscas_a_semear:
         log.info("filtro  | busca(s) em semeadura: %d candidato(s) %s como conhecido(s), nenhum digest",
                  len(filtragem.semeaveis), "seriam registrados (dry-run)" if dry_run else "registrado(s)")
@@ -335,6 +329,34 @@ def _executar(raiz: Path, dry_run: bool, deps: Dependencias, fuso: tzinfo, con, 
         estado.veredito, estado.motivo = "sucesso_parcial", None
     else:
         estado.veredito, estado.motivo = "sucesso", None
+
+
+def _processar(respostas, leiloeiros, adaptadores) -> tuple[dict[str, ResultadoParsing], set[str]]:
+    """Parsing de cada busca; `aptas` são as buscas coletadas e lidas sem sinal de quebra (D-20)."""
+    buscas = {b.id: (l, b) for l in leiloeiros for b in l.buscas}
+    parsings: dict[str, ResultadoParsing] = {}
+    for resposta in respostas:
+        leiloeiro, busca = buscas[resposta.busca_id]
+        contexto = ContextoParsing(leiloeiro_id=leiloeiro.id, busca_id=busca.id, base_url=leiloeiro.base_url,
+                                   coletado_em=resposta.iniciado_em,
+                                   tipo_leilao=adaptadores[leiloeiro.id].tipo_leilao_da_busca(busca.filtros))
+        parsings[busca.id] = nucleo.processar(resposta, contexto)
+    aptas = {r.busca_id for r in respostas
+             if r.veredito is Veredito.OK and not parsings[r.busca_id].quebra_suspeita
+             and not parsings[r.busca_id].sem_conteudo}
+    return parsings, aptas
+
+
+def _enriquecer(filtragem, cliente: ClienteHTTP, adaptadores) -> None:
+    """Detalhe dos lotes novos (feature 002, D-48): retirados saem do aviso e entram na contagem."""
+    if not filtragem.novos:
+        return
+    resultado = enriquecer(filtragem.novos, cliente, adaptadores, nucleo.parsers())
+    filtragem.novos = resultado.novos
+    filtragem.descartados_retirados += resultado.retirados
+    if resultado.detalhados or resultado.falhas:
+        log.info("enriq   | %d lote(s) detalhado(s), %d retirado(s), %d sucata(s), %d falha(s)", resultado.detalhados,
+                 resultado.retirados, resultado.sucatas, resultado.falhas)
 
 
 def _alertas(leiloeiros, respostas, parsings, agora_local: datetime) -> list[AlertaPendente]:

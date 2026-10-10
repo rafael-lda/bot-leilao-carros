@@ -24,3 +24,11 @@
 {"ts": "2026-10-10T07:33:47-03:00", "action": "T024", "status": "done", "files": ["src/bot_leilao/parsing/claudio_kuss.py"]}
 {"ts": "2026-10-10T07:33:47-03:00", "action": "T025", "status": "done", "files": ["src/bot_leilao/parsing/claudio_kuss.py"]}
 {"ts": "2026-10-10T07:33:47-03:00", "action": "T026", "status": "done", "files": ["src/bot_leilao/coleta/enriquecimento.py"]}
+{"ts": "2026-10-10T07:57:22-03:00", "action": "T027", "status": "done", "files": ["src/bot_leilao/notificacao/digest.py", "tests/test_digest.py"]}
+{"ts": "2026-10-10T07:57:22-03:00", "action": "T028", "status": "done", "files": ["src/bot_leilao/notificacao/relatorio.py"]}
+{"ts": "2026-10-10T07:57:22-03:00", "action": "T029", "status": "done", "files": ["src/bot_leilao/orquestrador.py"]}
+{"ts": "2026-10-10T07:57:22-03:00", "action": "T030", "status": "done", "files": ["config/leiloeiros.yaml"]}
+{"ts": "2026-10-10T07:57:22-03:00", "action": "T031", "status": "done", "files": ["src/bot_leilao/parsing/claudio_kuss.py", "src/bot_leilao/coleta/enriquecimento.py", "tests/fixtures/claudio_kuss/detalhe_282327_sucata.json", "scripts/capturar_fixtures.py"]}
+{"ts": "2026-10-10T07:58:29-03:00", "action": "T032", "status": "done", "files": ["README.md"]}
+{"ts": "2026-10-10T07:58:29-03:00", "action": "T033", "status": "done", "files": ["tests/RASTREABILIDADE.md"]}
+{"ts": "2026-10-10T07:58:29-03:00", "action": "T034", "status": "done", "files": ["_reversa_forward/002-leiloeiro-claudio-kuss/onboarding.md"]}

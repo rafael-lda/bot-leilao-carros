@@ -23,6 +23,7 @@ log = logging.getLogger(__name__)
 LEILOEIRO_ID = "claudio-kuss-leiloes"
 _IMPORTADO = re.compile(r"^IMP\s+", re.IGNORECASE)
 _SUCATA = re.compile(r"^SUCATA\b", re.IGNORECASE)
+SITUACAO_SUCATA = "sucata"
 
 
 def _limpo(valor: object) -> str | None:
@@ -55,7 +56,7 @@ class ParserClaudioKuss:
         lotes, sucatas = [], 0
         for item in itens:
             bem = str(item["bem"]).strip()
-            if _SUCATA.match(bem):  # D-43: documento baixado, fora de "só conservado"
+            if _SUCATA.match(bem):  # D-43; o JSON de 2026-10-10 não traz o prefixo (só a lista HTML), ver aplicar_detalhe
                 sucatas += 1
                 continue
             lotes.append(self._lote(item, bem, contexto))
@@ -100,6 +101,10 @@ class ParserClaudioKuss:
         lote.placa_parcial = _limpo(dados.get("tblPlaca"))
         lote.local_documento = _limpo(dados.get("tblTransf"))
         lote.retirado = lote.retirado or str(dados.get("retirado", "")).strip().upper() == "S"
+        # D-43 revisto no coding: no JSON a sucata só aparece no detalhe ("SUCATA SEM DOCUMENTOS - BAIXADO
+        # JUNTO AO DETRAN...", e `tblTransf` = "SUCATA"). Documento baixado: o carro não volta a circular.
+        if _SUCATA.match(lote.observacoes or "") or normalizar_texto(lote.local_documento) == "sucata":
+            lote.situacao = SITUACAO_SUCATA
         lote.detalhe_lido = True
 
 

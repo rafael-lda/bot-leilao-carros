@@ -13,7 +13,7 @@ from datetime import datetime
 from pathlib import Path
 
 from bot_leilao.filtro.motor import Candidato
-from bot_leilao.notificacao.digest import ItemDigest, formatar_preco, item_de
+from bot_leilao.notificacao.digest import ItemDigest, formatar_preco, item_de, observacoes_do_lote
 
 _MARKDOWN = re.compile(r"([\\`*_\[\]#|<>])")
 
@@ -34,17 +34,46 @@ class LoteRelatorio:
     alvo: str
     teto: str
     id_canonico: str = ""
+    # Feature 002 (D-51): textos completos, só para leiloeiros que os informam.
+    pregao: str | None = None
+    despesas_adm: str | None = None
+    documento: str | None = None
+    observacoes: str | None = None
+
+
+def _rotulo_preco(lote) -> str:
+    if lote.lance_corrente is not None:
+        return "Lance atual"
+    return "Lance inicial (ainda sem lances)" if lote.lance_inicial is not None else "Preço"
+
+
+def _documento(lote) -> str | None:
+    partes = [f"Placa {lote.placa_parcial}" if lote.placa_parcial else None,
+              f"documento de {lote.local_documento}" if lote.local_documento else None]
+    return ", ".join(p for p in partes if p) or None
 
 
 def lote_de(candidato: Candidato, nome_leiloeiro: str) -> LoteRelatorio:
-    tem_lance = candidato.lote.lance_corrente is not None
+    lote = candidato.lote
     return LoteRelatorio(
         item=item_de(candidato, nome_leiloeiro),
-        rotulo_preco="Lance atual" if tem_lance else "Lance inicial (ainda sem lances)",
+        rotulo_preco=_rotulo_preco(lote),
         alvo=candidato.alvo.id,
         teto=formatar_preco(candidato.alvo.preco_maximo),
-        id_canonico=candidato.lote.id_canonico or "",
+        id_canonico=lote.id_canonico or "",
+        pregao=f"{lote.pregao_em:%d/%m/%Y %H:%M}" if lote.pregao_em else None,
+        despesas_adm=formatar_preco(lote.despesas_adm) if lote.despesas_adm is not None else None,
+        documento=_documento(lote),
+        observacoes=observacoes_do_lote(lote),
     )
+
+
+def _linhas_do_leiloeiro(novo: LoteRelatorio) -> list[str]:
+    """Pregão, despesas, documento e observações completas, quando o leiloeiro informa (D-51)."""
+    campos = [("Pregão", novo.pregao), ("Despesas admin.", novo.despesas_adm),
+              ("Documento", _escapar(novo.documento) if novo.documento else None),
+              ("Observações", _escapar(novo.observacoes) if novo.observacoes else None)]
+    return [f"- **{rotulo}:** {valor}" for rotulo, valor in campos if valor]
 
 
 @dataclass
@@ -100,6 +129,7 @@ def montar_relatorio(dados: DadosRelatorio) -> str:
             linhas.append(f"- **Leiloeiro:** {_escapar(item.leiloeiro)}")
             if item.km:
                 linhas.append(f"- **Km:** {item.km}")
+            linhas += _linhas_do_leiloeiro(novo)
             linhas.append(f"- **Link:** {item.link}")
             linhas.append(f"- **Alvo:** {novo.alvo} (teto {novo.teto})")
             linhas += ["- **Análise FIPE:** _pendente_", ""]
@@ -146,6 +176,9 @@ arquivo: nunca reescreve, reordena nem apaga nada. Quem tira lotes daqui é o Ra
 """
 
 
+ROTULO_AO_ENTRAR = {"Lance atual": "Lance ao entrar", "Preço": "Preço ao entrar"}
+
+
 def _bloco_monitoramento(novo: LoteRelatorio, entrada: datetime, relatorio: str) -> str:
     item = novo.item
     titulo = _escapar(item.titulo) + (f" — {item.ano}" if item.ano else "")
@@ -155,11 +188,12 @@ def _bloco_monitoramento(novo: LoteRelatorio, entrada: datetime, relatorio: str)
         f"<!-- lote: {novo.id_canonico} -->",
         "",
         f"- **Entrou na lista:** {entrada:%d/%m/%Y %H:%M} (varredura `{relatorio}`)",
-        f"- **{'Lance ao entrar' if novo.rotulo_preco == 'Lance atual' else novo.rotulo_preco}:** {item.preco}",
+        f"- **{ROTULO_AO_ENTRAR.get(novo.rotulo_preco, novo.rotulo_preco)}:** {item.preco}",
         f"- **Leiloeiro:** {_escapar(item.leiloeiro)}",
     ]
     if item.km:
         linhas.append(f"- **Km:** {item.km}")
+    linhas += _linhas_do_leiloeiro(novo)
     linhas += [
         f"- **Link:** {item.link}",
         f"- **Alvo:** {novo.alvo} (teto {novo.teto})",

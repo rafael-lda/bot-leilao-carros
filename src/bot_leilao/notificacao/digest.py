@@ -15,6 +15,8 @@ from bot_leilao.filtro.motor import Candidato
 
 LIMITE_BLOCO = 3800  # abaixo dos 4096 da plataforma, com folga para entidades
 PRECO_A_CONFIRMAR = "Preço a confirmar"
+OBSERVACOES_NAO_LIDAS = "observações não lidas; veja o link"
+LIMITE_OBSERVACOES = 160  # feature 002, D-51: o resumo continua legível com vários lotes
 _RESERVA_CONTINUACAO = len("(continuação 999/999)\n\n")
 
 
@@ -47,6 +49,19 @@ class ItemDigest:
     leiloeiro: str
     link: str
     km: str | None = None
+    pregao: str | None = None           # feature 002: leilão por evento (Claudio Kuss)
+    observacoes: str | None = None      # feature 002: resumidas em LIMITE_OBSERVACOES
+
+
+def resumir(texto: str, limite: int = LIMITE_OBSERVACOES) -> str:
+    return texto if len(texto) <= limite else texto[:limite - 1].rstrip() + "…"
+
+
+def observacoes_do_lote(lote) -> str | None:
+    """Texto completo das observações; aviso explícito quando o detalhe foi tentado e falhou (D-49)."""
+    if lote.detalhe_lido is False:
+        return OBSERVACOES_NAO_LIDAS
+    return lote.observacoes
 
 
 def item_de(candidato: Candidato, nome_leiloeiro: str) -> ItemDigest:
@@ -58,13 +73,18 @@ def item_de(candidato: Candidato, nome_leiloeiro: str) -> ItemDigest:
         leiloeiro=nome_leiloeiro,
         link=lote.link,
         km=formatar_km(lote.quilometragem),
+        pregao=f"Pregão {lote.pregao_em:%d/%m %H:%M}" if lote.pregao_em else None,
+        observacoes=resumir(obs) if (obs := observacoes_do_lote(lote)) else None,
     )
 
 
 def _texto_item(numero: int, item: ItemDigest) -> str:
     primeira = f"{numero}. {escapar_html(item.titulo)}" + (f" — {item.ano}" if item.ano else "")
-    segunda = "   " + " — ".join(escapar_html(p) for p in (item.preco, item.leiloeiro, item.km) if p)
-    return "\n".join([primeira, segunda, f"   {escapar_html(item.link)}"])
+    segunda = "   " + " — ".join(escapar_html(p) for p in (item.preco, item.leiloeiro, item.km, item.pregao) if p)
+    linhas = [primeira, segunda]
+    if item.observacoes:  # 4ª linha só para quem tem observações (RF-07 da feature 002)
+        linhas.append(f"   Obs.: {escapar_html(item.observacoes)}")
+    return "\n".join([*linhas, f"   {escapar_html(item.link)}"])
 
 
 def montar_digest(itens: Sequence[ItemDigest], executado_em: datetime, limite: int = LIMITE_BLOCO) -> list[str]:

@@ -22,6 +22,7 @@ class ResultadoEnriquecimento:
     novos: list[Candidato] = field(default_factory=list)   # os que seguem para o aviso
     detalhados: int = 0
     retirados: int = 0
+    sucatas: int = 0
     falhas: int = 0
 
 
@@ -51,6 +52,10 @@ def enriquecer(candidatos: Sequence[Candidato], cliente: ClienteHTTP, adaptadore
         if lote.retirado:
             resultado.retirados += 1
             log.info("enriq   | %s | retirado segundo o detalhe; não será avisado", lote.id_canonico)
+            continue
+        if lote.situacao == "sucata":  # documento baixado (D-43): fora de "só conservado"
+            resultado.sucatas += 1
+            log.info("enriq   | %s | sucata segundo o detalhe; não será avisado", lote.id_canonico)
             continue
         resultado.novos.append(candidato)
     return resultado

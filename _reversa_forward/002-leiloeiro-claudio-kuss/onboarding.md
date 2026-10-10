@@ -40,12 +40,15 @@ A **primeira** varredura real com o Claudio Kuss ativo **semeia** a busca dele: 
 python -m bot_leilao varrer --dry-run
 ```
 
-O que esperar no log:
+O que esperar no log (medido no dry-run de 2026-10-10, no container):
 
-- `coleta  | Claudio Kuss Leilões | ... pág 1 ...` até umas 43 páginas, cerca de 4 minutos (5 s entre páginas);
-- uma linha por evento com o total lido igual ao informado pelo site (sem aviso de divergência);
-- `parser  | ... lote(s) de sucata ignorado(s)`;
-- na lista final de candidatos, os lotes do Claudio Kuss com link `.../lance/<evento>/0/<número>`.
+- `coleta  | Claudio Kuss Leilões | 2 evento(s) 'Veículos - Financeiras': 897 (13/10 10:00), 898 (20/10 10:00)`;
+- `pág 1` a `pág 43` do Claudio Kuss, cerca de 3,5 minutos (5 s entre páginas); a varredura inteira, com o Vip, levou **5m16s**;
+- `parser  | busca=claudio-kuss-leiloes:... | 391 lotes | 0 descartados | ok`, **sem** nenhum aviso de "o site informou N lote(s) e foram lidos M";
+- linhas `marca fora da tabela conhecida` para máquinas e reboques (`new holland`, `reb`, `librelato`...): são só informativas;
+- na lista final de candidatos, os lotes do Claudio Kuss com link `.../lance/<evento>/0/<número>`. Em 2026-10-10 foram três: os Fluence 2013 (sinistrado) e 2015 (mecânica com problemas) e o **Kicks S CVT 2019** (sem observações).
+
+No dry-run da primeira vez os candidatos aparecem **sem** observações: o bot só abre o detalhe dos lotes que vai avisar. Abra os links para ver o estado de cada um.
 
 Abra os links dos candidatos no navegador e confira se é o mesmo carro.
 
@@ -56,6 +59,8 @@ python -m bot_leilao varrer
 ```
 
 ou o atalho `varrer.bat`. Resultado esperado: os lotes **novos do Vip** chegam normalmente; o Claudio Kuss aparece no relatório de `1OUTPUT/` como semeado ("N lote(s) registrados como conhecidos"), sem aviso.
+
+Nas varreduras seguintes, lote novo de sucata ou retirado é descartado depois de abrir o detalhe, com a linha `enriq   | N lote(s) detalhado(s), R retirado(s), S sucata(s), F falha(s)` no log.
 
 ## 5. Como fica um aviso do Claudio Kuss
 

@@ -1,7 +1,8 @@
 # Leiloeiros monitorados.
 # A senha nunca entra aqui: credencial_env aponta para uma variável no .env.
-# Os filtros são os do formulário de busca do site; veja os valores aceitos
-# em _reversa_forward/001-mvp-varredura-ponta-a-ponta/interfaces/vip-pesquisa.md
+# Os filtros são próprios de cada site; veja os valores aceitos em
+#   Vip:          _reversa_forward/001-mvp-varredura-ponta-a-ponta/interfaces/vip-pesquisa.md
+#   Claudio Kuss: _reversa_forward/002-leiloeiro-claudio-kuss/interfaces/claudio-kuss.md
 # Não filtre por marca nem modelo: esse recorte é feito pelos veículos-alvo
 # (cadastro-leiloeiros, seção 6.1.1, "busca ampla").
 leiloeiros:
@@ -16,3 +17,17 @@ leiloeiros:
         filtros:
           procedencia: 4   # Recuperado Financiamento
           monta: 1         # Conservado
+
+  # Leilão por evento (pregão com data marcada). A busca lê todos os eventos futuros
+  # cuja categoria contém o texto abaixo. O Kuss não informa km nem monta: o estado do
+  # carro vem nas observações do aviso (ex.: "SINISTRADO", "MECÂNICA COM PROBLEMAS").
+  # Para desligar: ativo: false
+  - nome: Claudio Kuss Leilões
+    base_url: https://www.claudiokussleiloes.com.br
+    ativo: true
+    estrategia_acesso: publico
+    nivel_coleta: script
+    buscas:
+      - descricao: Eventos de veículos de financeiras, qualquer marca
+        filtros:
+          categoria: Veículos - Financeiras

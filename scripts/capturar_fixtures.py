@@ -178,9 +178,10 @@ def main_kuss() -> None:
     ultima = int(quantidades["898"]["qtdePag"])
     gravar_kuss("lotes_898_ultima_pagina.json", lotes("898", ultima))
 
-    detalhe = post("json_lance_info_lote.php", {"op": "D", "leilaoID": "897", "le_id": "282341", "loteado": "N"},
-                   f"{KUSS}/lance/897/0/282341")
-    gravar_kuss("detalhe_282341.json", json.loads(detalhe))
+    for seq, nome in (("282341", "detalhe_282341.json"), ("282327", "detalhe_282327_sucata.json")):
+        detalhe = post("json_lance_info_lote.php", {"op": "D", "leilaoID": "897", "le_id": seq, "loteado": "N"},
+                       f"{KUSS}/lance/897/0/{seq}")
+        gravar_kuss(nome, json.loads(detalhe))
 
 
 if __name__ == "__main__":

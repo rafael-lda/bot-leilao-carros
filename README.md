@@ -2,7 +2,12 @@
 
 Varre sites de leilão de carros, filtra os lotes pelos veículos que você procura e avisa no Telegram, com marca, modelo, ano, preço e o link do lote.
 
-Hoje monitora o **Vip Leilões** (recuperados de financiamento, estado conservado). O bot só observa e avisa: ele nunca dá lance.
+Hoje monitora dois leiloeiros. O bot só observa e avisa: ele nunca dá lance.
+
+| Leiloeiro | O que o bot lê | Particularidades |
+|---|---|---|
+| **Vip Leilões** | Recuperados de financiamento, estado conservado | Leilão contínuo; informa km |
+| **Claudio Kuss Leilões** (Curitiba) | Eventos "Veículos - Financeiras" | Leilão por evento com data marcada: o aviso traz a **data do pregão**. Não informa km nem monta, e o evento mistura financiamento e sinistro: o aviso traz as **observações** do lote ("SINISTRADO", "MECÂNICA COM PROBLEMAS"...) para você descartar à mão. Sucata e lotes retirados ficam de fora. Antes do pregão quase nenhum lote tem lance, então a maioria chega como "Preço a confirmar" |
 
 ## Como funciona
 
@@ -10,7 +15,7 @@ Hoje monitora o **Vip Leilões** (recuperados de financiamento, estado conservad
 2. Busca no site do leiloeiro todas as páginas de resultado, devagar (5 s entre requisições).
 3. Compara cada lote com os seus alvos: marca, modelo, **ano de modelo**, **lance corrente** contra o teto, quilometragem (opcional) e tipo de leilão.
 4. Manda **um único resumo** no Telegram com os lotes novos. Lote já avisado não volta.
-5. Na primeira vez que uma busca roda, ele só registra o que já existe, sem avisar (senão você receberia o catálogo inteiro).
+5. Na primeira vez que uma busca roda, ele só registra o que já existe, sem avisar (senão você receberia o catálogo inteiro). **Ao ativar um leiloeiro novo, rode antes `varrer --dry-run`**: ele lista os candidatos que essa primeira varredura vai registrar em silêncio.
 6. Se o site mudar de layout e o bot parar de entender a página, você recebe um **alerta** em vez de silêncio.
 
 Cada execução fica registrada em `dados/bot-leilao.sqlite3`, e o log em `dados/logs/bot-leilao.log`.
@@ -50,7 +55,7 @@ Códigos de saída: `0` sucesso (inclusive parcial), `1` falha, `2` uso incorret
 Na primeira execução, os dois arquivos de `config/` são criados como exemplo, com tudo desativado. Edite-os e troque `ativo` para `true`.
 
 - **Veículos-alvo:** adicionar é colar um bloco, pausar é `ativo: false`. Escreva a marca por extenso (Mitsubishi, Chevrolet): as abreviações do site são traduzidas.
-- **Leiloeiros:** a busca é declarada como filtros do formulário do site. Não filtre por marca ou modelo ali; esse recorte é feito pelos veículos-alvo.
+- **Leiloeiros:** a busca é declarada como filtros do site (no Vip, os do formulário; no Claudio Kuss, a `categoria` do evento). Não filtre por marca ou modelo ali; esse recorte é feito pelos veículos-alvo. Para desligar um leiloeiro, `ativo: false` no bloco dele.
 - **Segredos:** token e credenciais ficam só no `.env`, que nunca vai para o git e nunca aparece em log.
 
 ## Estrutura
@@ -58,16 +63,16 @@ Na primeira execução, os dois arquivos de `config/` são criados como exemplo,
 ```
 src/bot_leilao/
   config/        veículos-alvo, leiloeiros, .env, coerência entre alvos e buscas
-  coleta/        cliente HTTP, coletor, adaptador por leiloeiro (vip.py)
-  parsing/       normalização, sinônimos de marca, parser por leiloeiro (vip.py)
+  coleta/        cliente HTTP, coletor, adaptador por leiloeiro (vip.py, claudio_kuss.py), detalhe dos lotes novos
+  parsing/       normalização, sinônimos de marca, parser por leiloeiro (vip.py, claudio_kuss.py)
   filtro/        critérios, deduplicação e semeadura
   notificacao/   resumo, alertas e envio ao Telegram
   db/            SQLite, migrações e trava de execução
   orquestrador.py, cli.py
-tests/           testes sem rede; fixtures reais do Vip em tests/fixtures/vip/
-scripts/         captura das fixtures do Vip
+tests/           testes sem rede; fixtures reais em tests/fixtures/vip/ e tests/fixtures/claudio_kuss/
+scripts/         captura das fixtures (capturar_fixtures.py [--claudio-kuss])
 ```
 
 ## Documentação de projeto
 
-Especificações em `_reversa_sdd/` e plano da feature em `_reversa_forward/001-mvp-varredura-ponta-a-ponta/` (roadmap, contratos em `interfaces/`, rastreabilidade em `tests/RASTREABILIDADE.md`). Para adicionar um leiloeiro, siga a lista de armadilhas conhecidas da spec `onboarding-leiloeiro-assistido`.
+Especificações em `_reversa_sdd/` e planos das features em `_reversa_forward/001-mvp-varredura-ponta-a-ponta/` e `_reversa_forward/002-leiloeiro-claudio-kuss/` (roadmap, contratos em `interfaces/`, rastreabilidade em `tests/RASTREABILIDADE.md`). Para adicionar um leiloeiro, siga a lista de armadilhas conhecidas da spec `onboarding-leiloeiro-assistido`.
