@@ -14,3 +14,13 @@
 {"ts": "2026-10-10T03:06:43-03:00", "action": "T014", "status": "done", "files": ["tests/test_digest.py"]}
 {"ts": "2026-10-10T03:06:43-03:00", "action": "T015", "status": "done", "files": ["tests/test_relatorio.py"]}
 {"ts": "2026-10-10T03:06:43-03:00", "action": "T016", "status": "done", "files": ["tests/test_e2e_claudio_kuss.py"]}
+{"ts": "2026-10-10T07:33:47-03:00", "action": "T017", "status": "done", "files": ["src/bot_leilao/coleta/modelos.py", "src/bot_leilao/coleta/coletor.py"]}
+{"ts": "2026-10-10T07:33:47-03:00", "action": "T018", "status": "done", "files": ["src/bot_leilao/parsing/modelos.py"]}
+{"ts": "2026-10-10T07:33:47-03:00", "action": "T019", "status": "done", "files": ["src/bot_leilao/parsing/nucleo.py"]}
+{"ts": "2026-10-10T07:33:47-03:00", "action": "T020", "status": "done", "files": ["src/bot_leilao/parsing/marcas.py"]}
+{"ts": "2026-10-10T07:33:47-03:00", "action": "T021", "status": "done", "files": ["src/bot_leilao/parsing/normalizadores.py"]}
+{"ts": "2026-10-10T07:33:47-03:00", "action": "T022", "status": "done", "files": ["src/bot_leilao/coleta/claudio_kuss.py"]}
+{"ts": "2026-10-10T07:33:47-03:00", "action": "T023", "status": "done", "files": ["src/bot_leilao/coleta/claudio_kuss.py"]}
+{"ts": "2026-10-10T07:33:47-03:00", "action": "T024", "status": "done", "files": ["src/bot_leilao/parsing/claudio_kuss.py"]}
+{"ts": "2026-10-10T07:33:47-03:00", "action": "T025", "status": "done", "files": ["src/bot_leilao/parsing/claudio_kuss.py"]}
+{"ts": "2026-10-10T07:33:47-03:00", "action": "T026", "status": "done", "files": ["src/bot_leilao/coleta/enriquecimento.py"]}

@@ -11,6 +11,7 @@ _VALOR = re.compile(r"\d[\d.]*(?:,\d+)?")
 _ANOS = re.compile(r"(?<!\d)(\d{4})(?:\s*/\s*(\d{4}))?(?!\d)")
 _KM = re.compile(r"(\d[\d.]*)\s*km\b", re.IGNORECASE)
 _INTEIRO = re.compile(r"\d+")
+_ANOS_DOIS_DIGITOS = re.compile(r"(\d{2})/(\d{2})")
 ANO_MINIMO = 1900
 # Roadmap D-32: leiloeiros preenchem 0 ou 999.999 quando não sabem a km (carro sem chave, bateria arriada).
 # Nenhum carro de verdade roda 900 mil km, e 0 km é o "não informado" mais comum; os dois valem "desconhecida".
@@ -47,6 +48,19 @@ def normalizar_anos(texto: str | None) -> tuple[int | None, int | None]:
     fabricacao_txt, modelo_txt = achados[-1].groups()
     fabricacao = _ano_plausivel(fabricacao_txt)
     modelo = _ano_plausivel(modelo_txt) if modelo_txt else fabricacao
+    return fabricacao, modelo
+
+
+def anos_dois_digitos(texto: str | None, ano_corrente: int | None = None) -> tuple[int | None, int | None]:
+    """`13/13` → (2013, 2013); `98/99` → (1998, 1999). Roadmap D-44 da feature 002 (Claudio Kuss).
+
+    `AA` vira 20AA até o ano corrente + 1 (o modelo do ano seguinte já é vendido), senão 19AA.
+    """
+    achado = _ANOS_DOIS_DIGITOS.fullmatch((texto or "").strip())
+    if not achado:
+        return None, None
+    limite = ((ano_corrente or date.today().year) + 1) % 100
+    fabricacao, modelo = (int(aa) + (2000 if int(aa) <= limite else 1900) for aa in achado.groups())
     return fabricacao, modelo
 
 

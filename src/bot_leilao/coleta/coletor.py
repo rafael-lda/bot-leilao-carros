@@ -71,11 +71,12 @@ class Coletor:
         tentativas_max = 0
         status = None
         numero = 1
+        teto = getattr(adaptador, "teto_paginas", self.teto_paginas)  # D-47 da feature 002
         try:
             while True:
-                if numero > self.teto_paginas:
+                if numero > teto:
                     log.warning("coleta  | %s | busca=%s | teto de %d páginas atingido; revise o adaptador",
-                                leiloeiro.nome, busca.id, self.teto_paginas)
+                                leiloeiro.nome, busca.id, teto)
                     return self._falha(busca, leiloeiro, momento, inicio, Veredito.FALHA_REDE, status,
                                        tentativas_max, "teto_paginas")
                 requisicao = adaptador.montar_requisicao(busca.filtros, numero)
@@ -90,7 +91,7 @@ class Coletor:
                 log.info("coleta  | %s | busca=%s | pág %d | %s | %s | tentativa %d/%d | ok", leiloeiro.nome, busca.id,
                          numero, leiloeiro.nivel_coleta, status, resultado.tentativas, self.cliente.tentativas)
                 paginas.append(Pagina(numero=numero, metodo=requisicao.metodo, url=resultado.url,
-                                      conteudo=resultado.conteudo or b""))
+                                      conteudo=resultado.conteudo or b"", anotacoes=dict(requisicao.anotacoes or {})))
                 if not adaptador.tem_proxima_pagina(resultado.conteudo or b"", numero):
                     break
                 numero += 1

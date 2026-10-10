@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
@@ -27,6 +28,14 @@ class Lote:
     tipo_leilao: str | None = None
     situacao: str | None = None
     retirado: bool = False
+    # Feature 002 (data-delta §1.1): leilão por evento e detalhe do lote. O Vip deixa todos em None.
+    evento_id: str | None = None
+    pregao_em: datetime | None = None
+    observacoes: str | None = None     # estado do lote, como o leiloeiro escreveu
+    despesas_adm: Decimal | None = None
+    placa_parcial: str | None = None
+    local_documento: str | None = None
+    detalhe_lido: bool | None = None   # None: não se aplica; False: o detalhe falhou; True: lido
 
 
 @dataclass
@@ -36,6 +45,7 @@ class ContextoParsing:
     base_url: str
     coletado_em: datetime
     tipo_leilao: str | None = None
+    pagina: Mapping[str, object] = field(default_factory=dict)   # anotações da página em leitura (D-37)
 
 
 @dataclass

@@ -24,6 +24,7 @@ class Requisicao:
     url: str
     dados: dict | None = None
     cabecalhos: dict | None = None
+    anotacoes: dict | None = None      # para o parser, não vai para a rede (feature 002, D-37)
 
 
 @dataclass
@@ -47,6 +48,7 @@ class Pagina:
     metodo: str
     url: str
     conteudo: bytes
+    anotacoes: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -81,3 +83,6 @@ class Adaptador(Protocol):
     def validar_filtros(self, filtros: Mapping) -> None: ...
 
     def tipo_leilao_da_busca(self, filtros: Mapping) -> str | None: ...
+
+    # Opcionais, lidos com getattr (feature 002): `teto_paginas: int` (D-47) e
+    # `requisicao_detalhe(lote) -> Requisicao | None` (enriquecimento, D-48).

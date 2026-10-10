@@ -56,16 +56,16 @@ Etapas do `/reversa-coding` (com resumo e commit ao fim de cada uma):
 
 | ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
 |----|-----------|--------------|-------------|--------------|-------------|--------|
-| T017 | `Requisicao.anotacoes` e `Pagina.anotacoes`; o coletor copia as anotações para a página e usa `getattr(adaptador, "teto_paginas", self.teto_paginas)` (D-37, D-47) | T004 | `[//]` | `src/…/coleta/coletor.py` | 🟢 | `[ ]` |
-| T018 | `Lote` ganha `evento_id`, `pregao_em`, `observacoes`, `despesas_adm`, `placa_parcial`, `local_documento`, `detalhe_lido` (todos opcionais, `None`); `ContextoParsing.pagina` com padrão vazio (data-delta §1.1, §1.2) | - | `[//]` | `src/…/parsing/modelos.py` | 🟢 | `[ ]` |
-| T019 | Núcleo do parsing: cópia do contexto por página com `dataclasses.replace(contexto, pagina=pagina.anotacoes)`; `_incompleto` ignora o preço quando `getattr(parser, "preco_obrigatorio", True)` é falso (D-37, D-46) | T005, T017, T018 | - | `src/…/parsing/nucleo.py` | 🟢 | `[ ]` |
-| T020 | Quatro sinônimos novos na tabela comum, com a fonte em comentário (D-42) | T006 | `[//]` | `src/…/parsing/marcas.py` | 🟢 | `[ ]` |
-| T021 | Normalizador `anos_dois_digitos(texto, ano_corrente)` (regra do D-44); confirmar que o normalizador de preço existente aceita `21.600,00` | T007 | `[//]` | `src/…/parsing/normalizadores.py` | 🟢 | `[ ]` |
-| T022 | `coleta/claudio_kuss.py`, parte 1: `Evento(id, rotulo, pregao_em)` e `ler_agenda(html) -> list[Evento]` (blocos `div.panel`, rótulo no `.panel-heading`, data `DD/MM/AAAA - HH:MM` no `.panel-body h2`, id do link `relacao-foto/<id>`, fuso `America/Sao_Paulo`) | T017 | - | `src/…/coleta/claudio_kuss.py` | 🟡 | `[ ]` |
-| T023 | `coleta/claudio_kuss.py`, parte 2: `AdaptadorClaudioKuss` com `validar_filtros`, `preparar_sessao` (`None`), `montar_requisicao` com cursor de eventos e páginas, `tem_proxima_pagina` (agenda → plano; `op=Q` → `qtdePag`; `op=P` → conferência de total), `tipo_leilao_da_busca`, `teto_paginas = 120`, `requisicao_detalhe`; registro pelo id | T022, T008, T009 | - | `src/…/coleta/claudio_kuss.py` | 🟢 | `[ ]` |
-| T024 | `parsing/claudio_kuss.py`, parte 1: `ParserClaudioKuss.extrair` para `agenda` (reusa `ler_agenda`), `quantidade` e `lotes` (decodifica JSON sem olhar o `Content-Type`; `IMP`, `SUCATA`, `RETIRADO`, anos, valor, link e id); `preco_obrigatorio = False`; registro pelo id | T019, T020, T021, T022, T010, T011 | - | `src/…/parsing/claudio_kuss.py` | 🟢 | `[ ]` |
-| T025 | `parsing/claudio_kuss.py`, parte 2: `aplicar_detalhe(lote, conteudo)` (entidades HTML decodificadas, espaços colapsados, `&nbsp;` → `None`, `retirado = S`) | T024, T012 | - | `src/…/parsing/claudio_kuss.py` | 🟢 | `[ ]` |
-| T026 | `coleta/enriquecimento.py`: `enriquecer(novos, cliente, adaptadores, parsers) -> ResultadoEnriquecimento(novos, retirados)`; erro de um lote nunca derruba os outros (D-48, D-49) | T018, T013 | `[//]` | `src/…/coleta/enriquecimento.py` | 🟢 | `[ ]` |
+| T017 | `Requisicao.anotacoes` e `Pagina.anotacoes`; o coletor copia as anotações para a página e usa `getattr(adaptador, "teto_paginas", self.teto_paginas)` (D-37, D-47) | T004 | `[//]` | `src/…/coleta/coletor.py` | 🟢 | `[X]` |
+| T018 | `Lote` ganha `evento_id`, `pregao_em`, `observacoes`, `despesas_adm`, `placa_parcial`, `local_documento`, `detalhe_lido` (todos opcionais, `None`); `ContextoParsing.pagina` com padrão vazio (data-delta §1.1, §1.2) | - | `[//]` | `src/…/parsing/modelos.py` | 🟢 | `[X]` |
+| T019 | Núcleo do parsing: cópia do contexto por página com `dataclasses.replace(contexto, pagina=pagina.anotacoes)`; `_incompleto` ignora o preço quando `getattr(parser, "preco_obrigatorio", True)` é falso (D-37, D-46) | T005, T017, T018 | - | `src/…/parsing/nucleo.py` | 🟢 | `[X]` |
+| T020 | Quatro sinônimos novos na tabela comum, com a fonte em comentário (D-42) | T006 | `[//]` | `src/…/parsing/marcas.py` | 🟢 | `[X]` |
+| T021 | Normalizador `anos_dois_digitos(texto, ano_corrente)` (regra do D-44); confirmar que o normalizador de preço existente aceita `21.600,00` | T007 | `[//]` | `src/…/parsing/normalizadores.py` | 🟢 | `[X]` |
+| T022 | `coleta/claudio_kuss.py`, parte 1: `Evento(id, rotulo, pregao_em)` e `ler_agenda(html) -> list[Evento]` (blocos `div.panel`, rótulo no `.panel-heading`, data `DD/MM/AAAA - HH:MM` no `.panel-body h2`, id do link `relacao-foto/<id>`, fuso `America/Sao_Paulo`) | T017 | - | `src/…/coleta/claudio_kuss.py` | 🟡 | `[X]` |
+| T023 | `coleta/claudio_kuss.py`, parte 2: `AdaptadorClaudioKuss` com `validar_filtros`, `preparar_sessao` (`None`), `montar_requisicao` com cursor de eventos e páginas, `tem_proxima_pagina` (agenda → plano; `op=Q` → `qtdePag`; `op=P` → conferência de total), `tipo_leilao_da_busca`, `teto_paginas = 120`, `requisicao_detalhe`; registro pelo id | T022, T008, T009 | - | `src/…/coleta/claudio_kuss.py` | 🟢 | `[X]` |
+| T024 | `parsing/claudio_kuss.py`, parte 1: `ParserClaudioKuss.extrair` para `agenda` (reusa `ler_agenda`), `quantidade` e `lotes` (decodifica JSON sem olhar o `Content-Type`; `IMP`, `SUCATA`, `RETIRADO`, anos, valor, link e id); `preco_obrigatorio = False`; registro pelo id | T019, T020, T021, T022, T010, T011 | - | `src/…/parsing/claudio_kuss.py` | 🟢 | `[X]` |
+| T025 | `parsing/claudio_kuss.py`, parte 2: `aplicar_detalhe(lote, conteudo)` (entidades HTML decodificadas, espaços colapsados, `&nbsp;` → `None`, `retirado = S`) | T024, T012 | - | `src/…/parsing/claudio_kuss.py` | 🟢 | `[X]` |
+| T026 | `coleta/enriquecimento.py`: `enriquecer(novos, cliente, adaptadores, parsers) -> ResultadoEnriquecimento(novos, retirados)`; erro de um lote nunca derruba os outros (D-48, D-49) | T018, T013 | `[//]` | `src/…/coleta/enriquecimento.py` | 🟢 | `[X]` |
 
 ## Fase 4, Integração
 
@@ -92,6 +92,10 @@ Etapas do `/reversa-coding` (com resumo e commit ao fim de cada uma):
 - **T002 (2026-10-10):** a página do Fluence foi obtida com a busca do próprio endpoint (`pesq=FLUENCE`) em vez de folhear 35 páginas; mesmo formato de resposta. O segundo Fluence-alvo (282341, 2015 manual) tem observação "MECÂNICA COM PROBLEMAS" e documento de Santa Catarina.
 - **T015 (2026-10-10):** lote sem nenhum preço passa a ter o rótulo "Preço" (e "Preço ao entrar" na lista), em vez de "Lance inicial (ainda sem lances): Preço a confirmar".
 - **Etapa 1 concluída (2026-10-10):** 380 testes passando (375 da 001 + 5 novos que já valem), 37 falhando e 3 módulos de teste sem coletar, todos à espera do núcleo da etapa 2.
+- **T022 (2026-10-10):** fuso do pregão com offset fixo (UTC−3) em vez de `zoneinfo("America/Sao_Paulo")`: o Python do Windows não traz a base de fusos sem o pacote `tzdata`, e o Brasil não tem horário de verão desde 2019.
+- **T023 (2026-10-10):** JSON inesperado em `op=Q`/`op=P` não levanta no adaptador (viraria falha de coleta, sem alerta de quebra); o adaptador segue para o próximo evento e o parser acusa a quebra na mesma página.
+- **T024 (2026-10-10):** página `lotes` só com sucata é declarada vazia (não vira quebra falsa); o ano `AA/AA` usa o ano da coleta como referência, para o resultado não depender do relógio.
+- **Etapa 2 concluída (2026-10-10):** 466 testes passando; 12 falhando, todos das tarefas da etapa 3 (digest, relatório, orquestrador).
 
 ## Histórico de alterações
 

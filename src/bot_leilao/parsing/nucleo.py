@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import replace
 from typing import Protocol
 
 from bot_leilao.coleta.modelos import RespostaBruta, Veredito
@@ -15,6 +16,8 @@ LIMITE_INCOMPLETOS = 0.30
 
 
 class Parser(Protocol):
+    """Opcionais (feature 002): `preco_obrigatorio: bool` (D-46) e `aplicar_detalhe(lote, conteudo)` (D-48)."""
+
     def extrair(self, conteudo: bytes, contexto: ContextoParsing) -> ExtracaoPagina: ...
 
 
@@ -33,8 +36,8 @@ def parsers() -> dict[str, Parser]:
     return dict(_PARSERS)
 
 
-def _incompleto(lote: Lote) -> bool:
-    if lote.lance_corrente is None and lote.lance_inicial is None:
+def _incompleto(lote: Lote, preco_obrigatorio: bool = True) -> bool:
+    if preco_obrigatorio and lote.lance_corrente is None and lote.lance_inicial is None:
         return True
     return any(getattr(lote, campo) in (None, "") for campo in CAMPOS_OBRIGATORIOS if campo != "preco")
 
@@ -55,7 +58,7 @@ def processar(resposta: RespostaBruta, contexto: ContextoParsing, parser: Parser
     todas_vazias_declaradas = True
     try:
         for pagina in resposta.paginas:
-            extracao = parser.extrair(pagina.conteudo, contexto)
+            extracao = parser.extrair(pagina.conteudo, replace(contexto, pagina=pagina.anotacoes))
             extraidos.extend(extracao.lotes)
             todas_vazias_declaradas = todas_vazias_declaradas and extracao.busca_vazia and not extracao.lotes
     except Exception as erro:  # noqa: BLE001 — RF-10: isola a busca
@@ -82,7 +85,8 @@ def processar(resposta: RespostaBruta, contexto: ContextoParsing, parser: Parser
             resultado.quebra_suspeita = True
             resultado.motivo_quebra = f"0 lotes extraídos de conteúdo com {kb} KB"
     elif resultado.lotes:
-        incompletos = sum(_incompleto(l) for l in resultado.lotes)
+        preco_obrigatorio = getattr(parser, "preco_obrigatorio", True)
+        incompletos = sum(_incompleto(l, preco_obrigatorio) for l in resultado.lotes)
         if incompletos / len(resultado.lotes) > LIMITE_INCOMPLETOS:
             resultado.quebra_suspeita = True
             resultado.motivo_quebra = (f"{incompletos} de {len(resultado.lotes)} lotes sem campo obrigatório "

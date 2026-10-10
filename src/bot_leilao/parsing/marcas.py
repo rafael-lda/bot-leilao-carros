@@ -21,6 +21,10 @@ SINONIMOS: dict[str, str] = {
     "mercedes": "mercedes-benz",
     "mercedes benz": "mercedes-benz",
     "jac": "jac motors",
+    "chev": "chevrolet",          # Claudio Kuss, 2026-10-10
+    "caoachery": "caoa chery",    # Claudio Kuss, 2026-10-10
+    "m benz": "mercedes-benz",    # Claudio Kuss, 2026-10-10
+    "lr": "land rover",           # Claudio Kuss, 2026-10-10 ("IMP LR")
 }
 
 # Marcas do formulário do Vip (2026-10-03), normalizadas, mais as canônicas da tabela.
