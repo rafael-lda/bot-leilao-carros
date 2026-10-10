@@ -76,3 +76,27 @@ def test_link_absoluto(href, esperado):
 @pytest.mark.parametrize("texto, esperado", [("1 Lance", 1), ("23 Lances", 23), ("Lote: 21", 21), ("", None), (None, None)])
 def test_inteiro(texto, esperado):
     assert inteiro(texto) == esperado
+
+
+@pytest.mark.parametrize("texto, esperado", [
+    ("13/13", (2013, 2013)),
+    ("14/15", (2014, 2015)),
+    (" 21/22 ", (2021, 2022)),
+    ("98/99", (1998, 1999)),
+    ("99/00", (1999, 2000)),
+    ("26/27", (2026, 2027)),
+    ("", (None, None)),
+    (None, (None, None)),
+    ("2013/2013", (None, None)),
+    ("ab/cd", (None, None)),
+])
+def test_anos_dois_digitos_do_claudio_kuss(texto, esperado):
+    """`AA/AA` (roadmap D-44): 20AA até o ano corrente + 1, senão 19AA. Ano corrente fixo em 2026."""
+    from bot_leilao.parsing.normalizadores import anos_dois_digitos
+
+    assert anos_dois_digitos(texto, ano_corrente=2026) == esperado
+
+
+def test_valor_do_claudio_kuss():
+    assert normalizar_preco("21.600,00") == Decimal("21600.00")
+    assert normalizar_preco("") is None

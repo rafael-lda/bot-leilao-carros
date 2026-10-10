@@ -42,3 +42,16 @@ def test_marca_desconhecida_passa_como_veio_e_e_registrada(caplog):
 def test_marca_vazia_e_nula():
     assert marca_canonica(None) is None
     assert marca_canonica("  ") is None
+
+
+@pytest.mark.parametrize("bruta, canonica", [
+    ("CHEV", "chevrolet"),
+    ("CAOACHERY", "caoa chery"),
+    ("M BENZ", "mercedes-benz"),
+    ("LR", "land rover"),
+])
+def test_grafias_do_claudio_kuss(bruta, canonica, caplog):
+    """Censo de 391 lotes do Claudio Kuss, 2026-10-10 (roadmap D-42)."""
+    with caplog.at_level(logging.INFO, logger="bot_leilao"):
+        assert marca_canonica(bruta) == canonica
+    assert "fora da tabela" not in caplog.text

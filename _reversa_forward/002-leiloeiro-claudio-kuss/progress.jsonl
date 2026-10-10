@@ -1,0 +1,16 @@
+{"ts": "2026-10-10T03:00:39-03:00", "action": "T001", "status": "done", "files": ["tests/fixtures/claudio_kuss/"]}
+{"ts": "2026-10-10T03:00:39-03:00", "action": "T002", "status": "done", "files": ["scripts/capturar_fixtures.py", "tests/fixtures/claudio_kuss/"]}
+{"ts": "2026-10-10T03:00:39-03:00", "action": "T003", "status": "done", "files": ["tests/apoio.py"]}
+{"ts": "2026-10-10T03:02:19-03:00", "action": "T004", "status": "done", "files": ["tests/test_coletor.py"]}
+{"ts": "2026-10-10T03:02:19-03:00", "action": "T005", "status": "done", "files": ["tests/test_parsing_nucleo.py"]}
+{"ts": "2026-10-10T03:02:19-03:00", "action": "T006", "status": "done", "files": ["tests/test_marcas.py"]}
+{"ts": "2026-10-10T03:02:19-03:00", "action": "T007", "status": "done", "files": ["tests/test_normalizadores.py"]}
+{"ts": "2026-10-10T03:06:43-03:00", "action": "T008", "status": "done", "files": ["tests/test_coleta_claudio_kuss.py"]}
+{"ts": "2026-10-10T03:06:43-03:00", "action": "T009", "status": "done", "files": ["tests/test_coleta_claudio_kuss.py"]}
+{"ts": "2026-10-10T03:06:43-03:00", "action": "T010", "status": "done", "files": ["tests/test_parsing_claudio_kuss.py"]}
+{"ts": "2026-10-10T03:06:43-03:00", "action": "T011", "status": "done", "files": ["tests/test_parsing_claudio_kuss.py"]}
+{"ts": "2026-10-10T03:06:43-03:00", "action": "T012", "status": "done", "files": ["tests/test_parsing_claudio_kuss.py"]}
+{"ts": "2026-10-10T03:06:43-03:00", "action": "T013", "status": "done", "files": ["tests/test_enriquecimento.py"]}
+{"ts": "2026-10-10T03:06:43-03:00", "action": "T014", "status": "done", "files": ["tests/test_digest.py"]}
+{"ts": "2026-10-10T03:06:43-03:00", "action": "T015", "status": "done", "files": ["tests/test_relatorio.py"]}
+{"ts": "2026-10-10T03:06:43-03:00", "action": "T016", "status": "done", "files": ["tests/test_e2e_claudio_kuss.py"]}

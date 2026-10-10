@@ -126,6 +126,7 @@ class CenarioE2E:
     """Raiz de execução completa com Vip e Telegram simulados.
 
     `vip`: bytes da página de busca, uma exceção httpx (classe) ou um status HTTP.
+    `kuss`: `SiteKuss` que responde pelo host do Claudio Kuss (feature 002), ou None.
     `telegram`: status HTTP das respostas do Telegram (200 = ok), ou uma exceção httpx (classe).
     """
 
@@ -138,6 +139,7 @@ class CenarioE2E:
         escrever(raiz / "config" / "veiculos-alvo.yaml", alvos)
         escrever(raiz / "config" / "leiloeiros.yaml", leiloeiros)
         self.vip = pagina_vazia()
+        self.kuss: "SiteKuss | None" = None
         self.telegram = 200
         self.mensagens: list[str] = []
         self.chamadas: list[_httpx.Request] = []
@@ -164,6 +166,9 @@ class CenarioE2E:
                 self.ao_enviar()
             self.mensagens.append(_json.loads(request.content)["text"])
             return _httpx.Response(200, json={"ok": True, "result": {"message_id": len(self.mensagens)}})
+        if request.url.host == HOST_KUSS:
+            assert self.kuss is not None, "o cenário não simula o Claudio Kuss"
+            return self.kuss.responder(request)
         if not isinstance(self.vip, bytes):
             return self._falhar(self.vip, request)
         if request.url.path == "/":
@@ -191,3 +196,131 @@ class CenarioE2E:
     def notificados(self) -> list[str]:
         return [r[0] for r in self.banco().execute(
             "SELECT id_canonico FROM lote_conhecido WHERE origem = 'notificacao' ORDER BY id_canonico")]
+
+
+# ---------------------------------------------------------------------------
+# Claudio Kuss (feature 002): site simulado a partir das fixtures reais de 2026-10-10.
+# ---------------------------------------------------------------------------
+
+from urllib.parse import parse_qs as _parse_qs
+
+FIXTURES_KUSS = FIXTURES / "claudio_kuss"
+HOST_KUSS = "www.claudiokussleiloes.com.br"
+
+LEILOEIRO_KUSS = """\
+leiloeiros:
+  - nome: Claudio Kuss Leilões
+    base_url: https://www.claudiokussleiloes.com.br
+    estrategia_acesso: publico
+    nivel_coleta: script
+    buscas:
+      - descricao: Financeiras
+        filtros:
+          categoria: Veículos - Financeiras
+"""
+
+LEILOEIROS_VIP_E_KUSS = LEILOEIRO_VIP + LEILOEIRO_KUSS.removeprefix("leiloeiros:\n")
+
+ALVO_FLUENCE = """\
+veiculos:
+  - marca: Renault
+    modelo: Fluence
+    ano_min: 2010
+    ano_max: 2017
+    preco_maximo: 46900
+    tipos_leilao: [financiamento]
+"""
+
+
+def json_kuss(nome: str):
+    return _json.loads((FIXTURES_KUSS / nome).read_text(encoding="utf-8"))
+
+
+def bytes_json(dados) -> bytes:
+    return _json.dumps(dados, ensure_ascii=False).encode("utf-8")
+
+
+def agenda_kuss() -> bytes:
+    """Agenda real: eventos 897 (13/10/2026 10:00) e 898 (20/10/2026 10:00), ambos "Veículos - Financeiras"."""
+    return (FIXTURES_KUSS / "agenda.html").read_bytes()
+
+
+def agenda_sem_financeiras() -> bytes:
+    """Agenda com os mesmos blocos, mas de outra categoria."""
+    html = agenda_kuss().decode("utf-8")
+    assert "Veículos - Financeiras" in html
+    return html.replace("Veículos - Financeiras", "Imóveis - Bancos").encode("utf-8")
+
+
+def agenda_sem_blocos() -> bytes:
+    """Agenda com layout novo: nenhum bloco de evento reconhecível."""
+    html = agenda_kuss().decode("utf-8")
+    return html.replace("relacao-foto/", "evento/").replace("panel-heading", "cabecalho-evento").encode("utf-8")
+
+
+def lote_kuss(seq: str = "282622", bem: str = "IMP RENAULT/FLUENCE DYN 20A", ano: str = "13/13", valor: str = "",
+              lote: str = "") -> dict:
+    """Item de `op=P` no formato real (lotes_897_fluence.json)."""
+    return {"seq": seq, "lote": lote, "bem": bem, "comb": "A/G", "ano": ano, "usuario": "", "valor": valor,
+            "logo": "images/logo/logo_zrc.png", "foto": f"https://{HOST_KUSS}/fotos/1_2.jpg", "linkVideo": ""}
+
+
+def detalhe_kuss(**campos) -> dict:
+    """Detalhe `op=D` real do Fluence 282622 (sinistrado), com sobrescritas."""
+    dados = json_kuss("detalhe_282622_sinistrado.json")
+    dados.update(campos)
+    return dados
+
+
+class SiteKuss:
+    """Claudio Kuss simulado: agenda, `op=Q`, `op=P` e `op=D`.
+
+    `eventos`: evento -> lista de páginas (cada página, lista de itens de `op=P`).
+    `qtde`: sobrescreve a quantidade informada por evento (para testar divergência).
+    `detalhes`: seq -> dict, bytes, status HTTP ou classe de exceção httpx; ausente = detalhe sem observações.
+    `falha`: status HTTP ou classe de exceção httpx para o site inteiro.
+    """
+
+    def __init__(self, agenda: bytes | None = None, eventos: dict | None = None, qtde: dict | None = None,
+                 detalhes: dict | None = None, falha=None) -> None:
+        self.agenda = agenda if agenda is not None else agenda_kuss()
+        self.eventos = eventos if eventos is not None else {"897": [[lote_kuss()]], "898": []}
+        self.qtde = qtde or {}
+        self.detalhes = detalhes or {}
+        self.falha = falha
+        self.chamadas: list[tuple[str, dict]] = []
+
+    def _resposta(self, item) -> _httpx.Response:
+        if isinstance(item, (dict, list)):
+            item = bytes_json(item)
+        return _httpx.Response(200, content=item, headers={"Content-Type": "text/html; charset=UTF-8"})
+
+    def responder(self, request: _httpx.Request) -> _httpx.Response:
+        form = {k: v[0] for k, v in _parse_qs(request.content.decode("utf-8"), keep_blank_values=True).items()}
+        self.chamadas.append((request.url.path, form))
+        if self.falha is not None:
+            if isinstance(self.falha, int):
+                return _httpx.Response(self.falha, text="erro")
+            raise self.falha(f"falha simulada em {request.url}", request=request)
+        if request.url.path == "/proximos-leiloes":
+            return self._resposta(self.agenda)
+        if request.url.path == "/json_edital.php":
+            paginas = self.eventos.get(form.get("leilaoID"), [])
+            if form.get("op") == "Q":
+                total = self.qtde.get(form["leilaoID"], sum(len(p) for p in paginas))
+                return self._resposta({"qtde": total, "qtdePag": len(paginas)})
+            if form.get("op") == "P":
+                indice = int(form["pag"]) - 1
+                return self._resposta(paginas[indice] if 0 <= indice < len(paginas) else [])
+        if request.url.path == "/json_lance_info_lote.php":
+            item = self.detalhes.get(form.get("le_id"), detalhe_kuss(tblInformacoes="&nbsp;"))
+            if isinstance(item, int):
+                return _httpx.Response(item, text="erro")
+            if isinstance(item, type):
+                raise item(f"falha simulada em {request.url}", request=request)
+            return self._resposta(item)
+        return _httpx.Response(404, text="não encontrado")
+
+    def chamadas_op(self, op: str) -> list[dict]:
+        return [form for caminho, form in self.chamadas if form.get("op") == op]
+

@@ -137,3 +137,61 @@ def test_alerta_de_leiloeiro():
 def test_alerta_geral_sem_leiloeiro_e_escapado():
     texto = montar_alerta(AlertaOperacional(executado_em=QUANDO, mensagem="falha <geral> & total"))
     assert "falha &lt;geral&gt; &amp; total" in texto
+
+
+# --- Feature 002: pregão e observações do Claudio Kuss (roadmap D-51) ---------------------------
+
+PREGAO = datetime(2026, 10, 13, 10, 0, tzinfo=SP)
+SINISTRADO = "SINISTRADO - NOS DOCUMENTOS CONSTA RECUPERADO DE SINISTRO. REGULARIZAÇÃO POR CONTA DO ARREMATANTE"
+LINK_KUSS = "https://www.claudiokussleiloes.com.br/lance/897/0/282622"
+
+
+def _kuss(**campos):
+    padrao = dict(id_canonico="claudio-kuss-leiloes:282622", leiloeiro_id="claudio-kuss-leiloes",
+                  titulo="IMP RENAULT/FLUENCE DYN 20A", ano_modelo=2013, lance_corrente=None, lance_inicial=None,
+                  quilometragem=None, link=LINK_KUSS, evento_id="897", pregao_em=PREGAO, observacoes=SINISTRADO,
+                  detalhe_lido=True)
+    padrao.update(campos)
+    return Candidato(lote=lote(**padrao), alvo=alvo(), preco_a_confirmar=True, km_a_confirmar=False)
+
+
+def test_item_do_kuss_traz_pregao_e_observacoes():
+    item = item_de(_kuss(), "Claudio Kuss Leilões")
+    assert item.pregao == "Pregão 13/10 10:00"
+    assert item.observacoes == SINISTRADO
+
+
+def test_texto_do_item_do_kuss():
+    (bloco,) = montar_digest([item_de(_kuss(), "Claudio Kuss Leilões")], QUANDO)
+    assert bloco.split("\n\n", 1)[1].split("\n") == [
+        "1. IMP RENAULT/FLUENCE DYN 20A — 2013",
+        "   Preço a confirmar — Claudio Kuss Leilões — Pregão 13/10 10:00",
+        f"   Obs.: {SINISTRADO}",
+        f"   {LINK_KUSS}",
+    ]
+
+
+def test_observacoes_longas_sao_resumidas_em_160_caracteres():
+    item = item_de(_kuss(observacoes="PARA-CHOQUE AMASSADO " * 20), "Claudio Kuss Leilões")
+    assert len(item.observacoes) == 160
+    assert item.observacoes.endswith("…")
+
+
+def test_observacoes_sao_escapadas():
+    (bloco,) = montar_digest([item_de(_kuss(observacoes="RISCO < 10CM & FAROL"), "Claudio Kuss Leilões")], QUANDO)
+    assert "Obs.: RISCO &lt; 10CM &amp; FAROL" in bloco
+
+
+def test_detalhe_que_falhou_avisa_para_ver_o_link():
+    item = item_de(_kuss(observacoes=None, detalhe_lido=False), "Claudio Kuss Leilões")
+    assert item.observacoes == "observações não lidas; veja o link"
+
+
+def test_lote_sem_observacoes_nao_tem_a_linha():
+    (bloco,) = montar_digest([item_de(_kuss(observacoes=None), "Claudio Kuss Leilões")], QUANDO)
+    assert "Obs.:" not in bloco
+
+
+def test_item_do_vip_continua_igual():
+    item = item_de(Candidato(lote=lote(), alvo=alvo(), preco_a_confirmar=False, km_a_confirmar=False), "Vip Leilões")
+    assert (item.pregao, item.observacoes) == (None, None)

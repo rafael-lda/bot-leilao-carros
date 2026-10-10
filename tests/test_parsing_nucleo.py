@@ -124,3 +124,48 @@ def test_coleta_sem_sucesso_nao_e_processada():
 def test_usa_o_parser_registrado_quando_nao_informado():
     registrar_parser("falso", ParserRoteirizado({b"p": ExtracaoPagina(lotes=_lotes(1))}))
     assert len(processar(_resposta(b"p"), CTX).lotes) == 1
+
+
+# --- Feature 002: contexto por página e preço opcional (roadmap D-37, D-46) --------------------
+
+class ParserQueGuardaContexto:
+    def __init__(self):
+        self.vistos = []
+
+    def extrair(self, conteudo, contexto):
+        self.vistos.append(dict(contexto.pagina))
+        return ExtracaoPagina(lotes=_lotes(1, len(self.vistos)))
+
+
+def _resposta_anotada(*anotacoes):
+    resposta = _resposta(*[f"p{i}".encode() for i in range(len(anotacoes))])
+    for pagina, nota in zip(resposta.paginas, anotacoes):
+        pagina.anotacoes = nota
+    return resposta
+
+
+def test_parser_recebe_as_anotacoes_de_cada_pagina():
+    parser = ParserQueGuardaContexto()
+    processar(_resposta_anotada({"tipo": "agenda"}, {"tipo": "lotes", "evento": "897"}), CTX, parser)
+    assert parser.vistos == [{"tipo": "agenda"}, {"tipo": "lotes", "evento": "897"}]
+    assert CTX.pagina == {}, "o contexto da busca não é alterado"
+
+
+def test_parser_sem_preco_obrigatorio_nao_conta_preco_ausente():
+    """Claudio Kuss: antes do pregão quase nenhum lote tem valor (333 de 346 em 2026-10-10)."""
+    parser = ParserRoteirizado({b"p": ExtracaoPagina(lotes=_lotes(10, lance_inicial=None, lance_corrente=None))})
+    parser.preco_obrigatorio = False
+    resultado = processar(_resposta(b"p"), CTX, parser)
+    assert resultado.quebra_suspeita is False
+
+
+def test_parser_sem_preco_obrigatorio_ainda_conta_marca_ausente():
+    parser = ParserRoteirizado({b"p": ExtracaoPagina(lotes=_lotes(10, marca=None, lance_corrente=None,
+                                                                   lance_inicial=None))})
+    parser.preco_obrigatorio = False
+    assert processar(_resposta(b"p"), CTX, parser).quebra_suspeita is True
+
+
+def test_por_padrao_preco_ausente_continua_contando():
+    parser = ParserRoteirizado({b"p": ExtracaoPagina(lotes=_lotes(10, lance_inicial=None, lance_corrente=None))})
+    assert processar(_resposta(b"p"), CTX, parser).quebra_suspeita is True

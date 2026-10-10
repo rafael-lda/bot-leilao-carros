@@ -179,3 +179,41 @@ def test_registro_de_duracao_e_inicio(roteiro, relogio, agora):
     (resposta,) = coletor.coletar([_leiloeiro("a")])
     assert resposta.iniciado_em == agora()
     assert resposta.duracao_ms >= 5000, "inclui a espera entre as duas páginas"
+
+
+# --- Feature 002: anotações por página e teto por adaptador (roadmap D-37, D-47) ---------------
+
+class AdaptadorAnotador(AdaptadorFalso):
+    """Anota cada requisição com o número da página, como o do Claudio Kuss anota evento e tipo."""
+
+    def montar_requisicao(self, filtros, pagina):
+        requisicao = super().montar_requisicao(filtros, pagina)
+        requisicao.anotacoes = {"tipo": "lotes", "pagina": pagina}
+        return requisicao
+
+
+def test_anotacoes_da_requisicao_chegam_a_pagina(roteiro, relogio):
+    coletor, _ = _coletor(roteiro(_site({"carros": 2})), relogio, AdaptadorAnotador())
+    (resposta,) = coletor.coletar([_leiloeiro("carros")])
+    assert [p.anotacoes for p in resposta.paginas] == [{"tipo": "lotes", "pagina": 1}, {"tipo": "lotes", "pagina": 2}]
+
+
+def test_pagina_sem_anotacoes_tem_dicionario_vazio(roteiro, relogio):
+    coletor, _ = _coletor(roteiro(_site({"carros": 1})), relogio)
+    (resposta,) = coletor.coletar([_leiloeiro("carros")])
+    assert resposta.paginas[0].anotacoes == {}
+
+
+def test_teto_de_paginas_declarado_pelo_adaptador_prevalece(roteiro, relogio):
+    adaptador = AdaptadorFalso()
+    adaptador.teto_paginas = 60
+    coletor, _ = _coletor(roteiro(_site({"carros": 55})), relogio, adaptador)
+    (resposta,) = coletor.coletar([_leiloeiro("carros")])
+    assert resposta.veredito is Veredito.OK, "55 páginas passam do teto padrão (50), mas não do declarado (60)"
+    assert len(resposta.paginas) == 55
+
+
+def test_sem_teto_declarado_vale_o_do_coletor(roteiro, relogio):
+    coletor, _ = _coletor(roteiro(_site({"carros": 51})), relogio)
+    (resposta,) = coletor.coletar([_leiloeiro("carros")])
+    assert resposta.motivo == "teto_paginas"

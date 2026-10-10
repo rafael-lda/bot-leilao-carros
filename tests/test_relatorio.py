@@ -155,3 +155,65 @@ def test_sem_lotes_novos_nao_cria_nem_altera(tmp_path):
     caminho = tmp_path / "lotes-a-monitorar.md"
     assert acrescentar_monitoramento(caminho, [], INICIO, "a.md") == 0
     assert not caminho.exists()
+
+
+# --- Feature 002: linhas do Claudio Kuss (roadmap D-51) -----------------------------------------
+
+from decimal import Decimal as _D  # noqa: E402
+
+PREGAO = datetime(2026, 10, 13, 10, 0, tzinfo=SP)
+SINISTRADO = "SINISTRADO - NOS DOCUMENTOS CONSTA RECUPERADO DE SINISTRO. REGULARIZAÇÃO POR CONTA DO ARREMATANTE"
+
+
+def _kuss(**campos):
+    padrao = dict(id_canonico="claudio-kuss-leiloes:282622", leiloeiro_id="claudio-kuss-leiloes",
+                  titulo="IMP RENAULT/FLUENCE DYN 20A", ano_modelo=2013, lance_corrente=None, lance_inicial=None,
+                  quilometragem=None, link="https://www.claudiokussleiloes.com.br/lance/897/0/282622",
+                  evento_id="897", pregao_em=PREGAO, observacoes=SINISTRADO, despesas_adm=_D("2750.00"),
+                  placa_parcial="F**-**35", local_documento="SÃO PAULO", detalhe_lido=True)
+    padrao.update(campos)
+    return lote_de(Candidato(lote=lote(**padrao), alvo=alvo(id="renault-fluence-2010-2017",
+                                                             preco_maximo=_D("46900")),
+                             preco_a_confirmar=True, km_a_confirmar=False), "Claudio Kuss Leilões")
+
+
+LINHAS_KUSS = [
+    "- **Preço:** Preço a confirmar",
+    "- **Pregão:** 13/10/2026 10:00",
+    "- **Despesas admin.:** R$ 2.750",
+    "- **Documento:** Placa F\\*\\*-\\*\\*35, documento de SÃO PAULO",
+    f"- **Observações:** {SINISTRADO}",
+]
+
+
+def test_relatorio_do_kuss_tem_pregao_despesas_documento_e_observacoes():
+    texto = montar_relatorio(_dados(novos=[_kuss()]))
+    for linha in LINHAS_KUSS:
+        assert linha in texto
+
+
+def test_lista_de_monitoramento_do_kuss_tem_as_mesmas_linhas(tmp_path):
+    caminho = tmp_path / "lotes-a-monitorar.md"
+    acrescentar_monitoramento(caminho, [_kuss()], INICIO, "a.md")
+    texto = caminho.read_text(encoding="utf-8")
+    for linha in LINHAS_KUSS[1:]:
+        assert linha in texto
+    assert "- **Preço ao entrar:** Preço a confirmar" in texto
+
+
+def test_detalhe_que_falhou_aparece_no_relatorio():
+    texto = montar_relatorio(_dados(novos=[_kuss(observacoes=None, detalhe_lido=False, despesas_adm=None,
+                                                  placa_parcial=None, local_documento=None)]))
+    assert "- **Observações:** observações não lidas; veja o link" in texto
+    assert "Despesas admin." not in texto and "Documento:" not in texto
+
+
+def test_documento_so_com_o_estado():
+    texto = montar_relatorio(_dados(novos=[_kuss(placa_parcial=None)]))
+    assert "- **Documento:** documento de SÃO PAULO" in texto
+
+
+def test_lote_do_vip_nao_ganha_as_linhas_novas():
+    texto = montar_relatorio(_dados())
+    for rotulo in ("Pregão", "Despesas admin.", "Documento", "Observações"):
+        assert f"**{rotulo}:**" not in texto

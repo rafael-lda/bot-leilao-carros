@@ -1,18 +1,21 @@
-"""Captura páginas reais do Vip Leilões para os testes do parser e do adaptador.
+"""Captura páginas reais dos leiloeiros para os testes dos parsers e dos adaptadores.
 
-Uso (rede necessária, cerca de 30 segundos):
+Uso (rede necessária, cerca de 30 segundos cada):
 
-    python scripts/capturar_fixtures.py
+    python scripts/capturar_fixtures.py                  # Vip Leilões
+    python scripts/capturar_fixtures.py --claudio-kuss   # Claudio Kuss Leilões
 
-Grava em tests/fixtures/vip/. Respeita a mesma conduta do coletor: sessão com
+Grava em tests/fixtures/vip/ ou tests/fixtures/claudio_kuss/. Respeita a mesma conduta do coletor: sessão com
 cookies, no máximo 3 redirecionamentos e 5 segundos entre requisições.
 Rodar de novo só quando o layout do Vip mudar e o parser precisar de conserto.
 """
 
 from __future__ import annotations
 
+import json
 import math
 import re
+import sys
 import time
 from datetime import date
 from pathlib import Path
@@ -123,5 +126,62 @@ def main() -> None:
     )
 
 
+# --- Claudio Kuss (feature 002; interfaces/claudio-kuss.md) ---------------------------------
+
+KUSS = "https://www.claudiokussleiloes.com.br"
+DESTINO_KUSS = DESTINO.parent / "claudio_kuss"
+EVENTOS_KUSS = ("897", "898")  # eventos "Veículos - Financeiras" de 13/10 e 20/10/2026
+
+
+def _sem_apelidos(lotes: list[dict]) -> list[dict]:
+    """O apelido de quem deu lance é dado de pessoa e o bot não o lê."""
+    return [{**lote, "usuario": "(removido)" if lote.get("usuario") else ""} for lote in lotes]
+
+
+def main_kuss() -> None:
+    DESTINO_KUSS.mkdir(parents=True, exist_ok=True)
+    cap = Capturador()
+
+    def post(caminho: str, dados: dict, referer: str) -> str:
+        cap._esperar()
+        resposta = cap.cliente.post(f"{KUSS}/{caminho}", data=dados,
+                                    headers={"X-Requested-With": "XMLHttpRequest", "Referer": referer})
+        resposta.raise_for_status()
+        return resposta.text
+
+    def gravar_kuss(nome: str, dados: object) -> None:
+        caminho = DESTINO_KUSS / nome
+        caminho.write_text(json.dumps(dados, ensure_ascii=False), encoding="utf-8")
+        print(f"gravado tests/fixtures/claudio_kuss/{nome}")
+
+    def lotes(evento: str, pagina: int, pesq: str = "") -> list[dict]:
+        texto = post("json_edital.php", {"leilaoID": evento, "op": "P", "pag": str(pagina), "loteado": "",
+                                         "pesq": pesq}, f"{KUSS}/relacao-foto/{evento}")
+        return _sem_apelidos(json.loads(texto))
+
+    quantidades = {}
+    for evento in EVENTOS_KUSS:
+        quantidades[evento] = json.loads(post("json_edital.php", {"op": "Q", "leilaoID": evento, "pesq": ""},
+                                              f"{KUSS}/relacao-foto/{evento}"))
+        gravar_kuss(f"quantidade_{evento}.json", quantidades[evento])
+
+    fluence = lotes("897", 1, "FLUENCE")
+    if not any(l["seq"] == "282622" for l in fluence):
+        raise SystemExit("O Fluence 282622 não veio na busca por FLUENCE: o evento mudou?")
+    gravar_kuss("lotes_897_fluence.json", fluence)
+
+    com_lance = lotes("897", 1, "COMPASS")
+    if not any(l["valor"] for l in com_lance):
+        raise SystemExit("Nenhum lote com valor na busca por COMPASS: escolha outro modelo com lance (op=T).")
+    gravar_kuss("lotes_897_com_lance.json", com_lance)
+
+    ultima = int(quantidades["898"]["qtdePag"])
+    gravar_kuss("lotes_898_ultima_pagina.json", lotes("898", ultima))
+
+    detalhe = post("json_lance_info_lote.php", {"op": "D", "leilaoID": "897", "le_id": "282341", "loteado": "N"},
+                   f"{KUSS}/lance/897/0/282341")
+    gravar_kuss("detalhe_282341.json", json.loads(detalhe))
+
+
 if __name__ == "__main__":
-    main()
+    main_kuss() if "--claudio-kuss" in sys.argv[1:] else main()
