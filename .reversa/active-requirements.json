@@ -1,18 +1,10 @@
 {
   "schema-version": 1,
-  "feature-dir": "_reversa_forward/001-mvp-varredura-ponta-a-ponta",
-  "feature-id": "001",
-  "short-name": "mvp-varredura-ponta-a-ponta",
-  "started-at": "2026-09-25T15:15:56-03:00",
-  "current-stage": "done",
-  "stages-completed": [
-    "requirements",
-    "clarify",
-    "plan",
-    "to-do",
-    "audit",
-    "coding",
-    "sync"
-  ],
+  "feature-dir": "_reversa_forward/002-leiloeiro-claudio-kuss",
+  "feature-id": "002",
+  "short-name": "leiloeiro-claudio-kuss",
+  "started-at": "2026-10-10T00:21:38-03:00",
+  "current-stage": "requirements",
+  "stages-completed": [],
   "paused-features": []
 }
