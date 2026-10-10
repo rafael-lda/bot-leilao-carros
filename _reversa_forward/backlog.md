@@ -6,9 +6,9 @@
 
 ## Próximas
 
-> **Ordem combinada em 2026-10-10:** 002 = Claudio Kuss (mais volume); 003 = "Custo na garagem" (itens 2, 3 e 8 abaixo, unificados).
+> **Ordem combinada em 2026-10-10:** 002 = Claudio Kuss (mais volume, em andamento); depois, a skill `analisar-lotes` ("Custo na garagem", itens 2, 3 e 8 unificados).
 
-### ★ Custo na garagem em Londrina — feature 003 (une os itens 2, 3 e 8)
+### ★ Custo na garagem em Londrina — skill `analisar-lotes` (une os itens 2, 3 e 8)
 
 - **Pedido do Rafael (2026-10-10):** para cada lote, estimar o valor final com o carro na garagem em Londrina, e o % da FIPE desse valor.
 - **Fórmula:** lance + 5% de comissão + despesa fixa do lote + frete (pátio → Londrina) + transferência; ao lado, % da FIPE (item 2).
@@ -16,6 +16,30 @@
 - **Configuração do Rafael** (ex.: `config/custos.yaml`): cidade base, R$/km de frete, custo de transferência, reserva para reparos. Valores de referência na memória do projeto (`rafael-local-e-custos`); frete ainda sem orçamento real.
 - **Aviso no Telegram, exemplo:** `Na garagem: ~R$ 70.700 (71% da FIPE) — frete ~R$ 2.100`.
 - Até lá: o Rafael pede e o Claude faz a conta à mão, lote a lote.
+- **Abordagem escolhida (2026-10-10): skill de agente + script de apoio, e não código no bot.** O ponto difícil (casar "VERSA EXCL CVT" / "ONIX 10MT LT2" com a versão exata da FIPE) é o que um agente faz melhor que regras de código.
+
+#### Como implementar a skill `analisar-lotes`
+
+1. **Gatilho:** `/analisar-lotes` (ou "analisa os lotes da lista"). Escopo opcional: um lote (link) ou a lista inteira.
+2. **Roteiro do agente (SKILL.md),** para cada bloco de `1OUTPUT/lotes-a-monitorar.md` com "Análise FIPE: _pendente_" (ou desatualizada):
+   1. Abrir a página do lote e conferir: lance atual, situação (martelo batido, retirado), câmbio, km, local do pátio, final de placa.
+   2. Aplicar as regras do topo da lista: tirar encerrados e retirados; marcar reaparições; sinalizar lance acima do teto (tirar só se o Rafael pediu).
+   3. Identificar a versão na FIPE pelo título e ano; se houver mais de uma candidata plausível, listar as opções com valor em vez de escolher.
+   4. Chamar o script de cálculo e escrever a análise no bloco, sem tocar nos outros blocos nem no comentário `<!-- lote: ... -->`.
+3. **Script de apoio (`scripts/custo_garagem.py`),** determinístico, para o agente não errar conta:
+   - `fipe <marca> <modelo/versão> <ano>`: consulta a FIPE (hoje parallelum; registrar código FIPE e mês de referência) e devolve as versões candidatas com valor.
+   - `custo --lance X --despesa Y --uf-patio UF [--cidade-patio C]`: aplica `config/custos.yaml` e devolve o custo na garagem e o % da FIPE.
+4. **`config/custos.yaml`** (versionado, editado pelo Rafael): cidade base (Londrina-PR), comissão (5%), frete em R$/km ou tabela por UF/cidade, transferência, reserva de reparos, margem desejada. Valores iniciais a partir da memória `rafael-local-e-custos`; frete sem orçamento real ainda.
+5. **Formato da análise no bloco (exemplo):**
+   ```
+   - **Análise FIPE (10/10/2026):** VERSA Exclusive 1.6 Aut. 2024 — FIPE R$ 99.011 (023174-6, out/2026)
+     - Lance atual R$ 61.000 = 62% da FIPE
+     - Na garagem: ~R$ 70.700 = 71% da FIPE (comissão 3.050 + despesa 2.650 + frete ~2.100 + transferência ~450)
+     - Lance máximo para margem de X%: R$ ...
+   ```
+6. **Onde guardar:** `.claude/skills/analisar-lotes/` (Claude Code) e cópia em `.agents/skills/analisar-lotes/` (Antigravity, Codex). Como `.claude/skills/` e `.agents/skills/` estão no `.gitignore` (pastas do Reversa), acrescentar exceções `!.claude/skills/analisar-lotes/` e `!.agents/skills/analisar-lotes/` para versionar só essa skill.
+7. **Testes:** o script com casos fixos (FIPE simulada, custos conhecidos); a skill validada com o Versa 2023/2024 (lote 315452) como primeiro caso real.
+8. **Evolução:** se o Rafael quiser o custo automático no Telegram, a skill vira o protótipo das regras e o cálculo migra para o bot (feature própria).
 
 
 ### 1. Filtro de câmbio por veículo-alvo — prioridade do Rafael
@@ -77,7 +101,7 @@
 
 ## Em andamento
 
-_(nenhuma)_
+- **002 — Leiloeiro Claudio Kuss** (aberta em 2026-10-10). Base: `_reversa_forward/triagem-leiloeiros-2026-10-10.md`.
 
 ## Feitas
 
