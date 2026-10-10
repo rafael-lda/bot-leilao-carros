@@ -4,7 +4,10 @@
   "feature-id": "002",
   "short-name": "leiloeiro-claudio-kuss",
   "started-at": "2026-10-10T00:21:38-03:00",
-  "current-stage": "requirements",
-  "stages-completed": [],
+  "current-stage": "clarify",
+  "stages-completed": [
+    "requirements",
+    "clarify"
+  ],
   "paused-features": []
 }
