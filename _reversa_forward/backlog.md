@@ -6,6 +6,18 @@
 
 ## Próximas
 
+> **Ordem combinada em 2026-10-10:** 002 = Claudio Kuss (mais volume); 003 = "Custo na garagem" (itens 2, 3 e 8 abaixo, unificados).
+
+### ★ Custo na garagem em Londrina — feature 003 (une os itens 2, 3 e 8)
+
+- **Pedido do Rafael (2026-10-10):** para cada lote, estimar o valor final com o carro na garagem em Londrina, e o % da FIPE desse valor.
+- **Fórmula:** lance + 5% de comissão + despesa fixa do lote + frete (pátio → Londrina) + transferência; ao lado, % da FIPE (item 2).
+- **Dados:** despesa fixa no JSON do lote no Kuss (`tblDespAdm`) e no PDF do edital do evento no Vip; local do pátio no card do Vip ("Local: UF") e no endereço da página do lote; o Kuss fica em Curitiba.
+- **Configuração do Rafael** (ex.: `config/custos.yaml`): cidade base, R$/km de frete, custo de transferência, reserva para reparos. Valores de referência na memória do projeto (`rafael-local-e-custos`); frete ainda sem orçamento real.
+- **Aviso no Telegram, exemplo:** `Na garagem: ~R$ 70.700 (71% da FIPE) — frete ~R$ 2.100`.
+- Até lá: o Rafael pede e o Claude faz a conta à mão, lote a lote.
+
+
 ### 1. Filtro de câmbio por veículo-alvo — prioridade do Rafael
 
 - **Pedido (2026-10-09):** cada veículo-alvo escolhe o câmbio aceito: `automatico`, `manual` ou `ambos`. Hoje o Rafael só quer automático.
