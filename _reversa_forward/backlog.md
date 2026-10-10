@@ -59,6 +59,10 @@
 - **Depende de / combina com:** item 2 (teto por ano via FIPE) para ter a FIPE do lote sem preencher à mão, e item 3 (custo total) para a distribuição sair em custo final, não só em martelo.
 - **A investigar no plano:** comissão e taxas variam por leiloeiro (no Vip são 5% confirmados na cláusula 13 do Termo de Adesão, mais taxa administrativa a confirmar na página do lote), então o % final precisa ser calculado com a tabela do leiloeiro de origem, não com um número único.
 
+### 8. Distância do pátio — ideia
+
+- O Rafael mora em Londrina-PR; frete de carro de outro estado pode inviabilizar a margem. O Vip tem filtro de estado (`estado` → `Filtro.LocalEstadoId`). Opções: busca só com pátios do PR e vizinhos, ou mostrar o estado/cidade do pátio no aviso (o card do Vip traz "Local: SC"; o lote do Kuss, cidade de transferência).
+
 ## Em andamento
 
 _(nenhuma)_
