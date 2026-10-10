@@ -42,6 +42,16 @@ O navegador de verdade passa pelas proteções. Uma olhada rápida em cada site 
 
 Se algum tiver muito mais volume que o Claudio Kuss, entra na conta do nível `apify` (custo mensal), decisão do Rafael.
 
+## Custos de arrematação (editais, 2026-10-10)
+
+| | Vip | Claudio Kuss |
+|---|---|---|
+| Comissão do leiloeiro | 5% | 5% |
+| Despesa fixa por lote | "Reemb./Desp. Aut." no PDF do edital do evento; carros conservados R$ 850 a R$ 2.910 (mediana R$ 2.650) | "Despesas Admin." no JSON do lote (ex.: R$ 2.750) |
+| Outros citados no edital | Estadia R$ 100 + R$ 20/dia após o prazo de retirada; taxa de empilhadeira R$ 50 | ICMS (a confirmar quando se aplica), logística |
+
+Com lance de R$ 40 mil, os dois ficam perto de R$ 44,7 mil antes da transferência.
+
 ## Recomendação
 
 1. **Claudio Kuss como feature 002**, pelo ciclo do Reversa (requirements → plan → código). Dados em JSON, acesso livre e volume maior que o do Vip.

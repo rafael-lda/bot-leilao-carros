@@ -25,7 +25,11 @@
 
 ### 3. Custo total estimado
 
-- Lance + comissão do leiloeiro (~5%, confirmar no Termo de Adesão do Vip) + taxas administrativas e de pátio + transferência, e o % da FIPE. Combina com o item 2.
+- Lance + comissão do leiloeiro + despesa fixa por lote + transferência, e o % da FIPE. Combina com o item 2.
+- **Apurado em 2026-10-10 nos editais:**
+  - **Vip:** 5% de comissão + "Reemb./Desp. Aut." por lote, listado no **PDF do edital** de cada evento (seção após o item 19, coluna `Reemb./Desp.Aut.`). No evento 091026BSSC, carros conservados: R$ 850 a R$ 2.910, mediana R$ 2.650 (inclui ATPV-e de R$ 86,20). Exemplo do edital: 20.000 + 1.000 + 1.900 = 22.900. Estadia após o prazo de retirada: R$ 100 por veículo leve + R$ 20/dia.
+  - **Claudio Kuss:** 5% de comissão + "ICMS, despesas administrativas e de logística"; a despesa vem pronta no JSON do lote (`tblDespAdm`, ex.: R$ 2.750). Confirmar com o leiloeiro quando o ICMS se aplica.
+  - **Regra prática:** custo ≈ lance × 1,05 + despesa fixa (≈ +12% num lance de R$ 40 mil), antes de transferência e débitos.
 
 ### 4. Palavras a excluir no veículo-alvo
 
