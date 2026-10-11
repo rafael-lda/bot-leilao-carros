@@ -6,7 +6,9 @@
 
 ## Próximas
 
-> **Ordem combinada em 2026-10-10:** 002 = Claudio Kuss (mais volume, em andamento); depois, a skill `analisar-lotes` ("Custo na garagem", itens 2, 3 e 8 unificados).
+> **Ordem combinada em 2026-10-10:** 002 = Claudio Kuss; depois, a skill `analisar-lotes` ("Custo na garagem", itens 2, 3 e 8 unificados).
+>
+> **Atualização de 2026-10-11:** 002 e 003 (Copart) entregues. O Rafael quer os 5 leiloeiros da lista: faltam **Milan** (Cloudflare "managed" no site inteiro: precisa do degrau Apify do item 9, que entra junto com a troca automática "bloqueou → Apify" para todos) e **Freitas** (bloqueio deliberado do firewall: degraus mais altos da escada). Antes, conferir em janela anônima se a busca do Milan abre sem login.
 
 ### ★ Custo na garagem em Londrina — skill `analisar-lotes` (une os itens 2, 3 e 8)
 
@@ -67,10 +69,6 @@
   - **Claudio Kuss:** 5% de comissão + "ICMS, despesas administrativas e de logística"; a despesa vem pronta no JSON do lote (`tblDespAdm`, ex.: R$ 2.750). Confirmar com o leiloeiro quando o ICMS se aplica.
   - **Regra prática:** custo ≈ lance × 1,05 + despesa fixa (≈ +12% num lance de R$ 40 mil), antes de transferência e débitos.
 
-### 4. Palavras a excluir no veículo-alvo — em andamento na feature 003 (RF-10)
-
-- Ex.: `excluir: [Oroch]`, para que o alvo "Duster" não case com a picape "DUSTER OROCH". Pequeno; pode virar emenda (`/reversa-add`) se a Oroch começar a aparecer.
-
 ### 5. Silenciar o aviso de "marca fora da tabela"
 
 - O log repete o aviso para marcas de implementos e caminhões (`librelato`, `massey`, `new holland`, `noma`, `facchini`, `guerra`) e para `--`, `automovel` e `outros`. Pequeno; emenda.
@@ -95,9 +93,11 @@
 - **Depende de / combina com:** item 2 (teto por ano via FIPE) para ter a FIPE do lote sem preencher à mão, e item 3 (custo total) para a distribuição sair em custo final, não só em martelo.
 - **A investigar no plano:** comissão e taxas variam por leiloeiro (no Vip são 5% confirmados na cláusula 13 do Termo de Adesão, mais taxa administrativa a confirmar na página do lote), então o % final precisa ser calculado com a tabela do leiloeiro de origem, não com um número único.
 
-### 8. Distância do pátio — ideia
+### 8. Distância do pátio — parte feita na feature 003
 
-- O Rafael mora em Londrina-PR; frete de carro de outro estado pode inviabilizar a margem. O Vip tem filtro de estado (`estado` → `Filtro.LocalEstadoId`). Opções: busca só com pátios do PR e vizinhos, ou mostrar o estado/cidade do pátio no aviso (o card do Vip traz "Local: SC"; o lote do Kuss, cidade de transferência).
+- O Rafael mora em Londrina-PR; frete de carro de outro estado pode inviabilizar a margem.
+- **Feito (003, 2026-10-11):** o pátio aparece em todo aviso, relatório e lista (Vip: UF; Kuss: "Curitiba - PR"; Copart: cidade e UF).
+- **Falta:** filtrar por estado (o Vip tem `estado` → `Filtro.LocalEstadoId`; a Copart, a faceta `patioveiculo`) ou estimar o frete até Londrina. Decisão do Rafael em 2026-10-11: por enquanto **mostrar, não filtrar**; o frete entra na skill `analisar-lotes`.
 
 ### 9. Acesso a sites protegidos e com login — decisões de 2026-10-11 (para futura implementação)
 
@@ -113,10 +113,13 @@
 
 ## Em andamento
 
-- **002 — Leiloeiro Claudio Kuss** (aberta em 2026-10-10). Base: `_reversa_forward/triagem-leiloeiros-2026-10-10.md`.
+- Nenhuma feature aberta.
 
 ## Feitas
 
 - **001 — MVP de varredura ponta a ponta** (2026-10-04), com as emendas E001 (relatório por varredura em `1OUTPUT/`) e E002 (lista de lotes a monitorar).
+- **002 — Leiloeiro Claudio Kuss** (2026-10-10), com a emenda E001 de 2026-10-11 (lotes da semeadura no relatório e na lista de monitoramento). Adendo: `_reversa_sdd/addenda/002-leiloeiro-claudio-kuss.md`.
+- **003 — Leiloeiro Copart** (2026-10-11): busca pública em JSON, pátio e FIPE em todo aviso, alerta de bloqueio por leiloeiro. Adendo: `_reversa_sdd/addenda/003-leiloeiro-copart.md`.
+- **Palavras a excluir no veículo-alvo** (antigo item 4), entregue na feature 003 (RF-10): `excluir: [Oroch]` no alvo Duster.
 - **Agendamento automático:** resolvido sem código com o Agendador de Tarefas do Windows (`scripts/agendar_windows.ps1`), em 2026-10-08.
 - **Atalho de duplo clique:** `scripts/varrer.bat`, em 2026-10-08.
