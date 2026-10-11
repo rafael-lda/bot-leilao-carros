@@ -1,17 +1,10 @@
 {
   "schema-version": 1,
-  "feature-dir": "_reversa_forward/002-leiloeiro-claudio-kuss",
-  "feature-id": "002",
-  "short-name": "leiloeiro-claudio-kuss",
-  "started-at": "2026-10-10T00:21:38-03:00",
-  "current-stage": "sync",
-  "stages-completed": [
-    "requirements",
-    "clarify",
-    "plan",
-    "to-do",
-    "coding",
-    "sync"
-  ],
+  "feature-dir": "_reversa_forward/003-leiloeiro-copart",
+  "feature-id": "003",
+  "short-name": "leiloeiro-copart",
+  "started-at": "2026-10-11T14:42:49-03:00",
+  "current-stage": "requirements",
+  "stages-completed": [],
   "paused-features": []
 }
