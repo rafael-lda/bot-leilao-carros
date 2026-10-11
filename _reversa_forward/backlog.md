@@ -67,7 +67,7 @@
   - **Claudio Kuss:** 5% de comissão + "ICMS, despesas administrativas e de logística"; a despesa vem pronta no JSON do lote (`tblDespAdm`, ex.: R$ 2.750). Confirmar com o leiloeiro quando o ICMS se aplica.
   - **Regra prática:** custo ≈ lance × 1,05 + despesa fixa (≈ +12% num lance de R$ 40 mil), antes de transferência e débitos.
 
-### 4. Palavras a excluir no veículo-alvo
+### 4. Palavras a excluir no veículo-alvo — em andamento na feature 003 (RF-10)
 
 - Ex.: `excluir: [Oroch]`, para que o alvo "Duster" não case com a picape "DUSTER OROCH". Pequeno; pode virar emenda (`/reversa-add`) se a Oroch começar a aparecer.
 

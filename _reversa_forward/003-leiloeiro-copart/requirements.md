@@ -57,7 +57,10 @@ Projeto greenfield com as features 001 e 002 entregues. As fontes abaixo cumprem
 7. **RN-07:** Acesso pelo degrau mais simples da escada do backlog (item 9): requisição comum, sem login, sem Apify. Se a Copart bloquear, o bot registra bloqueio e alerta (comportamento existente desde a 001); o degrau Apify com troca automática fica para a feature do Milan, que precisa dele de qualquer forma. 🟢
    - Origem: decisão do Rafael, 2026-10-11
    - Tipo: nova
-8. **RN-08:** O sistema continua sem dar lances, sem login e sem usar a área de membro (`/data/...`, `/client/...`). 🟢
+8. **RN-09:** Um veículo-alvo pode declarar **palavras a excluir** (`excluir: [Oroch]`): lote cujo modelo ou título contenha qualquer delas (sem acento e sem caixa) não casa com aquele alvo. Vale para todos os leiloeiros. 🟢
+   - Origem: decisão do Rafael, 2026-10-11 (backlog item 4, puxado para esta feature porque a Copart traz 9 Duster Oroch)
+   - Tipo: nova
+9. **RN-08:** O sistema continua sem dar lances, sem login e sem usar a área de membro (`/data/...`, `/client/...`). 🟢
    - Tipo: mantida
 
 ## 5. Requisitos Funcionais
@@ -72,6 +75,7 @@ Projeto greenfield com as features 001 e 002 entregues. As fontes abaixo cumprem
 | RF-06 | O sistema deve tratar zero resultados como busca vazia legítima, e resposta fora do formato como quebra com alerta identificando a Copart | Must | Com o JSON alterado, chega alerta citando a Copart; com zero resultados, nenhum alerta | 🟢 |
 | RF-07 | O sistema deve distinguir bloqueio da Copart (403/desafio do Imperva) de falha de rede, registrando e alertando, sem impedir os outros leiloeiros | Must | Com a Copart respondendo desafio, os lotes do Vip e do Kuss chegam e a execução fica como sucesso parcial com alerta da Copart | 🟢 |
 | RF-08 | O sistema deve aplicar à Copart a semeadura, a deduplicação, o relatório e a lista de monitoramento existentes, incluindo os semeados nos documentos (E001 da 002) | Must | A primeira varredura com a Copart ativa não envia aviso dos lotes dela, mas os lista no relatório e na lista marcados "por semeadura" | 🟢 |
+| RF-10 | O sistema deve aceitar, em cada veículo-alvo, uma lista opcional `excluir` de palavras; lote cujo modelo ou título contenha alguma delas não casa com o alvo | Must | Com `excluir: [Oroch]` no alvo Renault Duster, "RENAULT DUSTER OROCH 2022" não é candidato e "RENAULT DUSTER 2022" é; lista vazia ou ausente não muda nada; palavra vazia ou que não seja texto aborta citando o alvo e o campo | 🟢 |
 | RF-09 | O sistema deve manter a varredura completa (Vip, Kuss e Copart) abaixo de 10 minutos | Should | Medido no dry-run real do plano | 🟡 |
 
 ## 6. Requisitos Não Funcionais
@@ -127,6 +131,7 @@ Cenário: Formato alterado vira alerta
 | RF-04 | Must | Decisão do Rafael; com a Copart, a distância vira o primeiro critério de descarte |
 | RF-05 | Must | A Copart entrega FIPE, monta e documento prontos: é o que torna o pente fino possível |
 | RF-09 | Should | Meta de tempo herdada; depende da rede |
+| RF-10 | Must | Decisão do Rafael; tira as Duster Oroch (picape) dos avisos |
 | Filtro por estado do pátio | Won't (nesta feature) | Decisão do Rafael: mostrar, não filtrar (RN-05) |
 | Degrau Apify com troca automática | Won't (nesta feature) | Entra com o Milan (RN-07) |
 
@@ -147,3 +152,4 @@ Cenário: Formato alterado vira alerta
 |------|-----------|-------|
 | 2026-10-11 | Versão inicial gerada por `/reversa-requirements` a partir da triagem da Copart (CSV exportado, prints e 9 requisições à busca JSON) | reversa |
 | 2026-10-11 | Sessão de esclarecimento: RN-06 (avisar lote aguardando classificação) resolvida | `/reversa-clarify` |
+| 2026-10-11 | RN-09 e RF-10 (palavras a excluir no veículo-alvo), pedido do Rafael durante o plano | Rafael + Claude |

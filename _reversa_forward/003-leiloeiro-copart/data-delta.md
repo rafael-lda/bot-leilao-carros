@@ -31,6 +31,12 @@ Nova anotação de página `patio` nas páginas `quantidade` e `lotes`.
 | `ItemDigest` | `fipe: str \| None` | `FIPE R$ 80.266` |
 | `LoteRelatorio` | `patio`, `fipe` | `Pátio: ...`; `FIPE: R$ 80.266 (lance = 45% da FIPE)`, o percentual só com lance e FIPE |
 
+### 1.4 `VeiculoAlvo` (`config/veiculos.py`)
+
+| Campo | Tipo | YAML | Regra |
+|-------|------|------|-------|
+| `excluir` | `tuple[str, ...]` (padrão vazio) | `excluir: [Oroch]` (opcional; texto único vira lista de um) | cada palavra, sem acento e sem caixa, não pode aparecer no modelo nem no título do lote; item vazio ou não textual aborta citando o alvo e o campo |
+
 ## 2. Banco de dados
 
 **Sem mudança.** Pátio e FIPE são de exibição; `lote_conhecido` continua deduplicando por id canônico (`copart:<ln>`).

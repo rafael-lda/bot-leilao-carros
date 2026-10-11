@@ -63,6 +63,13 @@ Não existe `.reversa/principles.md`. Princípios de fato das features anteriore
 | D-70 | Kuss: `Evento` ganha `local`, lido da linha "Local:" da agenda ("... - Curitiba/PR" → "Curitiba - PR"); vai nas anotações da página e para `lote.patio` | O pátio do Kuss é o local do evento (pregão presencial) | Fixar "Curitiba - PR" no código (quebra se houver evento em outra cidade) | 🟢 |
 | D-71 | Telegram: a 2ª linha do item ganha o pátio e a FIPE: `R$ 36.000 — Copart — VITÓRIA DE SANTO ANTÃO - PE — FIPE R$ 80.266 — Pregão 15/10 08:30`. Relatório e lista: `- **Pátio:**` e `- **FIPE:** R$ 80.266 (lance = 45% da FIPE)` | RF-04/RF-05; o % da FIPE é a primeira conta que o Rafael faz e sai de graça | Linha própria para o pátio no Telegram (item com 5 linhas) | 🟢 |
 
+### 3.4 Palavras a excluir no veículo-alvo (RF-10)
+
+| ID | Decisão | Justificativa | Alternativas descartadas | Confidência |
+|----|---------|----------------|--------------------------|-------------|
+| D-72 | `VeiculoAlvo.excluir: tuple[str, ...]` (padrão vazio), lido de `excluir:` no YAML (lista de textos não vazios; texto único aceito como lista de um). O motor (`_casa_sem_km`) recusa o lote quando alguma palavra, normalizada, aparece no modelo **ou** no título normalizados. Lote recusado por exclusão conta em `descartados_sem_casar` | O título do Vip ("Renault Duster Oroch...") e o modelo da Copart ("duster oroch") cobrem os leiloeiros; normalização igual à do casamento de modelo | Regex (exagero para o caso); excluir só pelo modelo (o Vip às vezes põe a versão só no título) | 🟢 |
+| D-73 | `config/veiculos-alvo.yaml`: o alvo Renault Duster ganha `excluir: [Oroch]`, e o comentário "descarte à mão" é atualizado; o exemplo criado na primeira execução documenta o campo | Pedido do Rafael | — | 🟢 |
+
 ## 4. Premissas
 
 | Premissa | Origem | Risco se errada |
@@ -84,8 +91,10 @@ Não existe `.reversa/principles.md`. Princípios de fato das features anteriore
 | Digest, relatório e lista | `notificador-telegram.md`; E001/E002 da 001 | regra-alterada | Pátio e FIPE (D-71) |
 | Orquestrador | `agendador-observabilidade.md` | regra-alterada | Registro do par Copart |
 | Cadastro | `config/leiloeiros.yaml` | regra-alterada (dados) | Bloco da Copart |
+| Configuração de veículos-alvo | `configuracao-veiculos-alvo.md` §9 | delta-de-dados | Campo opcional `excluir` (D-72) |
+| Motor de filtros | `motor-filtros.md` RF-02 | regra-alterada | Palavras a excluir no casamento (D-72) |
 
-Fora do delta: motor de filtros, banco, alertas, enriquecimento, semeadura (a E001 da 002 já põe os semeados nos documentos).
+Fora do delta: banco, alertas, enriquecimento, semeadura (a E001 da 002 já põe os semeados nos documentos).
 
 ## 6. Delta no modelo de dados
 
@@ -112,7 +121,7 @@ Fora do delta: motor de filtros, banco, alertas, enriquecimento, semeadura (a E0
 | R-01 | Imperva passa a barrar o robô | média | médio | Alerta de bloqueio (D-60); degrau Apify na feature do Milan, com troca automática |
 | R-02 | Paginação volta a ficar instável | baixa | médio | Ordenação fixa (D-54) e aviso de repetição (D-55) |
 | R-03 | Muitos avisos de lotes longe de Londrina | alta | baixo | Pátio no aviso (RN-04); filtro por UF ou custo de frete na skill `analisar-lotes` |
-| R-04 | Alvo "Duster" casa com "Duster Oroch" (picape) | alta | baixo | Já conhecido (comentário no `veiculos-alvo.yaml`, backlog item 4 "palavras a excluir") |
+| R-04 | Palavra a excluir curta demais esconde carro bom (ex.: "SE" casaria com muitos títulos) | baixa | médio | A comparação é por trecho de texto; documentar no exemplo do YAML que a palavra deve ser específica |
 | R-05 | Volume de financiamento cresce muito | baixa | baixo | Teto de 40 páginas (D-59); a 5 s por página, 40 páginas ≈ 3,5 min |
 
 ## 10. Critério de pronto
