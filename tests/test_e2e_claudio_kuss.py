@@ -49,7 +49,7 @@ def test_lote_que_casa_e_avisado_com_leiloeiro_ano_pregao_observacoes_e_link(rai
     assert resultado.veredito == "sucesso"
     (digest,) = cenario.mensagens
     assert "1. RENAULT/DUSTER ICONIC 1.6 CVT — 2022" in digest
-    assert "R$ 45.000 — Claudio Kuss Leilões — Pregão 13/10 10:00" in digest
+    assert "R$ 45.000 — Claudio Kuss Leilões — Curitiba - PR — Pregão 13/10 10:00" in digest, "pátio: feature 003"
     assert "Obs.: PARA-CHOQUE DIANTEIRO RISCADO" in digest
     assert LINK_DUSTER in digest
     assert cenario.notificados() == ["claudio-kuss-leiloes:283001"]

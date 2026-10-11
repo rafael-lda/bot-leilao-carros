@@ -17,8 +17,10 @@ from pathlib import Path
 import httpx
 
 import bot_leilao.coleta.claudio_kuss  # noqa: F401 — registra o adaptador (feature 002)
+import bot_leilao.coleta.copart  # noqa: F401 — registra o adaptador (feature 003)
 import bot_leilao.coleta.vip  # noqa: F401 — registra o adaptador
 import bot_leilao.parsing.claudio_kuss  # noqa: F401 — registra o parser (feature 002)
+import bot_leilao.parsing.copart  # noqa: F401 — registra o parser (feature 003)
 import bot_leilao.parsing.vip  # noqa: F401 — registra o parser
 from bot_leilao.coleta import registro
 from bot_leilao.coleta.coletor import Coletor
@@ -388,6 +390,18 @@ def _alertas(leiloeiros, respostas, parsings, agora_local: datetime) -> list[Ale
                                               f"({'; '.join(motivos)[:300]}).")))
         return pendentes
     nomes = {l.id: l.nome for l in leiloeiros}
+    # Bloqueio de um leiloeiro, com os outros funcionando (feature 003): antes ficava só no registro.
+    bloqueios: dict[str, list[str]] = defaultdict(list)
+    for resposta in respostas:
+        if resposta.veredito is Veredito.BLOQUEADO:
+            bloqueios[resposta.leiloeiro_id].append(resposta.motivo or "bloqueado")
+    for leiloeiro_id, motivos in bloqueios.items():
+        pendentes.append(AlertaPendente(
+            leiloeiros=(leiloeiro_id,),
+            alerta=AlertaOperacional(executado_em=agora_local, leiloeiro=nomes.get(leiloeiro_id, leiloeiro_id),
+                                     mensagem=f"o site bloqueou o acesso do bot ({'; '.join(sorted(set(motivos)))}). "
+                                              "Este leiloeiro ficou sem cobertura nesta varredura; os outros "
+                                              "seguem normalmente.")))
     quebras: dict[str, list[str]] = defaultdict(list)
     for parsing in parsings.values():
         if parsing.quebra_suspeita:

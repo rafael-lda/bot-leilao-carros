@@ -3,6 +3,7 @@
 # Os filtros são próprios de cada site; veja os valores aceitos em
 #   Vip:          _reversa_forward/001-mvp-varredura-ponta-a-ponta/interfaces/vip-pesquisa.md
 #   Claudio Kuss: _reversa_forward/002-leiloeiro-claudio-kuss/interfaces/claudio-kuss.md
+#   Copart:       _reversa_forward/003-leiloeiro-copart/interfaces/copart-busca.md
 # Não filtre por marca nem modelo: esse recorte é feito pelos veículos-alvo
 # (cadastro-leiloeiros, seção 6.1.1, "busca ampla").
 leiloeiros:
@@ -31,3 +32,16 @@ leiloeiros:
       - descricao: Eventos de veículos de financeiras, qualquer marca
         filtros:
           categoria: Veículos - Financeiras
+
+  # Busca pública da Copart (sem login). Filtros = facetas do site (condicao, categoria,
+  # patioveiculo...). O pátio de cada lote aparece no aviso; a maior parte dos carros de
+  # financiamento fica no Nordeste e em Goiás. Para desligar: ativo: false
+  - nome: Copart
+    base_url: https://www.copart.com.br
+    ativo: true
+    estrategia_acesso: publico
+    nivel_coleta: script
+    buscas:
+      - descricao: Recuperados de financiamento, qualquer marca e categoria
+        filtros:
+          condicao: FINANCIAMENTO

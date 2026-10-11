@@ -21,3 +21,12 @@
 {"ts": "2026-10-11T17:16:16-03:00", "action": "T021", "status": "done", "files": ["src/bot_leilao/parsing/claudio_kuss.py"]}
 {"ts": "2026-10-11T17:17:48-03:00", "action": "T022", "status": "done", "files": ["src/bot_leilao/coleta/copart.py"]}
 {"ts": "2026-10-11T17:17:48-03:00", "action": "T023", "status": "done", "files": ["src/bot_leilao/parsing/copart.py", "tests/apoio.py"]}
+{"ts": "2026-10-11T18:01:58-03:00", "action": "T024", "status": "done", "files": ["src/bot_leilao/notificacao/digest.py"]}
+{"ts": "2026-10-11T18:01:58-03:00", "action": "T025", "status": "done", "files": ["src/bot_leilao/notificacao/relatorio.py"]}
+{"ts": "2026-10-11T18:01:58-03:00", "action": "T026", "status": "done", "files": ["src/bot_leilao/orquestrador.py", "tests/test_e2e_claudio_kuss.py"]}
+{"ts": "2026-10-11T18:02:12-03:00", "action": "T027", "status": "done", "files": ["config/leiloeiros.yaml"]}
+{"ts": "2026-10-11T18:02:12-03:00", "action": "T028", "status": "done", "files": ["config/veiculos-alvo.yaml"]}
+{"ts": "2026-10-11T18:08:27-03:00", "action": "T029", "status": "done", "files": ["(execução)"]}
+{"ts": "2026-10-11T18:09:06-03:00", "action": "T030", "status": "done", "files": ["README.md"]}
+{"ts": "2026-10-11T18:09:06-03:00", "action": "T031", "status": "done", "files": ["tests/RASTREABILIDADE.md"]}
+{"ts": "2026-10-11T18:09:06-03:00", "action": "T032", "status": "done", "files": ["_reversa_forward/003-leiloeiro-copart/onboarding.md"]}

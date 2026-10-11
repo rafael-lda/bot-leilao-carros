@@ -106,3 +106,28 @@
 | Emenda | Testes |
 |--------|--------|
 | E001 da 002 — semeados no relatório e na lista, sem aviso | `test_relatorio.py::test_relatorio_lista_os_semeados_numa_secao_propria`, `test_relatorio.py::test_lista_marca_o_lote_que_entrou_por_semeadura`, `test_e2e_fluxo.py::test_lote_semeado_entra_na_lista_marcado_como_semeadura`, `test_e2e_fluxo.py::test_semeado_nao_volta_a_entrar_na_lista`, `test_e2e_claudio_kuss.py::test_primeira_varredura_semeia_o_kuss_sem_aviso_e_mostra_nos_documentos`, `test_e2e_claudio_kuss.py::test_semeado_retirado_ou_sucata_e_registrado_mas_nao_aparece`, `test_e2e_claudio_kuss.py::test_dry_run_nao_detalha_semeados` |
+
+## Feature 003: Copart (e pátio para todos)
+
+> Fonte: `_reversa_forward/003-leiloeiro-copart/requirements.md`. Fixtures reais de 2026-10-11 em `tests/fixtures/copart/`; site simulado por `apoio.SiteCopart`.
+
+| Req. | O que exige | Testes |
+|------|-------------|--------|
+| RF-01 | Cadastro com filtros de faceta; chave desconhecida aborta | `test_coleta_copart.py::test_registrado_pelo_id_do_leiloeiro`, `test_coleta_copart.py::test_filtros_aceitos_e_chave_desconhecida`, `test_parsing_copart.py::test_registrado_e_sem_preco_obrigatorio` |
+| RF-02 | Todas as páginas, total conferido, sem repetição | `test_coleta_copart.py::test_percorre_todas_as_paginas_ate_o_total`, `test_coleta_copart.py::test_pagina_vazia_antes_do_total_encerra_com_aviso`, `test_coleta_copart.py::test_lote_repetido_entre_paginas_gera_aviso`, `test_coleta_copart.py::test_requisicao_da_primeira_pagina`, `test_e2e_copart.py::test_todas_as_paginas_sao_lidas_e_conferidas` |
+| RF-03 | Lote normalizado (id, marca, modelo, anos, lance, link, tipo, pátio) | `test_parsing_copart.py::test_duster_oroch_real_com_todos_os_campos`, `test_parsing_copart.py::test_versa_aguardando_classificacao`, `test_parsing_copart.py::test_compre_agora_usa_o_preco_fixo`, `test_parsing_copart.py::test_pagina_real_com_100_lotes` |
+| RF-04 | Pátio de todo leiloeiro no Telegram, relatório e lista | `test_parsing_vip.py::test_patio_vem_do_local_do_card`, `test_coleta_claudio_kuss.py::test_agenda_traz_o_local_do_evento`, `test_parsing_claudio_kuss.py::test_lote_recebe_o_patio_da_anotacao`, `test_digest.py::test_segunda_linha_com_patio_e_fipe_na_ordem`, `test_relatorio.py::test_lista_traz_patio_e_fipe`, `test_e2e_copart.py::test_todo_aviso_mostra_o_patio` |
+| RF-05 | FIPE, data e estado da Copart | `test_parsing_copart.py::test_chassi_nunca_vira_fipe`, `test_parsing_copart.py::test_monta_aparece_quando_classificada`, `test_parsing_copart.py::test_data_invalida_ou_ausente_e_nula`, `test_relatorio.py::test_relatorio_traz_patio_e_fipe_com_percentual` |
+| RF-06 | Zero resultados = vazia; formato alterado = alerta | `test_parsing_copart.py::test_zero_resultados_e_busca_vazia`, `test_parsing_copart.py::test_formato_inesperado_levanta`, `test_e2e_copart.py::test_formato_alterado_vira_alerta_da_copart` |
+| RF-07 | Bloqueio do Imperva distinto, com alerta, sem derrubar os outros | `test_coleta_http.py::test_desafio_do_imperva_e_bloqueio`, `test_e2e_copart.py::test_copart_bloqueando_nao_impede_o_vip_e_gera_alerta`, `test_e2e_copart.py::test_alerta_de_bloqueio_no_maximo_um_por_dia` |
+| RF-08 | Semeadura e documentos | `test_e2e_copart.py::test_estreia_da_copart_lista_os_semeados_com_patio` |
+| RF-09 | Varredura < 10 min | Sem teste automatizado; dry-run real de 2026-10-11: 5m47s (Vip 11, Kuss 43, Copart 16 páginas) |
+| RF-10 | Palavras a excluir no veículo-alvo | `test_config_veiculos.py::test_excluir_como_lista`, `test_config_veiculos.py::test_excluir_invalido_cita_alvo_e_campo`, `test_motor_criterios.py::test_palavra_excluida_no_modelo_impede_o_casamento`, `test_motor_criterios.py::test_palavra_excluida_no_titulo_tambem_impede`, `test_e2e_copart.py::test_duster_oroch_excluida_pelo_alvo` |
+
+| # | Cenário (requirements §7) | Teste |
+|---|---------------------------|-------|
+| 1 | Lotes de financiamento da Copart entram na varredura | `test_e2e_copart.py::test_todas_as_paginas_sao_lidas_e_conferidas` |
+| 2 | Lote que casa é avisado com pátio e FIPE | `test_e2e_copart.py::test_lote_que_casa_e_avisado_com_patio_fipe_e_link` |
+| 3 | Todo aviso mostra o pátio | `test_e2e_copart.py::test_todo_aviso_mostra_o_patio` |
+| 4 | Copart bloqueando não derruba os outros | `test_e2e_copart.py::test_copart_bloqueando_nao_impede_o_vip_e_gera_alerta` |
+| 5 | Formato alterado vira alerta | `test_e2e_copart.py::test_formato_alterado_vira_alerta_da_copart` |

@@ -40,6 +40,8 @@ class LoteRelatorio:
     documento: str | None = None
     observacoes: str | None = None
     origem: str = "aviso"   # "aviso" (Telegram) ou "semeadura" (já estava no site na estreia; E001 da feature 002)
+    patio: str | None = None   # feature 003 (D-71)
+    fipe: str | None = None    # "R$ 80.266 (lance = 45% da FIPE)"
 
 
 def _rotulo_preco(lote) -> str:
@@ -52,6 +54,16 @@ def _documento(lote) -> str | None:
     partes = [f"Placa {lote.placa_parcial}" if lote.placa_parcial else None,
               f"documento de {lote.local_documento}" if lote.local_documento else None]
     return ", ".join(p for p in partes if p) or None
+
+
+def _fipe(candidato: Candidato) -> str | None:
+    fipe = candidato.lote.fipe
+    if fipe is None:
+        return None
+    texto = formatar_preco(fipe)
+    if candidato.preco is not None and fipe > 0:
+        texto += f" (lance = {round(candidato.preco / fipe * 100)}% da FIPE)"
+    return texto
 
 
 def lote_de(candidato: Candidato, nome_leiloeiro: str, origem: str = "aviso") -> LoteRelatorio:
@@ -67,12 +79,15 @@ def lote_de(candidato: Candidato, nome_leiloeiro: str, origem: str = "aviso") ->
         documento=_documento(lote),
         observacoes=observacoes_do_lote(lote),
         origem=origem,
+        patio=lote.patio,
+        fipe=_fipe(candidato),
     )
 
 
 def _linhas_do_leiloeiro(novo: LoteRelatorio) -> list[str]:
     """Pregão, despesas, documento e observações completas, quando o leiloeiro informa (D-51)."""
-    campos = [("Pregão", novo.pregao), ("Despesas admin.", novo.despesas_adm),
+    campos = [("Pátio", _escapar(novo.patio) if novo.patio else None), ("FIPE", novo.fipe),
+              ("Pregão", novo.pregao), ("Despesas admin.", novo.despesas_adm),
               ("Documento", _escapar(novo.documento) if novo.documento else None),
               ("Observações", _escapar(novo.observacoes) if novo.observacoes else None)]
     return [f"- **{rotulo}:** {valor}" for rotulo, valor in campos if valor]

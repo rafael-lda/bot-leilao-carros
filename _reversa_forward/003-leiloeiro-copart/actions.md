@@ -66,20 +66,20 @@ Política de escrita: `allowLegacyEdits: true`, `allowedPaths` vazio (liberaçã
 
 | ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
 |----|-----------|--------------|-------------|--------------|-------------|--------|
-| T024 | `ItemDigest.patio` e `ItemDigest.fipe`; `item_de` e `_texto_item` (D-71) | T012, T018 | `[//]` | `src/…/notificacao/digest.py` | 🟢 | `[ ]` |
-| T025 | `LoteRelatorio.patio` e `.fipe` (com % do lance); linhas no relatório e na lista (D-71) | T013, T024 | - | `src/…/notificacao/relatorio.py` | 🟢 | `[ ]` |
-| T026 | Orquestrador registra `coleta.copart` e `parsing.copart`, e alerta bloqueio de um leiloeiro (1 por dia; ver Notas de execução) | T022, T023, T025, T014 | - | `src/…/orquestrador.py` | 🟢 | `[ ]` |
-| T027 | (RF-01) Bloco da Copart em `config/leiloeiros.yaml`, com o contrato citado no cabeçalho | T026 | - | `config/leiloeiros.yaml` | 🟢 | `[ ]` |
-| T028 | `excluir: [Oroch]` no alvo Renault Duster de `config/veiculos-alvo.yaml`, atualizando o comentário "descarte à mão"; mexer só nesse bloco, preservando as edições locais do Rafael (D-73) | T017 | `[//]` | `config/veiculos-alvo.yaml` | 🟢 | `[ ]` |
-| T029 | (RF-02, RF-09) Dry-run real no container: Copart com total lido igual ao informado, sem aviso de repetição, sem alerta; Duster Oroch fora dos candidatos; pátio nos candidatos; varredura completa abaixo de 10 minutos. Se falhar, `ativo: false` e registro nas Notas | T027, T028 | - | (execução) | 🟡 | `[ ]` |
+| T024 | `ItemDigest.patio` e `ItemDigest.fipe`; `item_de` e `_texto_item` (D-71) | T012, T018 | `[//]` | `src/…/notificacao/digest.py` | 🟢 | `[X]` |
+| T025 | `LoteRelatorio.patio` e `.fipe` (com % do lance); linhas no relatório e na lista (D-71) | T013, T024 | - | `src/…/notificacao/relatorio.py` | 🟢 | `[X]` |
+| T026 | Orquestrador registra `coleta.copart` e `parsing.copart`, e alerta bloqueio de um leiloeiro (1 por dia; ver Notas de execução) | T022, T023, T025, T014 | - | `src/…/orquestrador.py` | 🟢 | `[X]` |
+| T027 | (RF-01) Bloco da Copart em `config/leiloeiros.yaml`, com o contrato citado no cabeçalho | T026 | - | `config/leiloeiros.yaml` | 🟢 | `[X]` |
+| T028 | `excluir: [Oroch]` no alvo Renault Duster de `config/veiculos-alvo.yaml`, atualizando o comentário "descarte à mão"; mexer só nesse bloco, preservando as edições locais do Rafael (D-73) | T017 | `[//]` | `config/veiculos-alvo.yaml` | 🟢 | `[X]` |
+| T029 | (RF-02, RF-09) Dry-run real no container: Copart com total lido igual ao informado, sem aviso de repetição, sem alerta; Duster Oroch fora dos candidatos; pátio nos candidatos; varredura completa abaixo de 10 minutos. Se falhar, `ativo: false` e registro nas Notas | T027, T028 | - | (execução) | 🟡 | `[X]` |
 
 ## Fase 5, Polimento
 
 | ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
 |----|-----------|--------------|-------------|--------------|-------------|--------|
-| T030 | README: Copart na tabela de leiloeiros, pátio e FIPE no aviso, campo `excluir` nos veículos-alvo | T027 | `[//]` | `README.md` | 🟢 | `[ ]` |
-| T031 | Seção "Feature 003" em `tests/RASTREABILIDADE.md`, conferida mecanicamente | T026 | `[//]` | `tests/RASTREABILIDADE.md` | 🟢 | `[ ]` |
-| T032 | Ajustar `onboarding.md` com o que o dry-run real mostrou | T029 | `[//]` | `_reversa_forward/003-…/onboarding.md` | 🟢 | `[ ]` |
+| T030 | README: Copart na tabela de leiloeiros, pátio e FIPE no aviso, campo `excluir` nos veículos-alvo | T027 | `[//]` | `README.md` | 🟢 | `[X]` |
+| T031 | Seção "Feature 003" em `tests/RASTREABILIDADE.md`, conferida mecanicamente | T026 | `[//]` | `tests/RASTREABILIDADE.md` | 🟢 | `[X]` |
+| T032 | Ajustar `onboarding.md` com o que o dry-run real mostrou | T029 | `[//]` | `_reversa_forward/003-…/onboarding.md` | 🟢 | `[X]` |
 
 ## Notas de execução
 
@@ -88,6 +88,9 @@ Política de escrita: `allowLegacyEdits: true`, `allowedPaths` vazio (liberaçã
 - **T020 (2026-10-11):** `Evento` ganhou `local`; o teste `test_ler_agenda_real` da 002 (que compara o evento inteiro) e o de anotações passaram a incluir o pátio "Curitiba - PR". Nenhuma outra mudança em teste anterior.
 - **T023 (2026-10-11):** a fábrica `lote_copart` do apoio escolhia a base pelo número do lote e quebrava com número inventado; agora número real = base real, outro número = Duster Oroch com o número trocado. Correção só no apoio de testes.
 - **Etapa 2 concluída (2026-10-11):** 546 testes passando; 13 falhando, todos das tarefas da etapa 3 (digest, relatório, orquestrador e alerta de bloqueio).
+- **T026 (2026-10-11):** com o pátio, a 2ª linha do aviso do Kuss mudou ("... — Claudio Kuss Leilões — Curitiba - PR — Pregão ..."); a expectativa do teste ponta a ponta da 002 foi atualizada.
+- **T029 (2026-10-11), dry-run real no container:** 5m47s; Vip 11 páginas (130 lotes), Kuss 43 páginas (391), Copart 16 páginas (1.506), sem aviso de repetição, sem total divergente, sem alerta; Copart preparou a sessão com 8 cookies do Imperva. Candidatos da Copart (semeáveis): 9 (Duster 2019 a 2022, três Kicks 2019, Versa 2017 e 2019); as 4 Duster Oroch saíram pelo `excluir`. Os 3 do Kuss já eram conhecidos.
+- **Etapa 3 concluída (2026-10-11):** T024–T032; 559 testes passando; rastreabilidade com 186 referências conferidas; `legacy-impact.md` e `regression-watch.md` (W019–W024) gerados.
 
 ## Histórico de alterações
 
@@ -95,3 +98,4 @@ Política de escrita: `allowLegacyEdits: true`, `allowedPaths` vazio (liberaçã
 |------|-----------|-------|
 | 2026-10-11 | Versão inicial gerada por `/reversa-to-do` | reversa |
 | 2026-10-11 | Correções do `/reversa-audit` (A003, A004): RFs e D-73 citados nas ações | Claude |
+| 2026-10-11 | Codificação concluída em três etapas (T001–T032); alerta de bloqueio por leiloeiro acrescentado ao T026 | `/reversa-coding` |

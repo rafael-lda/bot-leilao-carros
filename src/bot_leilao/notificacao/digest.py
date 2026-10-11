@@ -51,6 +51,8 @@ class ItemDigest:
     km: str | None = None
     pregao: str | None = None           # feature 002: leilão por evento (Claudio Kuss)
     observacoes: str | None = None      # feature 002: resumidas em LIMITE_OBSERVACOES
+    patio: str | None = None            # feature 003: onde o veículo está
+    fipe: str | None = None             # feature 003: "FIPE R$ 80.266", quando o leiloeiro informa
 
 
 def resumir(texto: str, limite: int = LIMITE_OBSERVACOES) -> str:
@@ -75,12 +77,15 @@ def item_de(candidato: Candidato, nome_leiloeiro: str) -> ItemDigest:
         km=formatar_km(lote.quilometragem),
         pregao=f"Pregão {lote.pregao_em:%d/%m %H:%M}" if lote.pregao_em else None,
         observacoes=resumir(obs) if (obs := observacoes_do_lote(lote)) else None,
+        patio=lote.patio,
+        fipe=f"FIPE {formatar_preco(lote.fipe)}" if lote.fipe is not None else None,
     )
 
 
 def _texto_item(numero: int, item: ItemDigest) -> str:
     primeira = f"{numero}. {escapar_html(item.titulo)}" + (f" — {item.ano}" if item.ano else "")
-    segunda = "   " + " — ".join(escapar_html(p) for p in (item.preco, item.leiloeiro, item.km, item.pregao) if p)
+    partes = (item.preco, item.leiloeiro, item.km, item.patio, item.fipe, item.pregao)  # D-71 da feature 003
+    segunda = "   " + " — ".join(escapar_html(p) for p in partes if p)
     linhas = [primeira, segunda]
     if item.observacoes:  # 4ª linha só para quem tem observações (RF-07 da feature 002)
         linhas.append(f"   Obs.: {escapar_html(item.observacoes)}")
