@@ -4,12 +4,15 @@
   "feature-id": "003",
   "short-name": "leiloeiro-copart",
   "started-at": "2026-10-11T14:42:49-03:00",
-  "current-stage": "coding",
+  "current-stage": "sync",
   "stages-completed": [
     "requirements",
     "clarify",
     "plan",
-    "to-do"
+    "to-do",
+    "audit",
+    "coding",
+    "sync"
   ],
   "paused-features": []
 }
