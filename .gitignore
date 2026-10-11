@@ -5,6 +5,10 @@
 .claude/skills/
 .agents/skills/
 
+# Skills e loops pessoais do Rafael, fora do projeto
+.claude/multiagents-debate-loop/
+loops/
+
 # Segredos — credenciais dos leiloeiros e token do bot
 .env
 *.env
