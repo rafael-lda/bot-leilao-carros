@@ -99,6 +99,18 @@
 
 - O Rafael mora em Londrina-PR; frete de carro de outro estado pode inviabilizar a margem. O Vip tem filtro de estado (`estado` → `Filtro.LocalEstadoId`). Opções: busca só com pátios do PR e vizinhos, ou mostrar o estado/cidade do pátio no aviso (o card do Vip traz "Local: SC"; o lote do Kuss, cidade de transferência).
 
+### 9. Acesso a sites protegidos e com login — decisões de 2026-10-11 (para futura implementação)
+
+- **Leitura correta da D-30 (esclarecida pelo Rafael):** a regra existe para **não gastar esforço fabricando disfarces no código**. Quando o acesso simples (`script`) não bastar, a saída é subir para uma ferramenta robusta (Apify), e não remendar o código com truques.
+- **Escada do Apify, usada estritamente no necessário:** (1) `script` atual; (2) navegador do Apify com IP de datacenter; (3) navegador com IP residencial; (4) IP residencial com sessão fixa ("sticky") ou estático ("ISP"), restrito ao Brasil. Subir um degrau só quando o anterior falhar, e registrar por leiloeiro qual degrau foi preciso.
+- **Economia de Apify:** usar o navegador só para passar o desafio (Cloudflare/Imperva) e reaproveitar o cookie de liberação nas páginas seguintes.
+- **Sites que exigem login:** o risco principal é a **conta de arrematar** do Rafael (ligada ao CPF), não o IP. Com login, IP que muda (Apify residencial rotativo) parece conta invadida. Caminhos, em ordem de preferência:
+  1. **Importar a exportação oficial** do site (ex.: CSV da Copart), feita pelo Rafael: risco zero, custo zero, ~2 min por exportação.
+  2. **Robô logado rodando no notebook do Rafael** (IP e navegador dele, sem Apify), em ritmo baixo, de preferência com **conta secundária** só de consulta.
+  3. Robô logado no Apify com IP fixo: só se 1 e 2 não servirem.
+- **Comportamento humano simulado** (variar horários e intervalos) é possível, mas o Imperva também examina a impressão digital do navegador; tratar como reforço, não como garantia.
+- **Triagem de 2026-10-11:** Milan (Cloudflare "managed" no site inteiro, inclusive `robots.txt` e catálogo; leilão de 14/10 com 247 lotes, ~125 carros, km, câmbio e comitente no catálogo) e Copart (exportação CSV com 692 carros de financiamento, FIPE, monta, documento e pátio; 80% dos pátios no NE/CO). Freitas fora (bloqueio deliberado).
+
 ## Em andamento
 
 - **002 — Leiloeiro Claudio Kuss** (aberta em 2026-10-10). Base: `_reversa_forward/triagem-leiloeiros-2026-10-10.md`.
