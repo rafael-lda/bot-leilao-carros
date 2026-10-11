@@ -33,11 +33,11 @@ Não existe `.reversa/principles.md`. Princípios de fato das features anteriore
 
 | ID | Decisão | Justificativa | Alternativas descartadas | Confidência |
 |----|---------|----------------|--------------------------|-------------|
-| D-53 | Busca por `POST /public/vehicleFinder/search` (form), JSON, `query=*`, `filter[<chave>]=<chave>:"<valor>"`, `size=100`, `page`/`start` | Endpoint da própria página de busca (lido em `controllers.js`); responde sem login; 100 por página aceito | Raspar o HTML da página (os lotes vêm por JavaScript); exportação CSV pública `/public/exportLotSearchResults` (gerada no navegador a partir do JSON; não acrescenta nada); CSV exportado à mão (descartado: automação máxima) | 🟢 |
+| D-53 | (RF-01, RF-02) Busca por `POST /public/vehicleFinder/search` (form), JSON, `query=*`, `filter[<chave>]=<chave>:"<valor>"`, `size=100`, `page`/`start` | Endpoint da própria página de busca (lido em `controllers.js`); responde sem login; 100 por página aceito | Raspar o HTML da página (os lotes vêm por JavaScript); exportação CSV pública `/public/exportLotSearchResults` (gerada no navegador a partir do JSON; não acrescenta nada); CSV exportado à mão (descartado: automação máxima) | 🟢 |
 | D-54 | Sempre `sort=lot_number asc` | Sem ordenação, 36 lotes repetidos e 36 omitidos em 1.506; ordenado, 1.506 únicos e crescentes (duas leituras em 2026-10-11) | Ordenação padrão do site (instável) | 🟢 |
 | D-55 | Próxima página enquanto `start + itens < totalElements` e a página não vier vazia; o adaptador registra os números já vistos e avisa no log se algum se repetir (sinal de paginação instável de novo) | Mesmo princípio da conferência de total do Kuss (D-36), mais a verificação que a paginação instável exige | Confiar só no total (não pega repetição) | 🟢 |
 | D-56 | `preparar_sessao`: `GET /vehicleFinderSearch` antes das buscas | Obtém os cookies do Imperva como um navegador que abre a página de busca; 1 requisição | Ir direto ao JSON (funcionou nos testes, mas um navegador nunca faz isso) | 🟡 |
-| D-57 | Filtros aceitos no YAML: as chaves de faceta do site (`condicao`, `categoria`, `marca`, `modelo`, `patioveiculo`, `patioleilao`, `anomodelo`, `classificacaodano`, `tipodocumento`, `condicaofuncionamento`, `chaves`, `blindado`, `tipovenda`, `dataleilao`); valor texto ou lista; chave desconhecida aborta antes da rede | Mesma regra do D-12 (Vip) e D-40 (Kuss) | Repassar qualquer chave (filtro ignorado sem erro) | 🟢 |
+| D-57 | (RF-01) Filtros aceitos no YAML: as chaves de faceta do site (`condicao`, `categoria`, `marca`, `modelo`, `patioveiculo`, `patioleilao`, `anomodelo`, `classificacaodano`, `tipodocumento`, `condicaofuncionamento`, `chaves`, `blindado`, `tipovenda`, `dataleilao`); valor texto ou lista; chave desconhecida aborta antes da rede | Mesma regra do D-12 (Vip) e D-40 (Kuss) | Repassar qualquer chave (filtro ignorado sem erro) | 🟢 |
 | D-58 | `tipo_leilao_da_busca`: `condicao` = `FINANCIAMENTO` → `financiamento`; outros → `None` | RN-02; mesma lógica do D-15 e D-39 | — | 🟢 |
 | D-59 | `teto_paginas = 40` (4.000 lotes) | Hoje são 16 páginas; folga para o estoque de financiamento crescer sem virar falha | Teto padrão de 50 (serve, mas 40 já sinaliza crescimento anormal) | 🟡 |
 | D-60 | O `ClienteHTTP` passa a reconhecer as marcas do Imperva (`_Incapsula_Resource`, `Incapsula incident`, `Request unsuccessful`) como desafio anti-robô, inclusive com status 200 quando o corpo é HTML | O Imperva pode responder o desafio com 200; sem isso, o parser receberia HTML e o alerta diria "parser quebrado" em vez de "bloqueado" | Deixar como quebra de parser (diagnóstico errado) | 🟡 |
@@ -46,12 +46,12 @@ Não existe `.reversa/principles.md`. Princípios de fato das features anteriore
 
 | ID | Decisão | Justificativa | Alternativas descartadas | Confidência |
 |----|---------|----------------|--------------------------|-------------|
-| D-61 | Id `copart:<ln>`; link `https://www.copart.com.br/lotDetail/<ln>` | `ln` é global (coluna "Código" do CSV); formato do link igual ao "URL de Lote" do CSV | — | 🟢 |
+| D-61 | (RF-03) Id `copart:<ln>`; link `https://www.copart.com.br/lotDetail/<ln>` | `ln` é global (coluna "Código" do CSV); formato do link igual ao "URL de Lote" do CSV | — | 🟢 |
 | D-62 | Título `MARCA MODELO MOTOR` (`mkn lm eng`); marca por `marca_canonica(mkn)`; modelo `normalizar_texto(lm)`; anos `lcy` (modelo) e `manufactureYear` (fabricação) | `lm` é curto ("VERSA", "DUSTER OROCH"); o motor vai só no título | Usar `ld` ("2019 NISSAN VERSA", repete o ano) | 🟢 |
 | D-63 | Preço: `hb > 0` → `lance_corrente`; Compre Agora → `lance_corrente` = `saleAmountBIN`; senão `None` (preço a confirmar). `preco_obrigatorio = False` | 1.445 de 1.506 sem lance (D-46 vale aqui também); o preço do Compre Agora é o que se paga, e precisa passar pelo teto | Tratar Compre Agora à parte (12 lotes; o teto já resolve) | 🟢 |
 | D-64 | FIPE: `la` > 0 → novo campo `fipe`; **`fv` é o chassi e nunca é lido como FIPE** | Conferido com o CSV ("Valor FIPE") e com valores plausíveis (Peugeot 2008 2018 = R$ 54.676) | — | 🟢 |
 | D-65 | Data do leilão: `ad` no formato `AAAA-MM-DD HH:MM:SS` é UTC → `pregao_em` em Brasília (UTC−3); vazio ou `"Copart Select"` → `None` | `13:00:00` corresponde às 10:00 BRT do print do Rafael | Ler a data como horário local (3 h adiantado) | 🟢 |
-| D-66 | Observações montadas dos campos de estado, nesta ordem, omitindo vazios: "Compre Agora" (se for), dano (`dd`), documento (`stt`), monta (`damageClassification`, se não for "Aguardando Classificação"/"Não Aplicável"), funcionamento (`drivabilityRating`), comitente (`sellerName`). Lote aguardando classificação: "Aguardando classificação da Copart" no lugar de documento e monta | Reaproveita a linha `Obs.:` do Telegram e as observações completas do relatório e da lista (D-51), sem mudar o formato | Campos novos para cada um (formato do aviso cresceria) | 🟢 |
+| D-66 | (RF-05) Observações montadas dos campos de estado, nesta ordem, omitindo vazios: "Compre Agora" (se for), dano (`dd`), documento (`stt`), monta (`damageClassification`, se não for "Aguardando Classificação"/"Não Aplicável"), funcionamento (`drivabilityRating`), comitente (`sellerName`). Lote aguardando classificação: "Aguardando classificação da Copart (data, FIPE e lance a definir)" no lugar de documento e monta (RN-06) | Reaproveita a linha `Obs.:` do Telegram e as observações completas do relatório e da lista (D-51), sem mudar o formato | Campos novos para cada um (formato do aviso cresceria) | 🟢 |
 | D-67 | Quebra e busca vazia: `returnCode != 1`, falta de `data.results` ou lote sem `ln`/`mkn` → exceção (quebra); `totalElements = 0` → busca vazia declarada | Mesmo padrão do núcleo (EC-15) | — | 🟢 |
 
 ### 3.3 Pátio e saída (vale para os três leiloeiros)
@@ -110,7 +110,7 @@ Fora do delta: banco, alertas, enriquecimento, semeadura (a E001 da 002 já põe
 
 ## 8. Plano de migração
 
-1. Sem migração de banco. A primeira varredura com a Copart ativa **semeia** a busca dela: os ~13 candidatos de hoje vão para o relatório e para `lotes-a-monitorar.md` marcados "por semeadura", sem aviso no Telegram (E001 da 002).
+1. Sem migração de banco. A primeira varredura com a Copart ativa (RF-08) **semeia** a busca dela: os ~13 candidatos de hoje vão para o relatório e para `lotes-a-monitorar.md` marcados "por semeadura", sem aviso no Telegram (E001 da 002).
 2. Ordem de entrega: pátio e FIPE no núcleo e na saída (Vip e Kuss passam a mostrar pátio) → adaptador e parser da Copart com amostras reais → bloco no YAML e dry-run real.
 3. Reversão: `ativo: false` no bloco da Copart.
 
@@ -122,7 +122,7 @@ Fora do delta: banco, alertas, enriquecimento, semeadura (a E001 da 002 já põe
 | R-02 | Paginação volta a ficar instável | baixa | médio | Ordenação fixa (D-54) e aviso de repetição (D-55) |
 | R-03 | Muitos avisos de lotes longe de Londrina | alta | baixo | Pátio no aviso (RN-04); filtro por UF ou custo de frete na skill `analisar-lotes` |
 | R-04 | Palavra a excluir curta demais esconde carro bom (ex.: "SE" casaria com muitos títulos) | baixa | médio | A comparação é por trecho de texto; documentar no exemplo do YAML que a palavra deve ser específica |
-| R-05 | Volume de financiamento cresce muito | baixa | baixo | Teto de 40 páginas (D-59); a 5 s por página, 40 páginas ≈ 3,5 min |
+| R-05 | (RF-09) Volume de financiamento cresce muito | baixa | baixo | Teto de 40 páginas (D-59); a 5 s por página, 40 páginas ≈ 3,5 min |
 
 ## 10. Critério de pronto
 

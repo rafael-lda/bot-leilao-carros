@@ -45,7 +45,7 @@ A partir da segunda varredura, um lote novo chega assim:
    https://www.copart.com.br/lotDetail/1141180
 ```
 
-Lote ainda sem classificação chega como "Preço a confirmar", sem FIPE nem data, com "Aguardando classificação da Copart" nas observações.
+Lote ainda sem classificação chega como "Preço a confirmar", sem FIPE nem data, com "Aguardando classificação da Copart (data, FIPE e lance a definir)" nas observações.
 
 Os avisos do Vip e do Kuss também passam a mostrar o pátio ("SC", "Curitiba - PR").
 

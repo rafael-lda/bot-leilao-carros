@@ -45,23 +45,23 @@ Projeto greenfield com as features 001 e 002 entregues. As fontes abaixo cumprem
 3. **RN-03:** O identificador canônico é o número do lote da Copart (`ln`), global no site; o link é `https://www.copart.com.br/lotDetail/<ln>`. 🟢
    - Origem: CSV exportado e JSON da busca (2026-10-11)
    - Tipo: nova
-4. **RN-04:** Todo lote, de qualquer leiloeiro, passa a ter o **pátio** (onde o veículo está): Copart "cidade - UF" (campo do JSON), Vip a UF do card ("Local"), Claudio Kuss o local do evento (Curitiba-PR). Pátio ausente não elimina o lote. 🟢
+4. **RN-04:** Todo lote, de qualquer leiloeiro, passa a ter o **pátio** (onde o veículo está): Copart "cidade - UF" (campo do JSON), Vip a UF do card ("Local"), Claudio Kuss o local do evento ("Curitiba - PR"). Pátio ausente não elimina o lote. 🟢
    - Origem: decisão do Rafael, 2026-10-11
    - Tipo: nova (vale para os três leiloeiros)
 5. **RN-05:** O pátio é **mostrado**, não filtrado: nenhum lote é descartado por distância nesta feature. O filtro ou o custo de frete fica para a skill `analisar-lotes` ou feature futura (backlog itens 8 e ★). 🟢
    - Origem: decisão do Rafael, 2026-10-11
    - Tipo: nova
-6. **RN-06:** Lote da Copart ainda "Aguardando Classificação" (sem data de leilão, sem FIPE e sem lance; 656 de 692 carros de financiamento em 2026-10-11) é **avisado já**, como "preço a confirmar" e com a data do leilão "a definir", pela regra existente de que preço ausente não elimina. O aviso é único: quando a Copart classificar o lote e marcar a data, não há novo aviso; o acompanhamento é feito pela lista de monitoramento. Mesma decisão da RN-07 da feature 002 (Kuss). 🟢
+6. **RN-06:** Lote da Copart ainda "Aguardando Classificação" (sem data de leilão, sem FIPE e sem lance; 656 de 692 carros de financiamento em 2026-10-11) é **avisado já**, como "preço a confirmar", com a observação "Aguardando classificação da Copart (data, FIPE e lance a definir)", pela regra existente de que preço ausente não elimina. O aviso é único: quando a Copart classificar o lote e marcar a data, não há novo aviso; o acompanhamento é feito pela lista de monitoramento. Mesma decisão da RN-07 da feature 002 (Kuss). 🟢
    - Origem: decisão do Rafael na sessão de esclarecimento de 2026-10-11
    - Tipo: nova
 7. **RN-07:** Acesso pelo degrau mais simples da escada do backlog (item 9): requisição comum, sem login, sem Apify. Se a Copart bloquear, o bot registra bloqueio e alerta (comportamento existente desde a 001); o degrau Apify com troca automática fica para a feature do Milan, que precisa dele de qualquer forma. 🟢
    - Origem: decisão do Rafael, 2026-10-11
    - Tipo: nova
-8. **RN-09:** Um veículo-alvo pode declarar **palavras a excluir** (`excluir: [Oroch]`): lote cujo modelo ou título contenha qualquer delas (sem acento e sem caixa) não casa com aquele alvo. Vale para todos os leiloeiros. 🟢
+8. **RN-08:** O sistema continua sem dar lances, sem login e sem usar a área de membro (`/data/...`, `/client/...`). 🟢
+   - Tipo: mantida
+9. **RN-09:** Um veículo-alvo pode declarar **palavras a excluir** (`excluir: [Oroch]`): lote cujo modelo ou título contenha qualquer delas (sem acento e sem caixa) não casa com aquele alvo. Vale para todos os leiloeiros. 🟢
    - Origem: decisão do Rafael, 2026-10-11 (backlog item 4, puxado para esta feature porque a Copart traz 9 Duster Oroch)
    - Tipo: nova
-9. **RN-08:** O sistema continua sem dar lances, sem login e sem usar a área de membro (`/data/...`, `/client/...`). 🟢
-   - Tipo: mantida
 
 ## 5. Requisitos Funcionais
 
@@ -70,13 +70,13 @@ Projeto greenfield com as features 001 e 002 entregues. As fontes abaixo cumprem
 | RF-01 | O sistema deve aceitar a Copart em `config/leiloeiros.yaml` como leiloeiro público, nível `script`, com busca declarada por filtros chave-valor que correspondem aos filtros do site (ex.: `condicao: FINANCIAMENTO`) | Must | Com o bloco ativo, a configuração carrega; chave de filtro desconhecida aborta antes da rede citando a Copart | 🟢 |
 | RF-02 | O sistema deve coletar todas as páginas da busca, conferindo o total lido com o total informado pela Copart | Must | Uma busca com 1.506 resultados resulta em 1.506 lotes lidos; divergência gera aviso em log | 🟢 |
 | RF-03 | O sistema deve converter cada lote em lote normalizado: id pelo número do lote, marca e modelo (com a tabela de sinônimos), ano de modelo e de fabricação, lance atual, link da página do lote, tipo de leilão herdado e pátio | Must | O lote 1176233 (Versa 2019, Campo Grande-MS) produz marca `nissan`, modelo `versa`, ano de modelo 2019, pátio "CAMPO GRANDE - MS" e link `…/lotDetail/1176233` | 🟢 |
-| RF-04 | O sistema deve mostrar o **pátio** de todo lote, de qualquer leiloeiro, no aviso do Telegram, no relatório e na lista de monitoramento | Must | Um aviso do Vip mostra "Pátio: SC"; um do Kuss, "Pátio: Curitiba-PR"; um da Copart, "Pátio: CAMPO GRANDE - MS" | 🟢 |
-| RF-05 | O sistema deve incluir, para os lotes da Copart, as informações de estado que o site oferece: descrição do dano, tipo de monta, documento, condição de funcionamento, valor FIPE e data do leilão, quando informados | Must | O bloco do lote no relatório traz "FIPE: R$ 52.784", "Leilão: 13/10 20:00", "Monta: Não Aplicável", "Documento: NORMAL", "Motor dá partida e engrena" | 🟢 |
+| RF-04 | O sistema deve mostrar o **pátio** de todo lote, de qualquer leiloeiro, no aviso do Telegram, no relatório e na lista de monitoramento | Must | Um aviso do Vip mostra "Pátio: SC"; um do Kuss, "Pátio: Curitiba - PR"; um da Copart, "Pátio: CAMPO GRANDE - MS" | 🟢 |
+| RF-05 | O sistema deve incluir, para os lotes da Copart, as informações de estado que o site oferece: descrição do dano, tipo de monta, documento, condição de funcionamento, valor FIPE e data do leilão, quando informados | Must | O bloco do lote no relatório traz as linhas "FIPE: R$ 52.784" e "Pregão: 13/10/2026 20:00", e a linha "Observações" com dano, documento, monta, funcionamento e comitente (ex.: "PEQUENOS AMASSADOS · Documento NORMAL · Motor dá partida e engrena · Comitente BANCO TOYOTA") | 🟢 |
 | RF-06 | O sistema deve tratar zero resultados como busca vazia legítima, e resposta fora do formato como quebra com alerta identificando a Copart | Must | Com o JSON alterado, chega alerta citando a Copart; com zero resultados, nenhum alerta | 🟢 |
 | RF-07 | O sistema deve distinguir bloqueio da Copart (403/desafio do Imperva) de falha de rede, registrando e alertando, sem impedir os outros leiloeiros | Must | Com a Copart respondendo desafio, os lotes do Vip e do Kuss chegam e a execução fica como sucesso parcial com alerta da Copart | 🟢 |
 | RF-08 | O sistema deve aplicar à Copart a semeadura, a deduplicação, o relatório e a lista de monitoramento existentes, incluindo os semeados nos documentos (E001 da 002) | Must | A primeira varredura com a Copart ativa não envia aviso dos lotes dela, mas os lista no relatório e na lista marcados "por semeadura" | 🟢 |
-| RF-10 | O sistema deve aceitar, em cada veículo-alvo, uma lista opcional `excluir` de palavras; lote cujo modelo ou título contenha alguma delas não casa com o alvo | Must | Com `excluir: [Oroch]` no alvo Renault Duster, "RENAULT DUSTER OROCH 2022" não é candidato e "RENAULT DUSTER 2022" é; lista vazia ou ausente não muda nada; palavra vazia ou que não seja texto aborta citando o alvo e o campo | 🟢 |
 | RF-09 | O sistema deve manter a varredura completa (Vip, Kuss e Copart) abaixo de 10 minutos | Should | Medido no dry-run real do plano | 🟡 |
+| RF-10 | O sistema deve aceitar, em cada veículo-alvo, uma lista opcional `excluir` de palavras; lote cujo modelo ou título contenha alguma delas não casa com o alvo | Must | Com `excluir: [Oroch]` no alvo Renault Duster, "RENAULT DUSTER OROCH 2022" não é candidato e "RENAULT DUSTER 2022" é; lista vazia ou ausente não muda nada; palavra vazia ou que não seja texto aborta citando o alvo e o campo | 🟢 |
 
 ## 6. Requisitos Não Funcionais
 
@@ -153,3 +153,4 @@ Cenário: Formato alterado vira alerta
 | 2026-10-11 | Versão inicial gerada por `/reversa-requirements` a partir da triagem da Copart (CSV exportado, prints e 9 requisições à busca JSON) | reversa |
 | 2026-10-11 | Sessão de esclarecimento: RN-06 (avisar lote aguardando classificação) resolvida | `/reversa-clarify` |
 | 2026-10-11 | RN-09 e RF-10 (palavras a excluir no veículo-alvo), pedido do Rafael durante o plano | Rafael + Claude |
+| 2026-10-11 | Correções do `/reversa-audit` (A001, A002, A005 a A007): RF-05 alinhado ao formato de Observações e Pregão; RN-06 com "a definir" nas observações; grafia do pátio do Kuss; ordem das regras e requisitos. Decisões do Rafael para A001 e A002 | Rafael + Claude |
