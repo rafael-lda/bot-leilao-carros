@@ -5,7 +5,7 @@ import logging
 import httpx
 
 from apoio import (ALVO_FLUENCE, ALVO_VERSA, LEILOEIRO_KUSS, LEILOEIROS_VIP_E_KUSS, CenarioE2E, SiteKuss,
-                   agenda_sem_financeiras, detalhe_kuss, lote_kuss, pagina_vazia, pagina_vip)
+                   agenda_sem_financeiras, detalhe_kuss, json_kuss, lote_kuss, pagina_vazia, pagina_vip)
 
 ALVO_DUSTER = """\
 veiculos:
@@ -103,12 +103,37 @@ def test_kuss_fora_do_ar_nao_impede_o_aviso_do_vip(raiz, relogio, agora):
     assert cenario.notificados() == ["vip-leiloes:400001"]
 
 
-def test_primeira_varredura_semeia_o_kuss_sem_aviso_e_sem_detalhe(raiz, relogio, agora):
-    cenario = _cenario(raiz, relogio, agora, alvos=ALVO_FLUENCE, eventos={"897": [[lote_kuss()]], "898": []})
+def test_primeira_varredura_semeia_o_kuss_sem_aviso_e_mostra_nos_documentos(raiz, relogio, agora):
+    """RF-09, com a emenda E001 da 002: semeado sem aviso no Telegram, mas detalhado e listado nos .md."""
+    cenario = _cenario(raiz, relogio, agora, alvos=ALVO_FLUENCE, eventos={"897": [[lote_kuss()]], "898": []},
+                       detalhes={"282622": detalhe_kuss()})
     resultado = cenario.varrer()
     assert resultado.veredito == "sucesso"
     assert resultado.em_semeadura is True
     assert cenario.mensagens == []
-    assert cenario.kuss.chamadas_op("D") == [], "semeáveis não são detalhados"
+    assert [f["le_id"] for f in cenario.kuss.chamadas_op("D")] == ["282622"]
     origens = [r["origem"] for r in cenario.banco().execute("SELECT origem FROM lote_conhecido")]
     assert origens == ["semeadura"]
+    relatorio = next((raiz / "1OUTPUT").glob("*_varredura.md")).read_text(encoding="utf-8")
+    assert "## Já estavam no site (semeadura)" in relatorio
+    assert "- **Observações:** SINISTRADO" in relatorio
+    lista = (raiz / "1OUTPUT" / "lotes-a-monitorar.md").read_text(encoding="utf-8")
+    assert "<!-- lote: claudio-kuss-leiloes:282622 -->" in lista
+    assert "por semeadura" in lista
+
+
+def test_semeado_retirado_ou_sucata_e_registrado_mas_nao_aparece(raiz, relogio, agora):
+    cenario = _cenario(raiz, relogio, agora, alvos=ALVO_FLUENCE,
+                       eventos={"897": [[lote_kuss(), lote_kuss(seq="282623")]], "898": []},
+                       detalhes={"282622": detalhe_kuss(retirado="S"), "282623": json_kuss("detalhe_282327_sucata.json")})
+    cenario.varrer()
+    assert len(list(cenario.banco().execute("SELECT 1 FROM lote_conhecido"))) == 2, "ambos viram conhecidos"
+    assert not (raiz / "1OUTPUT" / "lotes-a-monitorar.md").exists()
+    relatorio = next((raiz / "1OUTPUT").glob("*_varredura.md")).read_text(encoding="utf-8")
+    assert "## Já estavam no site" not in relatorio
+
+
+def test_dry_run_nao_detalha_semeados(raiz, relogio, agora):
+    cenario = _cenario(raiz, relogio, agora, alvos=ALVO_FLUENCE, eventos={"897": [[lote_kuss()]], "898": []})
+    cenario.varrer(dry_run=True)
+    assert cenario.kuss.chamadas_op("D") == []

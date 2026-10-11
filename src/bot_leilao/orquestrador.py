@@ -99,6 +99,7 @@ class _Execucao:
         self.segredos: list[str] = []      # RN-08: nada que vai para o banco pode conter um segredo
         # Emenda E001 (relatório Markdown)
         self.novos: list[LoteRelatorio] = []
+        self.semeados_lotes: list[LoteRelatorio] = []   # E001 da feature 002
         self.telegram: str | None = None
         self.semeados = 0
         self.em_semeadura = False
@@ -165,17 +166,19 @@ def _gravar_relatorio(raiz: Path, estado: "_Execucao", inicio_local: datetime, s
         caminho = gravar_relatorio(raiz / PASTA_RELATORIOS, DadosRelatorio(
             inicio=inicio_local, duracao_s=segundos, veredito=estado.veredito, motivo=estado.motivo,
             novos=estado.novos, telegram=estado.seguro(estado.telegram), semeados=estado.semeados,
-            em_semeadura=estado.em_semeadura))
+            em_semeadura=estado.em_semeadura, semeados_lotes=estado.semeados_lotes))
         log.info("exec    | relatório gravado em %s", caminho)
         nome_relatorio = caminho.name
     except Exception as erro:  # noqa: BLE001
         log.warning("exec    | não consegui gravar o relatório em %s: %s", raiz / PASTA_RELATORIOS, erro)
         nome_relatorio = "relatório não gravado"
-    if estado.telegram != "enviado" or not estado.novos:
+    # Avisados entram só com o Telegram confirmado; semeados entram sempre (E001 da feature 002).
+    pendentes = (estado.novos if estado.telegram == "enviado" else []) + estado.semeados_lotes
+    if not pendentes:
         return
     try:
         lista = raiz / PASTA_RELATORIOS / LISTA_MONITORAMENTO
-        entraram = acrescentar_monitoramento(lista, estado.novos, inicio_local, nome_relatorio)
+        entraram = acrescentar_monitoramento(lista, pendentes, inicio_local, nome_relatorio)
         if entraram:
             log.info("exec    | %d lote(s) acrescentado(s) a %s", entraram, lista)
     except Exception as erro:  # noqa: BLE001
@@ -251,7 +254,7 @@ def _executar(raiz: Path, dry_run: bool, deps: Dependencias, fuso: tzinfo, con, 
         log.info("filtro  | %d lotes vistos, %d retirados | %d candidatos | %d já conhecidos | %d novos",
                  filtragem.vistos, filtragem.descartados_retirados, filtragem.candidatos, filtragem.ja_conhecidos,
                  len(filtragem.novos))
-        _enriquecer(filtragem, cliente, adaptadores)
+        semeados_visiveis = _enriquecer(filtragem, cliente, adaptadores, detalhar_semeados=not dry_run)
     finally:
         cliente.fechar()
     estado.contagens.update(filtragem.contagens())
@@ -264,11 +267,13 @@ def _executar(raiz: Path, dry_run: bool, deps: Dependencias, fuso: tzinfo, con, 
     estado.saida = _resultado("sucesso", em_semeadura=bool(filtragem.buscas_a_semear),
                               candidatos=[f"{c.lote.titulo} — {c.lote.ano_modelo} — {c.lote.link}"
                                           for c in filtragem.novos + filtragem.semeaveis])
+    nomes = {l.id: l.nome for l in leiloeiros.ativos}
     if not dry_run:
         fluxo.registrar_semeadura(filtragem, execucao_id, deps.agora())
+        estado.semeados_lotes = [lote_de(c, nomes[c.lote.leiloeiro_id], origem="semeadura")
+                                 for c in semeados_visiveis]
     estado.semeados, estado.em_semeadura = len(filtragem.semeaveis), bool(filtragem.buscas_a_semear)
 
-    nomes = {l.id: l.nome for l in leiloeiros.ativos}
     estado.novos = [lote_de(c, nomes[c.lote.leiloeiro_id]) for c in filtragem.novos]
     digest = montar_digest([item_de(c, nomes[c.lote.leiloeiro_id]) for c in filtragem.novos], agora_local)
     estado.saida.digest = digest
@@ -347,16 +352,29 @@ def _processar(respostas, leiloeiros, adaptadores) -> tuple[dict[str, ResultadoP
     return parsings, aptas
 
 
-def _enriquecer(filtragem, cliente: ClienteHTTP, adaptadores) -> None:
-    """Detalhe dos lotes novos (feature 002, D-48): retirados saem do aviso e entram na contagem."""
-    if not filtragem.novos:
-        return
-    resultado = enriquecer(filtragem.novos, cliente, adaptadores, nucleo.parsers())
-    filtragem.novos = resultado.novos
-    filtragem.descartados_retirados += resultado.retirados
+def _enriquecer(filtragem, cliente: ClienteHTTP, adaptadores, detalhar_semeados: bool) -> list:
+    """Detalhe dos lotes novos (feature 002, D-48): retirados e sucata saem do aviso e entram na contagem.
+
+    Os semeáveis também são detalhados (E001 da feature 002), só para os documentos: todos continuam
+    registrados como conhecidos, mas retirados e sucata não aparecem. Devolve os semeados a mostrar.
+    """
+    parsers = nucleo.parsers()
+    if filtragem.novos:
+        resultado = enriquecer(filtragem.novos, cliente, adaptadores, parsers)
+        filtragem.novos = resultado.novos
+        filtragem.descartados_retirados += resultado.retirados
+        _log_enriquecimento("novos", resultado)
+    if not detalhar_semeados or not filtragem.semeaveis:
+        return []
+    semeados = enriquecer(filtragem.semeaveis, cliente, adaptadores, parsers)
+    _log_enriquecimento("semeados", semeados)
+    return semeados.novos
+
+
+def _log_enriquecimento(quais: str, resultado) -> None:
     if resultado.detalhados or resultado.falhas:
-        log.info("enriq   | %d lote(s) detalhado(s), %d retirado(s), %d sucata(s), %d falha(s)", resultado.detalhados,
-                 resultado.retirados, resultado.sucatas, resultado.falhas)
+        log.info("enriq   | %s: %d lote(s) detalhado(s), %d retirado(s), %d sucata(s), %d falha(s)", quais,
+                 resultado.detalhados, resultado.retirados, resultado.sucatas, resultado.falhas)
 
 
 def _alertas(leiloeiros, respostas, parsings, agora_local: datetime) -> list[AlertaPendente]:

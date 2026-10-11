@@ -48,3 +48,9 @@ W011, W012, W013, W014, W015, W016, W017, W018, todos na seção "Observações"
 - `_reversa_forward/002-leiloeiro-claudio-kuss/data-delta.md`
 - `_reversa_forward/002-leiloeiro-claudio-kuss/actions.md` (notas de execução)
 - `_reversa_forward/002-leiloeiro-claudio-kuss/interfaces/claudio-kuss.md`
+
+## Atualização 2026-10-11
+
+| Artefato | Seção | Tipo de impacto | Delta |
+|----------|-------|-----------------|-------|
+| `_reversa_sdd/sdd/motor-filtros.md` | §6 RF-13 (semeadura) | regra-alterada | Semeadura continua sem aviso no Telegram, mas os lotes semeados passam a ser detalhados e listados no relatório da varredura ("Já estavam no site") e na lista `lotes-a-monitorar.md`, marcados "por semeadura"; retirados e sucata não aparecem. Revê a regra da E002 da feature 001. Emenda E001 da feature 002. |

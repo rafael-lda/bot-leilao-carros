@@ -85,6 +85,12 @@ Etapas do `/reversa-coding` (com resumo e commit ao fim de cada uma):
 | T033 | Seção "Feature 002" em `tests/RASTREABILIDADE.md`: RF-01 a RF-10 e os 6 cenários → testes, conferida mecanicamente | T029 | `[//]` | `tests/RASTREABILIDADE.md` | 🟢 | `[X]` |
 | T034 | Ajustar `onboarding.md` com o que o dry-run real mostrou (número de páginas, duração, linhas de log reais) | T031 | `[//]` | `_reversa_forward/002-…/onboarding.md` | 🟢 | `[X]` |
 
+## Emendas
+
+| ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
+|----|-----------|--------------|-------------|--------------|-------------|--------|
+| E001 | Lotes da semeadura nos documentos: seção "Já estavam no site (semeadura)" no relatório e entrada na lista de monitoramento marcada "por semeadura", com detalhe consultado (varredura real); sem aviso no Telegram; retirados e sucata não aparecem. Recuperação dos 3 lotes semeados em 11/10/2026 | T029 | - | `src/bot_leilao/notificacao/relatorio.py`, `src/bot_leilao/orquestrador.py` | 🟢 | `[X]` |
+
 ## Notas de execução
 
 - **T010 (2026-10-10), ajuste do D-41:** a agenda passa a se declarar vazia sempre que a estrutura é reconhecida, tenha ou não evento da categoria. Com a regra do plano ("vazia só sem evento da categoria"), eventos de financeiras todos com `qtde = 0` virariam quebra, contra o RF-08. Quebra continua detectada por agenda sem blocos e por `qtde > 0` sem lotes lidos. Roadmap D-41 atualizado.
@@ -108,3 +114,4 @@ Etapas do `/reversa-coding` (com resumo e commit ao fim de cada uma):
 |------|-----------|-------|
 | 2026-10-10 | Versão inicial gerada por `/reversa-to-do` | reversa |
 | 2026-10-10 | Codificação concluída em três etapas (T001–T034); ajustes do D-41 e do D-43 registrados nas Notas de execução | `/reversa-coding` |
+| 2026-10-11 | Emenda E001 (semeados nos documentos); 488 testes passando | Claude, a pedido do Rafael |

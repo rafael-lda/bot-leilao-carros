@@ -15,14 +15,14 @@ Hoje monitora dois leiloeiros. O bot só observa e avisa: ele nunca dá lance.
 2. Busca no site do leiloeiro todas as páginas de resultado, devagar (5 s entre requisições).
 3. Compara cada lote com os seus alvos: marca, modelo, **ano de modelo**, **lance corrente** contra o teto, quilometragem (opcional) e tipo de leilão.
 4. Manda **um único resumo** no Telegram com os lotes novos. Lote já avisado não volta.
-5. Na primeira vez que uma busca roda, ele só registra o que já existe, sem avisar (senão você receberia o catálogo inteiro). **Ao ativar um leiloeiro novo, rode antes `varrer --dry-run`**: ele lista os candidatos que essa primeira varredura vai registrar em silêncio.
+5. Na primeira vez que uma busca roda, ele só registra o que já existe, sem avisar (senão você receberia o catálogo inteiro). Esses lotes não vão para o Telegram, mas aparecem no relatório (seção "Já estavam no site") e entram na lista de lotes a monitorar, marcados "por semeadura".
 6. Se o site mudar de layout e o bot parar de entender a página, você recebe um **alerta** em vez de silêncio.
 
 Cada execução fica registrada em `dados/bot-leilao.sqlite3`, e o log em `dados/logs/bot-leilao.log`.
 
 Cada varredura real também grava um relatório em Markdown em `1OUTPUT/` (por exemplo `2026-10-08_19h37_varredura.md`), com data, hora, veredito, duração e os lotes novos. Lotes já avisados não aparecem. Um relatório existente nunca é sobrescrito, então dá para anotar nele a análise de cada lote. A pasta fica fora do git.
 
-Na mesma pasta, `1OUTPUT/lotes-a-monitorar.md` acumula os lotes avisados, para acompanhar os que ainda estão em disputa. O bot só acrescenta lotes no fim desse arquivo; quem tira (martelo batido, lote retirado, lance acima do teto) é você, à mão, ou um agente a seu pedido. As regras estão no topo do próprio arquivo.
+Na mesma pasta, `1OUTPUT/lotes-a-monitorar.md` acumula os lotes avisados (e os da semeadura), para acompanhar os que ainda estão em disputa. O bot só acrescenta lotes no fim desse arquivo; quem tira (martelo batido, lote retirado, lance acima do teto) é você, à mão, ou um agente a seu pedido. As regras estão no topo do próprio arquivo.
 
 ## Instalação
 

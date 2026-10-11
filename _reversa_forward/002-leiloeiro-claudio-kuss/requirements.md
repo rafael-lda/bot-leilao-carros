@@ -153,9 +153,24 @@ Cenário: Um leiloeiro fora do ar não derruba o outro
 
 - 🟡 **Verificação técnica para o plano:** grafias de marca do Claudio Kuss (`CHEV/`, `CAOACHERY/`, `VW/`, possíveis prefixos `I/` de importados) frente à tabela de sinônimos; página "próximos leilões" versus página inicial para descobrir eventos; quando o lance inicial (`av`) passa a aparecer no detalhe; se lotes de um evento aparecem também em outro (reaparição).
 
+## Emendas
+
+### E001 — Lotes da semeadura nos documentos (2026-10-11)
+
+**Motivo:** na estreia do Claudio Kuss (varredura real de 11/10/2026 10:04), os 3 candidatos que já estavam no site (Kicks S CVT 2019 e dois Fluence) foram registrados como conhecidos sem aviso, como manda o RF-09, mas também não apareceram em nenhum `.md`: o relatório só mostrava a contagem e a lista de monitoramento excluía semeados (regra da E002 da feature 001). Um leiloeiro novo escondia justamente os candidatos que já estavam em disputa.
+
+**O que muda (decisão do Rafael, 2026-10-11):**
+- O relatório da varredura ganha a seção "Já estavam no site (semeadura)", com os mesmos campos dos lotes novos, inclusive pregão, despesas, documento e observações.
+- Os semeados entram em `1OUTPUT/lotes-a-monitorar.md`, marcados "Entrou na lista: ... por semeadura: já estava no site na estreia da busca, sem aviso no Telegram". Revê a regra "Lotes da semeadura não entram" da E002 da feature 001.
+- Para isso, os semeados também têm o detalhe consultado (só em varredura real, não no dry-run). Todos continuam registrados como conhecidos; retirados e sucata não aparecem nos documentos.
+- **Não muda:** semeados continuam **sem aviso no Telegram** (RF-09).
+
+**Recuperação:** os 3 lotes semeados em 11/10 foram anotados à mão no relatório `2026-10-11_10h04_varredura.md` (seção marcada como anotação) e acrescentados à lista, com o lance e as observações conferidos no site na hora.
+
 ## 11. Histórico de alterações
 
 | Data | Alteração | Autor |
 |------|-----------|-------|
 | 2026-10-10 | Versão inicial gerada por `/reversa-requirements` a partir da triagem de leiloeiros | reversa |
 | 2026-10-10 | Sessão de esclarecimento: RN-07 (avisar lote sem preço) e RN-08 (aceitar todos, mostrar observações) resolvidas; RF-07 vira Must | `/reversa-clarify` |
+| 2026-10-11 | Emenda E001: lotes da semeadura no relatório e na lista de monitoramento, sem aviso no Telegram | Rafael + Claude |

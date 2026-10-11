@@ -220,10 +220,25 @@ def test_lote_avisado_entra_na_lista_uma_unica_vez(cenario):
     assert texto.count("<!-- lote: vip-leiloes:400001 -->") == 1
 
 
-def test_lote_semeado_nao_entra_na_lista(cenario):
+def test_lote_semeado_entra_na_lista_marcado_como_semeadura(cenario):
+    """Emenda E001 da feature 002 (revê a regra da E002 da 001): semeado aparece, sem aviso no Telegram."""
     cenario.vip = pagina_vip()
     cenario.varrer()
-    assert _monitorar(cenario) is None
+    assert cenario.mensagens == []
+    texto = _monitorar(cenario)
+    assert "<!-- lote: vip-leiloes:400001 -->" in texto
+    assert "por semeadura: já estava no site na estreia da busca, sem aviso no Telegram" in texto
+    relatorio = next((cenario.raiz / "1OUTPUT").glob("*_varredura.md")).read_text(encoding="utf-8")
+    assert "## Já estavam no site (semeadura)" in relatorio
+    assert "### 1. Nissan Versa 1.6 Sv — 2018" in relatorio
+
+
+def test_semeado_nao_volta_a_entrar_na_lista(cenario):
+    cenario.vip = pagina_vip()
+    cenario.varrer()
+    antes = _monitorar(cenario)
+    cenario.varrer()
+    assert _monitorar(cenario) == antes
 
 
 def test_lote_so_entra_depois_que_o_telegram_confirma(cenario):

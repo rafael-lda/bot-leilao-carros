@@ -39,6 +39,7 @@ class LoteRelatorio:
     despesas_adm: str | None = None
     documento: str | None = None
     observacoes: str | None = None
+    origem: str = "aviso"   # "aviso" (Telegram) ou "semeadura" (já estava no site na estreia; E001 da feature 002)
 
 
 def _rotulo_preco(lote) -> str:
@@ -53,7 +54,7 @@ def _documento(lote) -> str | None:
     return ", ".join(p for p in partes if p) or None
 
 
-def lote_de(candidato: Candidato, nome_leiloeiro: str) -> LoteRelatorio:
+def lote_de(candidato: Candidato, nome_leiloeiro: str, origem: str = "aviso") -> LoteRelatorio:
     lote = candidato.lote
     return LoteRelatorio(
         item=item_de(candidato, nome_leiloeiro),
@@ -65,6 +66,7 @@ def lote_de(candidato: Candidato, nome_leiloeiro: str) -> LoteRelatorio:
         despesas_adm=formatar_preco(lote.despesas_adm) if lote.despesas_adm is not None else None,
         documento=_documento(lote),
         observacoes=observacoes_do_lote(lote),
+        origem=origem,
     )
 
 
@@ -86,6 +88,7 @@ class DadosRelatorio:
     telegram: str | None = None              # "enviado", "não enviado: <erro>" ou None (nada a enviar)
     semeados: int = 0
     em_semeadura: bool = False
+    semeados_lotes: list[LoteRelatorio] = field(default_factory=list)   # E001 da feature 002
 
 
 def _duracao(segundos: float) -> str:
@@ -122,18 +125,28 @@ def montar_relatorio(dados: DadosRelatorio) -> str:
         if dados.telegram and dados.telegram != "enviado":
             linhas += ["> O Telegram não confirmou o envio: estes lotes voltam na próxima varredura.", ""]
         for numero, novo in enumerate(dados.novos, start=1):
-            item = novo.item
-            titulo = _escapar(item.titulo) + (f" — {item.ano}" if item.ano else "")
-            linhas += [f"### {numero}. {titulo}", ""]
-            linhas.append(f"- **{novo.rotulo_preco}:** {item.preco}")
-            linhas.append(f"- **Leiloeiro:** {_escapar(item.leiloeiro)}")
-            if item.km:
-                linhas.append(f"- **Km:** {item.km}")
-            linhas += _linhas_do_leiloeiro(novo)
-            linhas.append(f"- **Link:** {item.link}")
-            linhas.append(f"- **Alvo:** {novo.alvo} (teto {novo.teto})")
-            linhas += ["- **Análise FIPE:** _pendente_", ""]
+            linhas += _bloco_relatorio(numero, novo)
+    if dados.semeados_lotes:
+        linhas += ["", "## Já estavam no site (semeadura)", "",
+                   "Lotes que casam com os alvos e já estavam publicados na estreia da busca. Foram registrados "
+                   "como conhecidos **sem aviso no Telegram** e entraram na lista de lotes a monitorar.", ""]
+        for numero, semeado in enumerate(dados.semeados_lotes, start=1):
+            linhas += _bloco_relatorio(numero, semeado)
     return "\n".join(linhas).rstrip("\n") + "\n"
+
+
+def _bloco_relatorio(numero: int, novo: LoteRelatorio) -> list[str]:
+    item = novo.item
+    titulo = _escapar(item.titulo) + (f" — {item.ano}" if item.ano else "")
+    linhas = [f"### {numero}. {titulo}", "",
+              f"- **{novo.rotulo_preco}:** {item.preco}",
+              f"- **Leiloeiro:** {_escapar(item.leiloeiro)}"]
+    if item.km:
+        linhas.append(f"- **Km:** {item.km}")
+    linhas += _linhas_do_leiloeiro(novo)
+    linhas += [f"- **Link:** {item.link}", f"- **Alvo:** {novo.alvo} (teto {novo.teto})",
+               "- **Análise FIPE:** _pendente_", ""]
+    return linhas
 
 
 def gravar_relatorio(pasta: Path, dados: DadosRelatorio) -> Path:
@@ -156,8 +169,9 @@ def gravar_relatorio(pasta: Path, dados: DadosRelatorio) -> Path:
 
 CABECALHO_MONITORAMENTO = """# Lotes a monitorar
 
-Lista acumulada dos lotes avisados pelo bot no Telegram. O bot só ACRESCENTA lotes no fim deste
-arquivo: nunca reescreve, reordena nem apaga nada. Quem tira lotes daqui é o Rafael, ou um agente
+Lista acumulada dos lotes avisados pelo bot no Telegram e dos que já estavam no site quando uma busca
+estreou (semeadura, sem aviso). O bot só ACRESCENTA lotes no fim deste arquivo: nunca reescreve,
+reordena nem apaga nada. Quem tira lotes daqui é o Rafael, ou um agente
 (Claude, Antigravity, Codex) a pedido dele.
 
 ## Como manter
@@ -187,7 +201,10 @@ def _bloco_monitoramento(novo: LoteRelatorio, entrada: datetime, relatorio: str)
         f"### {titulo}",
         f"<!-- lote: {novo.id_canonico} -->",
         "",
-        f"- **Entrou na lista:** {entrada:%d/%m/%Y %H:%M} (varredura `{relatorio}`)",
+        f"- **Entrou na lista:** {entrada:%d/%m/%Y %H:%M}"
+        + (" por semeadura: já estava no site na estreia da busca, sem aviso no Telegram"
+           if novo.origem == "semeadura" else "")
+        + f" (varredura `{relatorio}`)",
         f"- **{ROTULO_AO_ENTRAR.get(novo.rotulo_preco, novo.rotulo_preco)}:** {item.preco}",
         f"- **Leiloeiro:** {_escapar(item.leiloeiro)}",
     ]

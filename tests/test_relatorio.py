@@ -217,3 +217,30 @@ def test_lote_do_vip_nao_ganha_as_linhas_novas():
     texto = montar_relatorio(_dados())
     for rotulo in ("Pregão", "Despesas admin.", "Documento", "Observações"):
         assert f"**{rotulo}:**" not in texto
+
+
+# --- Emenda E001 da feature 002: lotes da semeadura nos documentos ------------------------------
+
+def test_relatorio_lista_os_semeados_numa_secao_propria():
+    semeado = _kuss()
+    semeado.origem = "semeadura"
+    texto = montar_relatorio(_dados(novos=[], telegram=None, semeados=1, em_semeadura=True, semeados_lotes=[semeado]))
+    assert "Nenhum lote novo nesta varredura." in texto
+    secao = texto.split("## Já estavam no site (semeadura)", 1)[1]
+    assert "sem aviso no Telegram" in secao
+    assert "### 1. IMP RENAULT/FLUENCE DYN 20A — 2013" in secao
+    assert f"- **Observações:** {SINISTRADO}" in secao
+
+
+def test_sem_semeados_nao_ha_secao():
+    assert "Já estavam no site" not in montar_relatorio(_dados())
+
+
+def test_lista_marca_o_lote_que_entrou_por_semeadura(tmp_path):
+    caminho = tmp_path / "lotes-a-monitorar.md"
+    semeado = _kuss()
+    semeado.origem = "semeadura"
+    acrescentar_monitoramento(caminho, [semeado], INICIO, "a.md")
+    texto = caminho.read_text(encoding="utf-8")
+    assert ("- **Entrou na lista:** 08/10/2026 19:37 por semeadura: já estava no site na estreia da busca, "
+            "sem aviso no Telegram (varredura `a.md`)") in texto

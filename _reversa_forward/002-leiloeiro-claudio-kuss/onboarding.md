@@ -58,9 +58,9 @@ Abra os links dos candidatos no navegador e confira se é o mesmo carro.
 python -m bot_leilao varrer
 ```
 
-ou o atalho `varrer.bat`. Resultado esperado: os lotes **novos do Vip** chegam normalmente; o Claudio Kuss aparece no relatório de `1OUTPUT/` como semeado ("N lote(s) registrados como conhecidos"), sem aviso.
+ou o atalho `varrer.bat`. Resultado esperado: os lotes **novos do Vip** chegam normalmente; os candidatos do Claudio Kuss que já estavam no site são registrados como conhecidos **sem aviso no Telegram**, mas aparecem no relatório de `1OUTPUT/` na seção "Já estavam no site (semeadura)" e entram em `lotes-a-monitorar.md` marcados "por semeadura" (emenda E001, de 2026-10-11).
 
-Nas varreduras seguintes, lote novo de sucata ou retirado é descartado depois de abrir o detalhe, com a linha `enriq   | N lote(s) detalhado(s), R retirado(s), S sucata(s), F falha(s)` no log.
+Sucata e retirados são descartados depois de abrir o detalhe, com linhas `enriq   | novos: ...` e `enriq   | semeados: N lote(s) detalhado(s), R retirado(s), S sucata(s), F falha(s)` no log.
 
 ## 5. Como fica um aviso do Claudio Kuss
 
