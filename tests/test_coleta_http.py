@@ -183,3 +183,30 @@ def test_resposta_acima_do_limite_e_abortada(roteiro, relogio):
     assert resultado.veredito is Veredito.FALHA_REDE
     assert resultado.motivo == "resposta_grande"
     assert resultado.conteudo is None
+
+
+# --- Feature 003: desafio do Imperva (Copart) é bloqueio, inclusive com status 200 (D-60) -------
+
+DESAFIO_IMPERVA = (b'<html><head><script src="/_Incapsula_Resource?SWJIYLWA=abc"></script></head>'
+                   b'<body>Request unsuccessful. Incapsula incident ID: 0-0</body></html>')
+
+
+@pytest.mark.parametrize("status", [200, 403])
+def test_desafio_do_imperva_e_bloqueio(roteiro, relogio, status):
+    transp = roteiro(lambda r: httpx.Response(status, content=DESAFIO_IMPERVA, headers={"Content-Type": "text/html"}))
+    resultado = _cliente(transp, relogio).requisitar(Requisicao("GET", URL))
+    assert resultado.veredito is Veredito.BLOQUEADO
+    assert resultado.motivo == "desafio_antibot"
+
+
+@pytest.mark.parametrize("marca", [b"_Incapsula_Resource", b"Incapsula incident", b"Request unsuccessful"])
+def test_cada_marca_do_imperva_basta(roteiro, relogio, marca):
+    transp = roteiro(lambda r: httpx.Response(200, content=b"<html>" + marca + b"</html>",
+                                              headers={"Content-Type": "text/html; charset=utf-8"}))
+    assert _cliente(transp, relogio).requisitar(Requisicao("GET", URL)).veredito is Veredito.BLOQUEADO
+
+
+def test_json_que_cita_a_palavra_nao_e_bloqueio(roteiro, relogio):
+    corpo = b'{"returnCode":1,"data":{"nota":"Request unsuccessful _Incapsula_Resource"}}'
+    transp = roteiro(lambda r: httpx.Response(200, content=corpo, headers={"Content-Type": "application/json"}))
+    assert _cliente(transp, relogio).requisitar(Requisicao("GET", URL)).ok

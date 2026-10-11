@@ -244,3 +244,40 @@ def test_lista_marca_o_lote_que_entrou_por_semeadura(tmp_path):
     texto = caminho.read_text(encoding="utf-8")
     assert ("- **Entrou na lista:** 08/10/2026 19:37 por semeadura: já estava no site na estreia da busca, "
             "sem aviso no Telegram (varredura `a.md`)") in texto
+
+
+# --- Feature 003: pátio e FIPE no relatório e na lista (D-71) -----------------------------------------
+
+def _copart_rel(**campos):
+    padrao = dict(id_canonico="copart:1141180", leiloeiro_id="copart", titulo="RENAULT DUSTER OROCH 1.6 16V SCE",
+                  ano_modelo=2022, lance_corrente=_D("36000"), lance_inicial=None, quilometragem=None,
+                  link="https://www.copart.com.br/lotDetail/1141180", patio="VITÓRIA DE SANTO ANTÃO - PE",
+                  fipe=_D("80266.00"))
+    padrao.update(campos)
+    return lote_de(Candidato(lote=lote(**padrao), alvo=alvo(), preco_a_confirmar=False, km_a_confirmar=False),
+                   "Copart")
+
+
+def test_relatorio_traz_patio_e_fipe_com_percentual():
+    texto = montar_relatorio(_dados(novos=[_copart_rel()]))
+    assert "- **Pátio:** VITÓRIA DE SANTO ANTÃO - PE" in texto
+    assert "- **FIPE:** R$ 80.266 (lance = 45% da FIPE)" in texto
+
+
+def test_fipe_sem_lance_mostra_so_o_valor():
+    texto = montar_relatorio(_dados(novos=[_copart_rel(lance_corrente=None)]))
+    assert "- **FIPE:** R$ 80.266\n" in texto
+
+
+def test_sem_fipe_nao_ha_linha_de_fipe():
+    texto = montar_relatorio(_dados(novos=[_copart_rel(fipe=None)]))
+    assert "**FIPE:**" not in texto
+    assert "- **Pátio:**" in texto
+
+
+def test_lista_traz_patio_e_fipe(tmp_path):
+    caminho = tmp_path / "lotes-a-monitorar.md"
+    acrescentar_monitoramento(caminho, [_copart_rel()], INICIO, "a.md")
+    texto = caminho.read_text(encoding="utf-8")
+    assert "- **Pátio:** VITÓRIA DE SANTO ANTÃO - PE" in texto
+    assert "- **FIPE:** R$ 80.266 (lance = 45% da FIPE)" in texto

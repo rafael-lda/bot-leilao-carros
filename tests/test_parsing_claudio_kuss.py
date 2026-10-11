@@ -270,3 +270,14 @@ def test_detalhe_retirado():
 def test_detalhe_invalido_levanta():
     with pytest.raises(Exception):
         parser.aplicar_detalhe(_novo(), b"<html>erro</html>")
+
+
+def test_lote_recebe_o_patio_da_anotacao():
+    """Feature 003, D-70."""
+    (lido,) = parser.extrair(bytes_json([lote_kuss()]), _ctx({**LOTES, "patio": "Curitiba - PR"})).lotes
+    assert lido.patio == "Curitiba - PR"
+
+
+def test_sem_anotacao_de_patio_fica_nulo():
+    (lido,) = _lotes([lote_kuss()])
+    assert lido.patio is None

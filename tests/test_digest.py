@@ -195,3 +195,40 @@ def test_lote_sem_observacoes_nao_tem_a_linha():
 def test_item_do_vip_continua_igual():
     item = item_de(Candidato(lote=lote(), alvo=alvo(), preco_a_confirmar=False, km_a_confirmar=False), "Vip Leilões")
     assert (item.pregao, item.observacoes) == (None, None)
+
+
+# --- Feature 003: pátio e FIPE na 2ª linha (D-71) ----------------------------------------------------
+
+LINK_COPART = "https://www.copart.com.br/lotDetail/1141180"
+
+
+def _copart(**campos):
+    padrao = dict(id_canonico="copart:1141180", leiloeiro_id="copart", titulo="RENAULT DUSTER OROCH 1.6 16V SCE",
+                  ano_modelo=2022, lance_corrente=Decimal("36000"), lance_inicial=None, quilometragem=None,
+                  link=LINK_COPART, patio="VITÓRIA DE SANTO ANTÃO - PE", fipe=Decimal("80266.00"),
+                  pregao_em=datetime(2026, 10, 15, 8, 30, tzinfo=SP),
+                  observacoes="PEQUENOS AMASSADOS · Documento NORMAL · Motor dá partida e engrena")
+    padrao.update(campos)
+    return Candidato(lote=lote(**padrao), alvo=alvo(), preco_a_confirmar=False, km_a_confirmar=False)
+
+
+def test_segunda_linha_com_patio_e_fipe_na_ordem():
+    (bloco,) = montar_digest([item_de(_copart(), "Copart")], QUANDO)
+    assert ("   R$ 36.000 — Copart — VITÓRIA DE SANTO ANTÃO - PE — FIPE R$ 80.266 — Pregão 15/10 08:30"
+            in bloco.split("\n"))
+
+
+def test_km_vem_antes_do_patio():
+    (bloco,) = montar_digest([item_de(_copart(quilometragem=50000, fipe=None, pregao_em=None), "Copart")], QUANDO)
+    assert "   R$ 36.000 — Copart — 50.000 km — VITÓRIA DE SANTO ANTÃO - PE" in bloco.split("\n")
+
+
+def test_item_do_vip_ganha_o_patio():
+    item = item_de(Candidato(lote=lote(patio="SC"), alvo=alvo(), preco_a_confirmar=False, km_a_confirmar=False),
+                   "Vip Leilões")
+    assert (item.patio, item.fipe) == ("SC", None)
+
+
+def test_sem_patio_nem_fipe_a_linha_fica_igual():
+    item = item_de(Candidato(lote=lote(), alvo=alvo(), preco_a_confirmar=False, km_a_confirmar=False), "Vip Leilões")
+    assert (item.patio, item.fipe) == (None, None)

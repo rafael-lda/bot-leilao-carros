@@ -149,3 +149,28 @@ def test_arquivo_ausente_cria_exemplo(raiz):
     with pytest.raises(ConfiguracaoAusente):
         carregar_veiculos(raiz / "config" / "veiculos-alvo.yaml")
     assert (raiz / "config" / "veiculos-alvo.yaml").exists()
+
+
+# --- Feature 003: palavras a excluir (RF-10, D-72) -------------------------------------------------
+
+def test_excluir_como_lista(raiz):
+    (alvo,) = _carregar(raiz, _bloco(excluir="[Oroch, Pick-up]")).ativos
+    assert alvo.excluir == ("Oroch", "Pick-up")
+
+
+def test_excluir_como_texto_unico_vira_lista_de_um(raiz):
+    (alvo,) = _carregar(raiz, _bloco(excluir="Oroch")).ativos
+    assert alvo.excluir == ("Oroch",)
+
+
+def test_sem_excluir_e_vazio(raiz):
+    (alvo,) = _carregar(raiz, _bloco()).ativos
+    assert alvo.excluir == ()
+
+
+@pytest.mark.parametrize("valor", ['[""]', "[123]", '["  "]', "{a: 1}"])
+def test_excluir_invalido_cita_alvo_e_campo(raiz, valor):
+    with pytest.raises(ErroConfiguracao) as erro:
+        _carregar(raiz, _bloco(excluir=valor))
+    assert "Nissan Versa" in str(erro.value)
+    assert "excluir" in str(erro.value)

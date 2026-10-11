@@ -4,8 +4,9 @@ Uso (rede necessária, cerca de 30 segundos cada):
 
     python scripts/capturar_fixtures.py                  # Vip Leilões
     python scripts/capturar_fixtures.py --claudio-kuss   # Claudio Kuss Leilões
+    python scripts/capturar_fixtures.py --copart         # Copart (busca pública em JSON)
 
-Grava em tests/fixtures/vip/ ou tests/fixtures/claudio_kuss/. Respeita a mesma conduta do coletor: sessão com
+Grava em tests/fixtures/vip/, tests/fixtures/claudio_kuss/ ou tests/fixtures/copart/. Respeita a mesma conduta do coletor: sessão com
 cookies, no máximo 3 redirecionamentos e 5 segundos entre requisições.
 Rodar de novo só quando o layout do Vip mudar e o parser precisar de conserto.
 """
@@ -184,5 +185,47 @@ def main_kuss() -> None:
         gravar_kuss(nome, json.loads(detalhe))
 
 
+# --- Copart (feature 003; interfaces/copart-busca.md) -------------------------------------------
+
+COPART = "https://www.copart.com.br"
+DESTINO_COPART = DESTINO.parent / "copart"
+CABECALHOS_COPART = {"Accept": "application/json, text/javascript, */*; q=0.01", "X-Requested-With": "XMLHttpRequest",
+                     "Origin": COPART, "Referer": f"{COPART}/vehicleFinderSearch"}
+
+
+def main_copart() -> None:
+    DESTINO_COPART.mkdir(parents=True, exist_ok=True)
+    cap = Capturador()
+    cap.get(f"{COPART}/vehicleFinderSearch")
+
+    def buscar(condicao: str, pagina: int) -> dict:
+        cap._esperar()
+        resposta = cap.cliente.post(f"{COPART}/public/vehicleFinder/search", headers=CABECALHOS_COPART, data={
+            "query": "*", "filter[condicao]": f'condicao:"{condicao}"', "sort": "lot_number asc",
+            "page": str(pagina), "size": "100", "start": str(pagina * 100)})
+        resposta.raise_for_status()
+        dados = resposta.json()
+        for lote in dados["data"]["results"]["content"]:
+            if lote.get("currentHighBidder"):
+                lote["currentHighBidder"] = 999999  # cadastro de quem deu o lance: dado de terceiro, não lido
+        return dados
+
+    def gravar_copart(nome: str, dados: dict) -> None:
+        (DESTINO_COPART / nome).write_text(json.dumps(dados, ensure_ascii=False), encoding="utf-8")
+        print(f"gravado tests/fixtures/copart/{nome}")
+
+    primeira = buscar("FINANCIAMENTO", 0)
+    gravar_copart("busca_pag00.json", primeira)
+    total = primeira["data"]["results"]["totalElements"]
+    gravar_copart("busca_ultima.json", buscar("FINANCIAMENTO", max(0, math.ceil(total / 100) - 1)))
+    gravar_copart("busca_zero.json", buscar("INEXISTENTE", 0))
+    print(f"financiamento: {total} lotes. lotes_selecionados.json é composto à mão (ver amostras da feature 003).")
+
+
 if __name__ == "__main__":
-    main_kuss() if "--claudio-kuss" in sys.argv[1:] else main()
+    if "--claudio-kuss" in sys.argv[1:]:
+        main_kuss()
+    elif "--copart" in sys.argv[1:]:
+        main_copart()
+    else:
+        main()

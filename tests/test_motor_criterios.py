@@ -126,3 +126,42 @@ def test_sem_alvos_nada_e_avaliado():
     """Motor EC-10."""
     resultado = avaliar([lote()], [])
     assert resultado.candidatos == []
+
+
+# --- Feature 003: palavras a excluir no veículo-alvo (RF-10, D-72) ----------------------------------
+
+DUSTER = dict(id="renault-duster-2018-2022", marca="Renault", modelo="Duster", ano_min=2018, ano_max=2022,
+              preco_maximo=Decimal("59500"))
+
+
+def _duster(**campos):
+    base = dict(marca="renault", modelo="duster", titulo="RENAULT DUSTER 1.6", ano_fabricacao=2021, ano_modelo=2022,
+                lance_corrente=Decimal("40000"))
+    base.update(campos)
+    return lote(**base)
+
+
+def test_palavra_excluida_no_modelo_impede_o_casamento():
+    oroch = alvo(**DUSTER, excluir=("Oroch",))
+    assert not casa(_duster(modelo="duster oroch", titulo="RENAULT DUSTER OROCH 1.6"), oroch)
+    assert casa(_duster(), oroch)
+
+
+def test_palavra_excluida_no_titulo_tambem_impede():
+    """O Vip às vezes traz a versão só no título."""
+    assert not casa(_duster(modelo="duster", titulo="Renault Duster Oroch Express"), alvo(**DUSTER, excluir=("oroch",)))
+
+
+def test_exclusao_sem_acento_nem_caixa():
+    assert not casa(_duster(modelo="duster pick-up", titulo="DUSTER PICK-UP"), alvo(**DUSTER, excluir=("Pick-Úp",)))
+
+
+def test_lote_excluido_conta_como_sem_casar():
+    resultado = avaliar([_duster(modelo="duster oroch")], [alvo(**DUSTER, excluir=("Oroch",))])
+    assert (len(resultado.candidatos), resultado.descartados_sem_casar) == (0, 1)
+
+
+def test_outro_alvo_sem_exclusao_ainda_casa():
+    oroch_ok = alvo(**{**DUSTER, "id": "renault-oroch"}, excluir=())
+    resultado = avaliar([_duster(modelo="duster oroch")], [alvo(**DUSTER, excluir=("Oroch",)), oroch_ok])
+    assert [c.alvo.id for c in resultado.candidatos] == ["renault-oroch"]

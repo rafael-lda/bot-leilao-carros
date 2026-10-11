@@ -172,3 +172,15 @@ def test_requisicao_do_detalhe():
 def test_sem_evento_nao_ha_detalhe():
     candidato = lote(id_canonico="claudio-kuss-leiloes:282622", leiloeiro_id="claudio-kuss-leiloes")
     assert AdaptadorClaudioKuss().requisicao_detalhe(candidato) is None
+
+
+# --- Feature 003: pátio do evento (D-70) -----------------------------------------------------------
+
+def test_agenda_traz_o_local_do_evento():
+    assert [e.local for e in ler_agenda(agenda_kuss())] == ["Curitiba - PR", "Curitiba - PR"]
+
+
+def test_anotacoes_das_paginas_levam_o_patio():
+    site = SiteKuss(eventos={"897": [_lotes(1)], "898": []})
+    _, quantidade, pagina, _ = _percorrer(AdaptadorClaudioKuss(), site)
+    assert quantidade.anotacoes["patio"] == pagina.anotacoes["patio"] == "Curitiba - PR"

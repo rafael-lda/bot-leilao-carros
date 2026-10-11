@@ -127,6 +127,7 @@ class CenarioE2E:
 
     `vip`: bytes da página de busca, uma exceção httpx (classe) ou um status HTTP.
     `kuss`: `SiteKuss` que responde pelo host do Claudio Kuss (feature 002), ou None.
+    `copart`: `SiteCopart` que responde pelo host da Copart (feature 003), ou None.
     `telegram`: status HTTP das respostas do Telegram (200 = ok), ou uma exceção httpx (classe).
     """
 
@@ -140,6 +141,7 @@ class CenarioE2E:
         escrever(raiz / "config" / "leiloeiros.yaml", leiloeiros)
         self.vip = pagina_vazia()
         self.kuss: "SiteKuss | None" = None
+        self.copart: "SiteCopart | None" = None
         self.telegram = 200
         self.mensagens: list[str] = []
         self.chamadas: list[_httpx.Request] = []
@@ -169,6 +171,9 @@ class CenarioE2E:
         if request.url.host == HOST_KUSS:
             assert self.kuss is not None, "o cenário não simula o Claudio Kuss"
             return self.kuss.responder(request)
+        if request.url.host == HOST_COPART:
+            assert self.copart is not None, "o cenário não simula a Copart"
+            return self.copart.responder(request)
         if not isinstance(self.vip, bytes):
             return self._falhar(self.vip, request)
         if request.url.path == "/":
@@ -324,3 +329,103 @@ class SiteKuss:
     def chamadas_op(self, op: str) -> list[dict]:
         return [form for caminho, form in self.chamadas if form.get("op") == op]
 
+
+
+# ---------------------------------------------------------------------------
+# Copart (feature 003): busca pública em JSON simulada a partir das fixtures reais de 2026-10-11.
+# ---------------------------------------------------------------------------
+
+import copy as _copy
+
+FIXTURES_COPART = FIXTURES / "copart"
+HOST_COPART = "www.copart.com.br"
+
+LEILOEIRO_COPART = """\
+leiloeiros:
+  - nome: Copart
+    base_url: https://www.copart.com.br
+    estrategia_acesso: publico
+    nivel_coleta: script
+    buscas:
+      - descricao: Financiamento
+        filtros:
+          condicao: FINANCIAMENTO
+"""
+
+LEILOEIROS_VIP_E_COPART = LEILOEIRO_VIP + LEILOEIRO_COPART.removeprefix("leiloeiros:\n")
+
+# Página de desafio do Imperva (formato das respostas do Incapsula): o bot nunca a resolve.
+DESAFIO_IMPERVA = (b'<html><head><META NAME="robots" CONTENT="noindex,nofollow">'
+                   b'<script src="/_Incapsula_Resource?SWJIYLWA=5074a744e2e3d891814e9a2dace20bd4"></script>'
+                   b'</head><body>Request unsuccessful. Incapsula incident ID: 0-0</body></html>')
+
+
+def json_copart(nome: str) -> dict:
+    return _json.loads((FIXTURES_COPART / nome).read_text(encoding="utf-8"))
+
+
+def lotes_copart_reais() -> list[dict]:
+    """Lotes reais escolhidos (lotes_selecionados.json): Duster Oroch 1141180 com FIPE, lance e data; Versa 1176233
+    aguardando classificação; Creta 1171215; Versa 1173591; um Compre Agora; um "LOCAL DO VENDEDOR"."""
+    return json_copart("lotes_selecionados.json")["data"]["results"]["content"]
+
+
+def lote_copart(ln: int = 1141180, **campos) -> dict:
+    """Um lote real da Copart (padrão: Duster Oroch 1141180), com sobrescritas."""
+    base = next(l for l in lotes_copart_reais() if l["ln"] == ln)
+    lote = _copy.deepcopy(base)
+    lote.update(campos)
+    if "ln" in campos:
+        lote["lotNumberStr"] = str(campos["ln"])
+    return lote
+
+
+class SiteCopart:
+    """Copart simulada: página da busca (GET) e busca JSON paginada (POST, formulário).
+
+    `lotes`: lotes devolvidos, em ordem; `total`: sobrescreve `totalElements`; `paginas`: lista explícita de
+    páginas (cada uma, lista de lotes), para simular repetição entre páginas; `desafio`: status (200 ou 403) da
+    página de desafio do Imperva; `corpo`: bytes devolvidos no lugar do JSON; `falha`: status HTTP ou classe de
+    exceção httpx para o site inteiro.
+    """
+
+    def __init__(self, lotes: list | None = None, total: int | None = None, paginas: list | None = None,
+                 desafio: int | None = None, corpo: bytes | None = None, falha=None) -> None:
+        self.lotes = lotes if lotes is not None else lotes_copart_reais()
+        self.total = total
+        self.paginas = paginas
+        self.desafio = desafio
+        self.corpo = corpo
+        self.falha = falha
+        self.chamadas: list[tuple[str, str, dict]] = []
+
+    def responder(self, request: _httpx.Request) -> _httpx.Response:
+        form = {k: v[0] for k, v in _parse_qs(request.content.decode("utf-8"), keep_blank_values=True).items()}
+        self.chamadas.append((request.method, request.url.path, form))
+        if self.falha is not None:
+            if isinstance(self.falha, int):
+                return _httpx.Response(self.falha, text="erro")
+            raise self.falha(f"falha simulada em {request.url}", request=request)
+        if self.desafio is not None:
+            return _httpx.Response(self.desafio, content=DESAFIO_IMPERVA, headers={"Content-Type": "text/html"})
+        if request.method == "GET" and request.url.path == "/vehicleFinderSearch":
+            return _httpx.Response(200, text="<html><body>busca</body></html>", headers={"Content-Type": "text/html"})
+        if request.method == "POST" and request.url.path == "/public/vehicleFinder/search":
+            if self.corpo is not None:
+                return _httpx.Response(200, content=self.corpo, headers={"Content-Type": "application/json"})
+            pagina, tamanho = int(form.get("page", "0")), int(form.get("size", "10"))
+            if self.paginas is not None:
+                conteudo = self.paginas[pagina] if pagina < len(self.paginas) else []
+                total = self.total if self.total is not None else sum(len(p) for p in self.paginas)
+            else:
+                conteudo = self.lotes[pagina * tamanho:(pagina + 1) * tamanho]
+                total = self.total if self.total is not None else len(self.lotes)
+            corpo = {"returnCode": 1, "returnCodeDesc": "Success", "data": {
+                "query": {"query": ["*"], "page": pagina, "size": tamanho, "start": pagina * tamanho},
+                "results": {"totalElements": total, "content": conteudo, "facetFields": []}}}
+            return _httpx.Response(200, content=bytes_json(corpo),
+                                   headers={"Content-Type": "application/json;charset=UTF-8"})
+        return _httpx.Response(404, text="não encontrado")
+
+    def buscas(self) -> list[dict]:
+        return [form for metodo, caminho, form in self.chamadas if caminho == "/public/vehicleFinder/search"]

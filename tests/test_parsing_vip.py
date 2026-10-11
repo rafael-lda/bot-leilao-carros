@@ -166,3 +166,9 @@ def test_zero_resultados_no_processamento_nao_alerta(ler_fixture):
     resultado = processar(resposta, CTX)
     assert resultado.quebra_suspeita is False
     assert resultado.lotes == []
+
+
+def test_patio_vem_do_local_do_card(parser, ler_fixture):
+    """Feature 003, D-69: o "Local:" do card vira o pátio do lote."""
+    (lote,) = parser.extrair(ler_fixture("vip/busca_um_resultado.html"), CTX).lotes
+    assert lote.patio == "SC"
