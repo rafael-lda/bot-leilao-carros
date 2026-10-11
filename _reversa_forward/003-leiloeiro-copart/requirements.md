@@ -51,8 +51,8 @@ Projeto greenfield com as features 001 e 002 entregues. As fontes abaixo cumprem
 5. **RN-05:** O pátio é **mostrado**, não filtrado: nenhum lote é descartado por distância nesta feature. O filtro ou o custo de frete fica para a skill `analisar-lotes` ou feature futura (backlog itens 8 e ★). 🟢
    - Origem: decisão do Rafael, 2026-10-11
    - Tipo: nova
-6. **RN-06:** Lote da Copart ainda "Aguardando Classificação" (sem data de leilão, sem FIPE e sem lance; 656 de 692 carros de financiamento em 2026-10-11) [DÚVIDA: é avisado já, como "preço a confirmar" e "data a definir", ou só quando a Copart o classificar e marcar data?]. 🔴
-   - Origem: CSV exportado em 2026-10-11
+6. **RN-06:** Lote da Copart ainda "Aguardando Classificação" (sem data de leilão, sem FIPE e sem lance; 656 de 692 carros de financiamento em 2026-10-11) é **avisado já**, como "preço a confirmar" e com a data do leilão "a definir", pela regra existente de que preço ausente não elimina. O aviso é único: quando a Copart classificar o lote e marcar a data, não há novo aviso; o acompanhamento é feito pela lista de monitoramento. Mesma decisão da RN-07 da feature 002 (Kuss). 🟢
+   - Origem: decisão do Rafael na sessão de esclarecimento de 2026-10-11
    - Tipo: nova
 7. **RN-07:** Acesso pelo degrau mais simples da escada do backlog (item 9): requisição comum, sem login, sem Apify. Se a Copart bloquear, o bot registra bloqueio e alerta (comportamento existente desde a 001); o degrau Apify com troca automática fica para a feature do Milan, que precisa dele de qualquer forma. 🟢
    - Origem: decisão do Rafael, 2026-10-11
@@ -132,6 +132,11 @@ Cenário: Formato alterado vira alerta
 
 ## 9. Esclarecimentos
 
+### Sessão 2026-10-11
+
+- **Q:** A maioria dos carros de financiamento da Copart (656 de 692) está "Aguardando Classificação", sem data, FIPE nem lance. Avisar já, ou só quando a Copart marcar a data?
+  **R:** Avisar já (recomendação aceita). O aviso antecipado dá tempo de pesquisar o carro; o lance, a data e a classificação passam a ser acompanhados pela lista de monitoramento. Registrado em RN-06.
+
 ## 10. Lacunas
 
 - 🟡 **Verificação técnica para o plano:** campo exato do valor FIPE e da data do leilão no JSON (vazios nos lotes "Aguardando Classificação"); significado de `hb` (lance atual) versus lance inicial; lotes "Compre Agora" (84 no site) e se entram; leitura das 16 páginas no ritmo do bot sem desafio do Imperva (teste realista pedido pelo Rafael); grafias de marca da Copart frente à tabela de sinônimos.
@@ -141,3 +146,4 @@ Cenário: Formato alterado vira alerta
 | Data | Alteração | Autor |
 |------|-----------|-------|
 | 2026-10-11 | Versão inicial gerada por `/reversa-requirements` a partir da triagem da Copart (CSV exportado, prints e 9 requisições à busca JSON) | reversa |
+| 2026-10-11 | Sessão de esclarecimento: RN-06 (avisar lote aguardando classificação) resolvida | `/reversa-clarify` |

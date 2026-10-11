@@ -4,7 +4,10 @@
   "feature-id": "003",
   "short-name": "leiloeiro-copart",
   "started-at": "2026-10-11T14:42:49-03:00",
-  "current-stage": "requirements",
-  "stages-completed": [],
+  "current-stage": "clarify",
+  "stages-completed": [
+    "requirements",
+    "clarify"
+  ],
   "paused-features": []
 }
