@@ -30,6 +30,7 @@ FILTROS_ACEITOS = ("categoria",)
 
 _ID_EVENTO = re.compile(r"relacao-foto/(\d+)")
 _DATA_HORA = re.compile(r"(\d{2})/(\d{2})/(\d{4})\D+(\d{1,2}):(\d{2})")
+_CIDADE_UF = re.compile(r"([^,\-]+?)\s*/\s*([A-Z]{2})\s*$")
 
 
 @dataclass(frozen=True)
@@ -37,6 +38,17 @@ class Evento:
     id: str
     rotulo: str
     pregao_em: datetime | None
+    local: str | None = None   # pátio do evento, "Cidade - UF" (feature 003, D-70)
+
+
+def _local(bloco) -> str | None:
+    """Linha "Local: Rua ..., 2095 - CIC - Curitiba/PR" do bloco → "Curitiba - PR"."""
+    for paragrafo in bloco.select(".panel-body p"):
+        texto = " ".join(paragrafo.get_text(" ", strip=True).split())
+        if texto.startswith("Local:"):
+            achado = _CIDADE_UF.search(texto)
+            return f"{achado.group(1).strip()} - {achado.group(2)}" if achado else texto.removeprefix("Local:").strip()
+    return None
 
 
 def ler_agenda(conteudo: bytes) -> list[Evento]:
@@ -58,7 +70,7 @@ def ler_agenda(conteudo: bytes) -> list[Evento]:
             dia, mes, ano, hora, minuto = map(int, achado_data.groups())
             pregao = datetime(ano, mes, dia, hora, minuto, tzinfo=FUSO)
         eventos.append(Evento(id=achado_id.group(1), rotulo=" ".join(cabecalho.get_text(" ", strip=True).split()),
-                              pregao_em=pregao))
+                              pregao_em=pregao, local=_local(bloco)))
     return eventos
 
 
@@ -113,7 +125,7 @@ class AdaptadorClaudioKuss:
             return Requisicao("GET", f"{BASE}/proximos-leiloes",
                               anotacoes={"tipo": "agenda", "categoria": filtros["categoria"]})
         evento = self._eventos[self._indice]
-        anotacoes = {"evento": evento.id, "pregao_em": evento.pregao_em}
+        anotacoes = {"evento": evento.id, "pregao_em": evento.pregao_em, "patio": evento.local}
         cabecalhos = _cabecalhos(f"{BASE}/relacao-foto/{evento.id}")
         if self._pagina == 0:
             return Requisicao("POST", f"{BASE}/json_edital.php", dados={"op": "Q", "leilaoID": evento.id, "pesq": ""},

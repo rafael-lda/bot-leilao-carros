@@ -52,15 +52,15 @@ Política de escrita: `allowLegacyEdits: true`, `allowedPaths` vazio (liberaçã
 
 | ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
 |----|-----------|--------------|-------------|--------------|-------------|--------|
-| T015 | Marcas do Imperva como desafio anti-robô, inclusive com status 200 quando o corpo é HTML (D-60) | T004 | `[//]` | `src/…/coleta/http.py` | 🟡 | `[ ]` |
-| T016 | `VeiculoAlvo.excluir` com validação, e o campo documentado no exemplo de `veiculos-alvo.yaml` criado na primeira execução (D-72, D-73) | T005 | `[//]` | `src/…/config/veiculos.py` | 🟢 | `[ ]` |
-| T017 | Exclusão no casamento do motor, pelo modelo e pelo título normalizados (D-72) | T006, T016 | - | `src/…/filtro/motor.py` | 🟢 | `[ ]` |
-| T018 | `Lote.patio` e `Lote.fipe` (D-68) | - | `[//]` | `src/…/parsing/modelos.py` | 🟢 | `[ ]` |
-| T019 | Parser Vip preenche `patio` com o "Local:" do card (D-69) | T009, T018 | `[//]` | `src/…/parsing/vip.py` | 🟢 | `[ ]` |
-| T020 | `Evento.local` lido da agenda; anotação `patio` nas páginas `quantidade` e `lotes` (D-70) | T010 | `[//]` | `src/…/coleta/claudio_kuss.py` | 🟢 | `[ ]` |
-| T021 | Parser Kuss preenche `patio` pela anotação (D-70) | T011, T018, T020 | - | `src/…/parsing/claudio_kuss.py` | 🟢 | `[ ]` |
-| T022 | `coleta/copart.py`: `AdaptadorCopart` (filtros, sessão, requisição, paginação com conferência de total e de repetição, tipo, teto) e registro (D-53 a D-59) | T007 | `[//]` | `src/…/coleta/copart.py` | 🟢 | `[ ]` |
-| T023 | `parsing/copart.py`: `ParserCopart` (lote normalizado, pátio, FIPE, data UTC → Brasília, observações, Compre Agora, vazia e quebra) e registro (D-61 a D-67) | T008, T018 | `[//]` | `src/…/parsing/copart.py` | 🟢 | `[ ]` |
+| T015 | Marcas do Imperva como desafio anti-robô, inclusive com status 200 quando o corpo é HTML (D-60) | T004 | `[//]` | `src/…/coleta/http.py` | 🟡 | `[X]` |
+| T016 | `VeiculoAlvo.excluir` com validação, e o campo documentado no exemplo de `veiculos-alvo.yaml` criado na primeira execução (D-72, D-73) | T005 | `[//]` | `src/…/config/veiculos.py` | 🟢 | `[X]` |
+| T017 | Exclusão no casamento do motor, pelo modelo e pelo título normalizados (D-72) | T006, T016 | - | `src/…/filtro/motor.py` | 🟢 | `[X]` |
+| T018 | `Lote.patio` e `Lote.fipe` (D-68) | - | `[//]` | `src/…/parsing/modelos.py` | 🟢 | `[X]` |
+| T019 | Parser Vip preenche `patio` com o "Local:" do card (D-69) | T009, T018 | `[//]` | `src/…/parsing/vip.py` | 🟢 | `[X]` |
+| T020 | `Evento.local` lido da agenda; anotação `patio` nas páginas `quantidade` e `lotes` (D-70) | T010 | `[//]` | `src/…/coleta/claudio_kuss.py` | 🟢 | `[X]` |
+| T021 | Parser Kuss preenche `patio` pela anotação (D-70) | T011, T018, T020 | - | `src/…/parsing/claudio_kuss.py` | 🟢 | `[X]` |
+| T022 | `coleta/copart.py`: `AdaptadorCopart` (filtros, sessão, requisição, paginação com conferência de total e de repetição, tipo, teto) e registro (D-53 a D-59) | T007 | `[//]` | `src/…/coleta/copart.py` | 🟢 | `[X]` |
+| T023 | `parsing/copart.py`: `ParserCopart` (lote normalizado, pátio, FIPE, data UTC → Brasília, observações, Compre Agora, vazia e quebra) e registro (D-61 a D-67) | T008, T018 | `[//]` | `src/…/parsing/copart.py` | 🟢 | `[X]` |
 
 ## Fase 4, Integração
 
@@ -85,6 +85,9 @@ Política de escrita: `allowLegacyEdits: true`, `allowedPaths` vazio (liberaçã
 
 - **T014 (2026-10-11), lacuna achada ao escrever o teste:** o RF-07 promete alerta quando a Copart bloquear, mas o orquestrador só alertava quebra de parser e falha geral (todos os leiloeiros). Bloqueio de **um** leiloeiro virava só "sucesso parcial" no banco, sem aviso no Telegram, contra o princípio de não falhar em silêncio. Resolução: T026 passa a incluir um alerta de bloqueio por leiloeiro ("acesso bloqueado pelo site"), com o mesmo limite de 1 por dia por leiloeiro. A falha geral continua tendo prioridade (alerta único). Testes: `test_e2e_copart.py::test_copart_bloqueando_nao_impede_o_vip_e_gera_alerta`, `::test_alerta_de_bloqueio_no_maximo_um_por_dia`.
 - **Etapa 1 concluída (2026-10-11):** 489 testes passando (488 anteriores + 1 novo que já vale); 38 falhando e 2 módulos de teste sem coletar, todos à espera das etapas 2 e 3.
+- **T020 (2026-10-11):** `Evento` ganhou `local`; o teste `test_ler_agenda_real` da 002 (que compara o evento inteiro) e o de anotações passaram a incluir o pátio "Curitiba - PR". Nenhuma outra mudança em teste anterior.
+- **T023 (2026-10-11):** a fábrica `lote_copart` do apoio escolhia a base pelo número do lote e quebrava com número inventado; agora número real = base real, outro número = Duster Oroch com o número trocado. Correção só no apoio de testes.
+- **Etapa 2 concluída (2026-10-11):** 546 testes passando; 13 falhando, todos das tarefas da etapa 3 (digest, relatório, orquestrador e alerta de bloqueio).
 
 ## Histórico de alterações
 

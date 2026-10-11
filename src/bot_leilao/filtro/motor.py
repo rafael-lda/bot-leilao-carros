@@ -47,6 +47,10 @@ def _casa_sem_km(lote: Lote, alvo: VeiculoAlvo) -> bool:
         return False
     if normalizar_texto(alvo.modelo) not in normalizar_texto(lote.modelo):
         return False
+    if alvo.excluir:  # RF-10 da feature 003 (D-72): pelo modelo e pelo título
+        texto = f"{normalizar_texto(lote.modelo)} {normalizar_texto(lote.titulo)}"
+        if any(normalizar_texto(palavra) in texto for palavra in alvo.excluir):
+            return False
     if lote.ano_modelo is None or not alvo.ano_min <= lote.ano_modelo <= alvo.ano_max:
         return False
     preco = lote.lance_corrente if lote.lance_corrente is not None else lote.lance_inicial

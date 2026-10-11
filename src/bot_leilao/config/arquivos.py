@@ -77,6 +77,8 @@ EXEMPLO_VEICULOS = """\
 # ano_min e ano_max referem-se ao ANO DE MODELO (o segundo número em 2018/2019).
 # preco_maximo é comparado contra o LANCE CORRENTE do lote.
 # quilometragem_maxima é opcional: sem ela, qualquer quilometragem serve.
+# excluir é opcional: palavras que, no modelo ou no título do lote, descartam o lote para aquele alvo
+# (ex.: excluir: [Oroch] num alvo Duster tira a picape Duster Oroch). Use palavras específicas.
 # Escreva a marca por extenso (Mitsubishi, Chevrolet): o sistema traduz as abreviações do site.
 # tipos_leilao aceita: judicial, extrajudicial, financiamento, seguradora, recuperado.
 # A busca do Vip traz só recuperados de financiamento: mantenha "financiamento" na lista.

@@ -89,6 +89,7 @@ class ParserClaudioKuss:
             retirado=bem.upper() == "RETIRADO",
             evento_id=evento,
             pregao_em=contexto.pagina.get("pregao_em"),
+            patio=contexto.pagina.get("patio"),
         )
 
     def aplicar_detalhe(self, lote: Lote, conteudo: bytes) -> None:

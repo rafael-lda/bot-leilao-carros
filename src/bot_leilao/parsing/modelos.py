@@ -36,6 +36,9 @@ class Lote:
     placa_parcial: str | None = None
     local_documento: str | None = None
     detalhe_lido: bool | None = None   # None: não se aplica; False: o detalhe falhou; True: lido
+    # Feature 003 (data-delta §1.1): onde o veículo está e o valor FIPE informado pelo leiloeiro.
+    patio: str | None = None
+    fipe: Decimal | None = None
 
 
 @dataclass

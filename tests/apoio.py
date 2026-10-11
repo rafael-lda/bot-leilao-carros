@@ -371,12 +371,11 @@ def lotes_copart_reais() -> list[dict]:
 
 
 def lote_copart(ln: int = 1141180, **campos) -> dict:
-    """Um lote real da Copart (padrão: Duster Oroch 1141180), com sobrescritas."""
-    base = next(l for l in lotes_copart_reais() if l["ln"] == ln)
-    lote = _copy.deepcopy(base)
-    lote.update(campos)
-    if "ln" in campos:
-        lote["lotNumberStr"] = str(campos["ln"])
+    """Um lote real da Copart, com sobrescritas. `ln` de um lote real o usa como base; outro número usa o Duster
+    Oroch 1141180 como base, trocando o número."""
+    reais = {l["ln"]: l for l in lotes_copart_reais()}
+    lote = _copy.deepcopy(reais.get(ln, reais[1141180]))
+    lote.update(campos, ln=ln, lotNumberStr=str(ln))
     return lote
 
 

@@ -25,6 +25,8 @@ CABECALHOS_NAVEGADOR = {
 }
 
 _MARCAS_DESAFIO = (b"cf-chl", b"Just a moment", b"challenge-platform")
+# Imperva/Incapsula (Copart, feature 003, D-60): o desafio pode vir com status 200, em HTML.
+_MARCAS_IMPERVA = (b"_Incapsula_Resource", b"Incapsula incident", b"Request unsuccessful")
 _MEBIBYTE = 1024 * 1024
 
 
@@ -108,6 +110,8 @@ class ClienteHTTP:
             return Veredito.FALHA_REDE, None, None, req.url, f"conexao: {host} ({type(erro).__name__})", True, None
 
         if status in (403, 503) and any(m in corpo for m in _MARCAS_DESAFIO):
+            return Veredito.BLOQUEADO, status, None, url_final, "desafio_antibot", True, None
+        if "html" in cabecalhos.get("content-type", "").lower() and any(m in corpo for m in _MARCAS_IMPERVA):
             return Veredito.BLOQUEADO, status, None, url_final, "desafio_antibot", True, None
         if status in (403, 429):
             retry_after = None

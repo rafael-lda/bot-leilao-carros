@@ -26,6 +26,7 @@ class VeiculoAlvo:
     tipos_leilao: tuple[str, ...]
     quilometragem_maxima: int | None
     ativo: bool
+    excluir: tuple[str, ...] = ()   # palavras que, no modelo ou no título do lote, impedem o casamento (D-72)
 
     @property
     def nome(self) -> str:
@@ -86,6 +87,16 @@ def _km(bloco: dict, nome: str) -> int | None:
     return km
 
 
+def _excluir(bloco: dict, nome: str) -> tuple[str, ...]:
+    valor = bloco.get("excluir")
+    if valor is None:
+        return ()
+    palavras = [valor] if isinstance(valor, str) else valor
+    if not isinstance(palavras, list) or not all(isinstance(p, str) and p.strip() for p in palavras):
+        raise _erro(nome, f"excluir ({valor!r}) deve ser uma palavra ou uma lista de palavras não vazias, ex.: [Oroch]")
+    return tuple(p.strip() for p in palavras)
+
+
 def _tipos(bloco: dict, nome: str) -> tuple[str, ...]:
     valor = bloco.get("tipos_leilao")
     aceitos = ", ".join(TIPOS_LEILAO)
@@ -123,6 +134,7 @@ def _alvo(bloco: Any, posicao: int) -> VeiculoAlvo:
         tipos_leilao=_tipos(bloco, nome),
         quilometragem_maxima=_km(bloco, nome),
         ativo=ativo,
+        excluir=_excluir(bloco, nome),
     )
 
 

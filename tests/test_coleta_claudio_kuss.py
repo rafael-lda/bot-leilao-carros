@@ -50,8 +50,10 @@ def _roteiro(requisicoes):
 
 def test_ler_agenda_real():
     assert ler_agenda(agenda_kuss()) == [
-        Evento(id="897", rotulo="Leilão Presencial / Online - Veículos - Financeiras", pregao_em=PREGAO_897),
-        Evento(id="898", rotulo="Leilão Presencial / Online - Veículos - Financeiras", pregao_em=PREGAO_898),
+        Evento(id="897", rotulo="Leilão Presencial / Online - Veículos - Financeiras", pregao_em=PREGAO_897,
+               local="Curitiba - PR"),
+        Evento(id="898", rotulo="Leilão Presencial / Online - Veículos - Financeiras", pregao_em=PREGAO_898,
+               local="Curitiba - PR"),
     ]
 
 
@@ -108,8 +110,9 @@ def test_corpo_cabecalhos_e_anotacoes_das_requisicoes_json():
     assert quantidade.dados == {"op": "Q", "leilaoID": "897", "pesq": ""}
     assert pagina.dados == {"leilaoID": "897", "op": "P", "pag": "1", "loteado": "", "pesq": ""}
     assert pagina.cabecalhos == {"X-Requested-With": "XMLHttpRequest", "Referer": f"{BASE}/relacao-foto/897"}
-    assert quantidade.anotacoes == {"tipo": "quantidade", "evento": "897", "pregao_em": PREGAO_897}
-    assert pagina.anotacoes == {"tipo": "lotes", "evento": "897", "pregao_em": PREGAO_897}
+    assert quantidade.anotacoes == {"tipo": "quantidade", "evento": "897", "pregao_em": PREGAO_897,
+                                    "patio": "Curitiba - PR"}
+    assert pagina.anotacoes == {"tipo": "lotes", "evento": "897", "pregao_em": PREGAO_897, "patio": "Curitiba - PR"}
 
 
 def test_evento_sem_lotes_nao_pede_paginas():

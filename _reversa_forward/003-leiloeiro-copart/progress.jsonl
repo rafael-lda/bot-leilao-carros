@@ -12,3 +12,12 @@
 {"ts": "2026-10-11T17:10:31-03:00", "action": "T012", "status": "done", "files": ["tests/test_digest.py"]}
 {"ts": "2026-10-11T17:10:31-03:00", "action": "T013", "status": "done", "files": ["tests/test_relatorio.py"]}
 {"ts": "2026-10-11T17:10:31-03:00", "action": "T014", "status": "done", "files": ["tests/test_e2e_copart.py"]}
+{"ts": "2026-10-11T17:16:16-03:00", "action": "T015", "status": "done", "files": ["src/bot_leilao/coleta/http.py"]}
+{"ts": "2026-10-11T17:16:16-03:00", "action": "T016", "status": "done", "files": ["src/bot_leilao/config/veiculos.py", "src/bot_leilao/config/arquivos.py"]}
+{"ts": "2026-10-11T17:16:16-03:00", "action": "T017", "status": "done", "files": ["src/bot_leilao/filtro/motor.py"]}
+{"ts": "2026-10-11T17:16:16-03:00", "action": "T018", "status": "done", "files": ["src/bot_leilao/parsing/modelos.py"]}
+{"ts": "2026-10-11T17:16:16-03:00", "action": "T019", "status": "done", "files": ["src/bot_leilao/parsing/vip.py"]}
+{"ts": "2026-10-11T17:16:16-03:00", "action": "T020", "status": "done", "files": ["src/bot_leilao/coleta/claudio_kuss.py", "tests/test_coleta_claudio_kuss.py"]}
+{"ts": "2026-10-11T17:16:16-03:00", "action": "T021", "status": "done", "files": ["src/bot_leilao/parsing/claudio_kuss.py"]}
+{"ts": "2026-10-11T17:17:48-03:00", "action": "T022", "status": "done", "files": ["src/bot_leilao/coleta/copart.py"]}
+{"ts": "2026-10-11T17:17:48-03:00", "action": "T023", "status": "done", "files": ["src/bot_leilao/parsing/copart.py", "tests/apoio.py"]}

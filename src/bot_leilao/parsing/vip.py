@@ -119,6 +119,7 @@ class ParserVip:
             quilometragem=km,
             descricao=descricao or None,
             tipo_leilao=contexto.tipo_leilao,
+            patio=_local(card),
             situacao=situacao,
             retirado=retirado,
         )
