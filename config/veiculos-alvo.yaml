@@ -1,4 +1,5 @@
 # Veículos que quero encontrar.
+# O porquê de cada alvo e o que olhar antes de dar lance: `veiculos-alvo-notas.md` (nada lê esse .md).
 # Desative um alvo com `ativo: false` em vez de apagar o bloco.
 # ano_min e ano_max referem-se ao ANO DE MODELO (o segundo número em 2018/2019).
 # preco_maximo é comparado contra o LANCE CORRENTE do lote.
@@ -34,8 +35,9 @@ veiculos:
   - marca: Renault
     modelo: Duster
     # 2018+: primeiro ano do 1.6 SCe CVT (em 2017 os Duster automáticos eram 2.0, sem CVT).
-    # Manuais e 1.3 turbo também aparecem (o bot não filtra motor nem câmbio), e "Duster" casa
-    # também com a picape "DUSTER OROCH": descarte à mão.
+    # Manuais e 1.3 turbo também aparecem (o bot não filtra motor nem câmbio): descarte à mão.
+    # A picape "DUSTER OROCH" fica de fora pelo excluir abaixo.
+    excluir: [Oroch]
     ano_min: 2018
     ano_max: 2022
     preco_maximo: 59500   # 70% da FIPE out/2026 do DUSTER Intense 1.6 Aut. 2022 (R$ 85.014, cód. 025301-4)
@@ -54,13 +56,24 @@ veiculos:
       - financiamento
     ativo: true
 
-  # >>> TEMPORÁRIO (2026-10-06): só para testar o resumo no Telegram. REMOVER DEPOIS DO TESTE. <<<
+  # Alvos de conforto (2026-10-09), pela hérnia de disco: banco alto e suspensão macia.
   - marca: Nissan
-    modelo: Versa
-    ano_min: 2023
-    ano_max: 2024
-    preco_maximo: 69300   # 70% da FIPE out/2026 do VERSA Exclusive 1.6 Aut. 2024 (R$ 99.011, cód. 023174-6)
+    modelo: Kicks
+    # Só 1.6 CVT. Prefira o S (roda 16): mais macio que o SL (roda 17).
+    ano_min: 2018
+    ano_max: 2019
+    preco_maximo: 56900   # 70% da FIPE out/2026 do KICKS SL 1.6 CVT 2019 (R$ 81.336, cód. 023149-5)
     tipos_leilao:
       - financiamento
     ativo: true
-  # >>> FIM DO BLOCO TEMPORÁRIO <<<
+
+  - marca: Hyundai
+    modelo: Creta
+    # Prefira Attitude ou Pulse 1.6 (roda 16), mais macias que a Prestige 2.0 (roda 17).
+    # Teto pela Attitude: pela Prestige 2.0 daria R$ 61.600, frouxo demais.
+    ano_min: 2017
+    ano_max: 2018
+    preco_maximo: 55000   # 70% da FIPE out/2026 da CRETA Attitude 1.6 Aut. 2018 (R$ 78.651, cód. 015157-2)
+    tipos_leilao:
+      - financiamento
+    ativo: true
