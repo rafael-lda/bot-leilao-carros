@@ -227,7 +227,7 @@ def test_lote_semeado_entra_na_lista_marcado_como_semeadura(cenario):
     assert cenario.mensagens == []
     texto = _monitorar(cenario)
     assert "<!-- lote: vip-leiloes:400001 -->" in texto
-    assert "por semeadura: já estava no site na estreia da busca, sem aviso no Telegram" in texto
+    assert "### 1. Nissan Versa 1.6 Sv — 2018" in texto
     relatorio = next((cenario.raiz / "1OUTPUT").glob("*_varredura.md")).read_text(encoding="utf-8")
     assert "## Já estavam no site (semeadura)" in relatorio
     assert "### 1. Nissan Versa 1.6 Sv — 2018" in relatorio

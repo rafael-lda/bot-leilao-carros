@@ -172,17 +172,15 @@ def _gravar_relatorio(raiz: Path, estado: "_Execucao", inicio_local: datetime, s
             em_semeadura=estado.em_semeadura, semeados_lotes=estado.semeados_lotes,
             leiloeiros=[(nome, estado.seguro(situacao)) for nome, situacao in estado.leiloeiros]))
         log.info("exec    | relatório gravado em %s", caminho)
-        nome_relatorio = caminho.name
     except Exception as erro:  # noqa: BLE001
         log.warning("exec    | não consegui gravar o relatório em %s: %s", raiz / PASTA_RELATORIOS, erro)
-        nome_relatorio = "relatório não gravado"
     # Avisados entram só com o Telegram confirmado; semeados entram sempre (E001 da feature 002).
     pendentes = (estado.novos if estado.telegram == "enviado" else []) + estado.semeados_lotes
     if not pendentes:
         return
     try:
         lista = raiz / PASTA_RELATORIOS / LISTA_MONITORAMENTO
-        entraram = acrescentar_monitoramento(lista, pendentes, inicio_local, nome_relatorio)
+        entraram = acrescentar_monitoramento(lista, pendentes)
         if entraram:
             log.info("exec    | %d lote(s) acrescentado(s) a %s", entraram, lista)
     except Exception as erro:  # noqa: BLE001

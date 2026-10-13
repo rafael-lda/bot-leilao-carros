@@ -135,3 +135,4 @@
 | Emenda | Testes |
 |--------|--------|
 | E001 da 003 — Copart sem a página HTML; situação dos leiloeiros no relatório | `test_coleta_copart.py::test_nao_abre_a_pagina_html_da_busca`, `test_e2e_copart.py::test_busca_nao_passa_pela_pagina_html`, `test_e2e_copart.py::test_copart_bloqueando_nao_impede_o_vip_e_gera_alerta`, `test_relatorio.py::test_relatorio_mostra_a_situacao_de_cada_leiloeiro`, `test_relatorio.py::test_sem_situacao_de_leiloeiros_nao_ha_secao` |
+| E002 da 003 — novo formato da lista, numerada, regras à parte | `test_relatorio.py::test_lista_criada_com_as_regras_num_arquivo_a_parte`, `test_relatorio.py::test_formato_do_lote_definido_pelo_rafael`, `test_relatorio.py::test_numeracao_continua_do_maior_numero_mesmo_com_lotes_apagados`, `test_relatorio.py::test_arquivo_de_comentarios_nao_e_sobrescrito`, `test_relatorio.py::test_lote_da_semeadura_entra_no_mesmo_formato` |

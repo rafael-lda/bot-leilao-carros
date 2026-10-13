@@ -119,7 +119,7 @@ def test_primeira_varredura_semeia_o_kuss_sem_aviso_e_mostra_nos_documentos(raiz
     assert "- **Observações:** SINISTRADO" in relatorio
     lista = (raiz / "1OUTPUT" / "lotes-a-monitorar.md").read_text(encoding="utf-8")
     assert "<!-- lote: claudio-kuss-leiloes:282622 -->" in lista
-    assert "por semeadura" in lista
+    assert "### 1. IMP RENAULT/FLUENCE DYN 20A — 2013" in lista
 
 
 def test_semeado_retirado_ou_sucata_e_registrado_mas_nao_aparece(raiz, relogio, agora):

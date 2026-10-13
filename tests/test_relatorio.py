@@ -111,49 +111,87 @@ def test_nunca_sobrescreve_relatorio_existente(tmp_path):
 from bot_leilao.notificacao.relatorio import acrescentar_monitoramento  # noqa: E402
 
 
-def test_lista_criada_com_regras_de_manutencao_no_topo(tmp_path):
+def test_lista_criada_com_as_regras_num_arquivo_a_parte(tmp_path):
+    """Emenda E002 da feature 003 (2026-10-13): as regras saíram do topo da lista."""
     caminho = tmp_path / "lotes-a-monitorar.md"
-    assert acrescentar_monitoramento(caminho, [lote_de(_candidato(), "Vip Leilões")], INICIO,
-                                     "2026-10-08_19h37_varredura.md") == 1
+    assert acrescentar_monitoramento(caminho, [lote_de(_candidato(), "Vip Leilões")]) == 1
     texto = caminho.read_text(encoding="utf-8")
-    assert texto.startswith("# Lotes a monitorar")
+    assert texto.startswith("# Lotes a monitorar\n\nRegras de manutenção e o que significa cada campo: "
+                            "`comentarios-lotes-a-monitorar.md`")
+    assert "Reaparições" not in texto
+    regras = (tmp_path / "comentarios-lotes-a-monitorar.md").read_text(encoding="utf-8")
     for regra in ("só ACRESCENTA", "apague o bloco inteiro", "martelo", "teto", "<!-- lote:", "Reaparições",
-                  "final de placa", "quilometragem"):
-        assert regra in texto
-    assert "### Nissan Versa Excl Cvt — 2024" in texto
-    assert "<!-- lote: vip-leiloes:1 -->" in texto
-    assert "- **Entrou na lista:** 08/10/2026 19:37 (varredura `2026-10-08_19h37_varredura.md`)" in texto
-    assert "- **Lance ao entrar:** R$ 61.000" in texto
-    assert "- **Alvo:** nissan-versa-2023-2024 (teto R$ 69.300)" in texto
-    assert "- **Análise FIPE:** _pendente_" in texto
+                  "final de placa", "quilometragem", "Valor estimado na garagem", "Frete"):
+        assert regra in regras
+
+
+def test_formato_do_lote_definido_pelo_rafael(tmp_path):
+    """Emenda E002 da feature 003: numerado, custos em cima, campos em branco para preencher."""
+    caminho = tmp_path / "lotes-a-monitorar.md"
+    acrescentar_monitoramento(caminho, [lote_de(_candidato(), "Vip Leilões")])
+    bloco = caminho.read_text(encoding="utf-8").split("---", 1)[1]
+    assert bloco.strip().split("\n") == [
+        "### 1. Nissan Versa Excl Cvt — 2024",
+        "",
+        "<!-- lote: vip-leiloes:1 -->",
+        "",
+        "- **FIPE:** _pendente_",
+        "- **Lance ao entrar:** R$ 61.000 (% da FIPE)",
+        "- **Lance atual:**",
+        "- **Despesas admin.:**",
+        "- **Frete:**",
+        "- **Manutenções:**",
+        "- **Valor estimado na garagem:** (% da FIPE)",
+        "- **Km:** 35.647 km",
+        f"- **Link:** {LINK}",
+        "- **Alvo:** nissan-versa-2023-2024 (teto R$ 69.300)",
+    ]
+
+
+def test_numeracao_continua_do_maior_numero_mesmo_com_lotes_apagados(tmp_path):
+    caminho = tmp_path / "lotes-a-monitorar.md"
+    caminho.write_text("# Lotes a monitorar\n\n---\n\n### 7. Carro X — 2019\n\n<!-- lote: x:7 -->\n",
+                       encoding="utf-8")
+    outros = [lote_de(_candidato(id_canonico=f"vip-leiloes:{n}"), "Vip Leilões") for n in (8, 9)]
+    acrescentar_monitoramento(caminho, outros)
+    texto = caminho.read_text(encoding="utf-8")
+    assert "### 8. Nissan Versa Excl Cvt — 2024" in texto and "### 9. Nissan Versa Excl Cvt — 2024" in texto
+
+
+def test_arquivo_de_comentarios_nao_e_sobrescrito(tmp_path):
+    comentarios = tmp_path / "comentarios-lotes-a-monitorar.md"
+    comentarios.write_text("ANOTADO PELO RAFAEL", encoding="utf-8")
+    acrescentar_monitoramento(tmp_path / "lotes-a-monitorar.md", [lote_de(_candidato(), "Vip Leilões")])
+    assert comentarios.read_text(encoding="utf-8") == "ANOTADO PELO RAFAEL"
 
 
 def test_acrescenta_no_fim_sem_tocar_no_que_ja_existe(tmp_path):
     """Anotações do Rafael e dos agentes nunca podem ser perdidas."""
     caminho = tmp_path / "lotes-a-monitorar.md"
-    acrescentar_monitoramento(caminho, [lote_de(_candidato(), "Vip Leilões")], INICIO, "a.md")
+    acrescentar_monitoramento(caminho, [lote_de(_candidato(), "Vip Leilões")])
     editado = caminho.read_text(encoding="utf-8").replace("_pendente_", "62% da FIPE — ANOTADO")
     caminho.write_text(editado, encoding="utf-8")
 
     outro = lote_de(_candidato(id_canonico="vip-leiloes:2", titulo="Nissan Sentra Sl"), "Vip Leilões")
-    assert acrescentar_monitoramento(caminho, [outro], INICIO, "b.md") == 1
+    assert acrescentar_monitoramento(caminho, [outro]) == 1
     texto = caminho.read_text(encoding="utf-8")
     assert texto.startswith(editado), "o conteúdo anterior fica intacto, byte a byte"
     assert texto.index("Nissan Sentra Sl") > texto.index("ANOTADO")
+    assert "### 2. Nissan Sentra Sl" in texto
 
 
 def test_nao_repete_lote_que_ja_esta_na_lista(tmp_path):
     caminho = tmp_path / "lotes-a-monitorar.md"
     novo = lote_de(_candidato(), "Vip Leilões")
-    acrescentar_monitoramento(caminho, [novo], INICIO, "a.md")
+    acrescentar_monitoramento(caminho, [novo])
     antes = caminho.read_text(encoding="utf-8")
-    assert acrescentar_monitoramento(caminho, [novo], INICIO, "b.md") == 0
+    assert acrescentar_monitoramento(caminho, [novo]) == 0
     assert caminho.read_text(encoding="utf-8") == antes
 
 
 def test_sem_lotes_novos_nao_cria_nem_altera(tmp_path):
     caminho = tmp_path / "lotes-a-monitorar.md"
-    assert acrescentar_monitoramento(caminho, [], INICIO, "a.md") == 0
+    assert acrescentar_monitoramento(caminho, []) == 0
     assert not caminho.exists()
 
 
@@ -194,11 +232,11 @@ def test_relatorio_do_kuss_tem_pregao_despesas_documento_e_observacoes():
 
 def test_lista_de_monitoramento_do_kuss_tem_as_mesmas_linhas(tmp_path):
     caminho = tmp_path / "lotes-a-monitorar.md"
-    acrescentar_monitoramento(caminho, [_kuss()], INICIO, "a.md")
+    acrescentar_monitoramento(caminho, [_kuss()])
     texto = caminho.read_text(encoding="utf-8")
     for linha in LINHAS_KUSS[1:]:
         assert linha in texto
-    assert "- **Preço ao entrar:** Preço a confirmar" in texto
+    assert "- **Lance ao entrar:** Preço a confirmar" in texto
 
 
 def test_detalhe_que_falhou_aparece_no_relatorio():
@@ -236,14 +274,16 @@ def test_sem_semeados_nao_ha_secao():
     assert "Já estavam no site" not in montar_relatorio(_dados())
 
 
-def test_lista_marca_o_lote_que_entrou_por_semeadura(tmp_path):
+def test_lote_da_semeadura_entra_no_mesmo_formato(tmp_path):
+    """E002 da 003: o Rafael tirou a linha "Entrou na lista"; semeado e avisado ficam iguais na lista."""
     caminho = tmp_path / "lotes-a-monitorar.md"
     semeado = _kuss()
     semeado.origem = "semeadura"
-    acrescentar_monitoramento(caminho, [semeado], INICIO, "a.md")
+    acrescentar_monitoramento(caminho, [semeado])
     texto = caminho.read_text(encoding="utf-8")
-    assert ("- **Entrou na lista:** 08/10/2026 19:37 por semeadura: já estava no site na estreia da busca, "
-            "sem aviso no Telegram (varredura `a.md`)") in texto
+    assert "<!-- lote: claudio-kuss-leiloes:282622 -->" in texto
+    assert "Entrou na lista" not in texto and "Leiloeiro:" not in texto and "Análise FIPE" not in texto
+    assert "- **Despesas admin.:** R$ 2.750" in texto
 
 
 # --- Feature 003: pátio e FIPE no relatório e na lista (D-71) -----------------------------------------
@@ -277,10 +317,11 @@ def test_sem_fipe_nao_ha_linha_de_fipe():
 
 def test_lista_traz_patio_e_fipe(tmp_path):
     caminho = tmp_path / "lotes-a-monitorar.md"
-    acrescentar_monitoramento(caminho, [_copart_rel()], INICIO, "a.md")
+    acrescentar_monitoramento(caminho, [_copart_rel()])
     texto = caminho.read_text(encoding="utf-8")
     assert "- **Pátio:** VITÓRIA DE SANTO ANTÃO - PE" in texto
-    assert "- **FIPE:** R$ 80.266 (lance = 45% da FIPE)" in texto
+    assert "- **FIPE:** R$ 80.266\n" in texto
+    assert "- **Lance ao entrar:** R$ 36.000 (45% da FIPE)" in texto
 
 
 # --- Emenda E001 da feature 003: situação de cada leiloeiro no relatório ----------------------------

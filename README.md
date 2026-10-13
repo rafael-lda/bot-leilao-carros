@@ -23,7 +23,7 @@ Cada execução fica registrada em `dados/bot-leilao.sqlite3`, e o log em `dados
 
 Cada varredura real também grava um relatório em Markdown em `1OUTPUT/` (por exemplo `2026-10-08_19h37_varredura.md`), com data, hora, veredito, duração e os lotes novos. Lotes já avisados não aparecem. Um relatório existente nunca é sobrescrito, então dá para anotar nele a análise de cada lote. A pasta fica fora do git.
 
-Na mesma pasta, `1OUTPUT/lotes-a-monitorar.md` acumula os lotes avisados (e os da semeadura), para acompanhar os que ainda estão em disputa. O bot só acrescenta lotes no fim desse arquivo; quem tira (martelo batido, lote retirado, lance acima do teto) é você, à mão, ou um agente a seu pedido. As regras estão no topo do próprio arquivo.
+Na mesma pasta, `1OUTPUT/lotes-a-monitorar.md` acumula, numerados, os lotes avisados (e os da semeadura), com campos de custo para preencher (lance atual, frete, manutenções, valor estimado na garagem); as regras e o significado de cada campo ficam em `1OUTPUT/comentarios-lotes-a-monitorar.md`, para acompanhar os que ainda estão em disputa. O bot só acrescenta lotes no fim desse arquivo; quem tira (martelo batido, lote retirado, lance acima do teto) é você, à mão, ou um agente a seu pedido. As regras estão no topo do próprio arquivo.
 
 ## Instalação
 

@@ -157,6 +157,12 @@ Cenário: Formato alterado vira alerta
 - O relatório de cada varredura ganha a seção **"Leiloeiros"**, com a situação de cada um: "ok: N lote(s) lido(s)", "bloqueado pelo site (...)", "falha de acesso (...)" ou "o leitor não entendeu a página (...)".
 - Os 3 lotes do Kuss na lista receberam à mão a linha "Pátio: Curitiba - PR".
 
+### E002 — Novo formato da lista de lotes a monitorar (2026-10-13)
+
+**Pedido do Rafael,** marcado no primeiro lote da própria lista: cada lote numerado; sem as linhas "Entrou na lista", "Leiloeiro" e "Análise FIPE"; logo no topo do bloco, FIPE (ou `_pendente_`), lance ao entrar com o % da FIPE, lance atual (em branco, para ele ou um agente atualizar), despesas administrativas, frete, manutenções e valor estimado na garagem com o % da FIPE (em branco no começo); depois pátio, km, pregão, documento, observações, link e alvo. O texto de regras do topo foi para `1OUTPUT/comentarios-lotes-a-monitorar.md`, com uma tabela explicando cada campo.
+
+**O que muda:** o bot passa a escrever os lotes novos nesse formato, numerados a partir do maior número já existente (lote apagado não renumera os outros), e cria o arquivo de comentários se ele não existir (nunca o sobrescreve). Os 12 lotes já presentes foram convertidos uma vez, preservando identificadores, links e anotações.
+
 ## 11. Histórico de alterações
 
 | Data | Alteração | Autor |
@@ -164,5 +170,6 @@ Cenário: Formato alterado vira alerta
 | 2026-10-11 | Versão inicial gerada por `/reversa-requirements` a partir da triagem da Copart (CSV exportado, prints e 9 requisições à busca JSON) | reversa |
 | 2026-10-11 | Sessão de esclarecimento: RN-06 (avisar lote aguardando classificação) resolvida | `/reversa-clarify` |
 | 2026-10-11 | RN-09 e RF-10 (palavras a excluir no veículo-alvo), pedido do Rafael durante o plano | Rafael + Claude |
+| 2026-10-13 | Emenda E002: novo formato da lista de lotes a monitorar, numerada, regras em arquivo à parte | Rafael + Claude |
 | 2026-10-13 | Emenda E001: Copart sem a página HTML; situação dos leiloeiros no relatório | Rafael + Claude |
 | 2026-10-11 | Correções do `/reversa-audit` (A001, A002, A005 a A007): RF-05 alinhado ao formato de Observações e Pregão; RN-06 com "a definir" nas observações; grafia do pátio do Kuss; ordem das regras e requisitos. Decisões do Rafael para A001 e A002 | Rafael + Claude |

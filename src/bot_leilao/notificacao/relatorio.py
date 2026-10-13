@@ -42,6 +42,8 @@ class LoteRelatorio:
     origem: str = "aviso"   # "aviso" (Telegram) ou "semeadura" (já estava no site na estreia; E001 da feature 002)
     patio: str | None = None   # feature 003 (D-71)
     fipe: str | None = None    # "R$ 80.266 (lance = 45% da FIPE)"
+    fipe_valor: str | None = None        # "R$ 80.266" (lista de monitoramento, E002 da feature 003)
+    percentual_fipe: str | None = None   # "45%": lance sobre a FIPE
 
 
 def _rotulo_preco(lote) -> str:
@@ -56,14 +58,18 @@ def _documento(lote) -> str | None:
     return ", ".join(p for p in partes if p) or None
 
 
-def _fipe(candidato: Candidato) -> str | None:
+def _percentual_fipe(candidato: Candidato) -> str | None:
     fipe = candidato.lote.fipe
-    if fipe is None:
+    if fipe is None or fipe <= 0 or candidato.preco is None:
         return None
-    texto = formatar_preco(fipe)
-    if candidato.preco is not None and fipe > 0:
-        texto += f" (lance = {round(candidato.preco / fipe * 100)}% da FIPE)"
-    return texto
+    return f"{round(candidato.preco / fipe * 100)}%"
+
+
+def _fipe(candidato: Candidato) -> str | None:
+    if candidato.lote.fipe is None:
+        return None
+    percentual = _percentual_fipe(candidato)
+    return formatar_preco(candidato.lote.fipe) + (f" (lance = {percentual} da FIPE)" if percentual else "")
 
 
 def lote_de(candidato: Candidato, nome_leiloeiro: str, origem: str = "aviso") -> LoteRelatorio:
@@ -81,6 +87,8 @@ def lote_de(candidato: Candidato, nome_leiloeiro: str, origem: str = "aviso") ->
         origem=origem,
         patio=lote.patio,
         fipe=_fipe(candidato),
+        fipe_valor=formatar_preco(lote.fipe) if lote.fipe is not None else None,
+        percentual_fipe=_percentual_fipe(candidato),
     )
 
 
@@ -187,75 +195,120 @@ def gravar_relatorio(pasta: Path, dados: DadosRelatorio) -> Path:
     raise FileExistsError(f"Relatórios demais com o nome {base} em {pasta}")
 
 
-# --- Emenda E002: lista acumulada de lotes a monitorar ----------------------------------------
+# --- Emenda E002 da 001: lista acumulada de lotes a monitorar --------------------------------------
+# Formato de cada lote definido pelo Rafael em 2026-10-13 (emenda E002 da feature 003): lotes numerados, campos
+# de custo para ele ou um agente preencherem, e as regras de manutenção num arquivo à parte.
 
-CABECALHO_MONITORAMENTO = """# Lotes a monitorar
+ARQUIVO_COMENTARIOS = "comentarios-lotes-a-monitorar.md"
+
+CABECALHO_MONITORAMENTO = f"""# Lotes a monitorar
+
+Regras de manutenção e o que significa cada campo: `{ARQUIVO_COMENTARIOS}` (na mesma pasta).
+"""
+
+COMENTARIOS_MONITORAMENTO = """# Comentários: lotes a monitorar
+
+Regras do arquivo `lotes-a-monitorar.md`, na mesma pasta.
+
+## O que é
 
 Lista acumulada dos lotes avisados pelo bot no Telegram e dos que já estavam no site quando uma busca
-estreou (semeadura, sem aviso). O bot só ACRESCENTA lotes no fim deste arquivo: nunca reescreve,
-reordena nem apaga nada. Quem tira lotes daqui é o Rafael, ou um agente
+estreou (semeadura, sem aviso). O bot só ACRESCENTA lotes no fim da lista, numerados em sequência: nunca
+reescreve, reordena, renumera nem apaga nada. Quem tira lotes de lá é o Rafael, ou um agente
 (Claude, Antigravity, Codex) a pedido dele.
 
 ## Como manter
 
 - **Para tirar um lote:** apague o bloco inteiro dele, da linha `---` até a linha antes do próximo `---`
-  (ou até o fim do arquivo, se for o último).
+  (ou até o fim do arquivo, se for o último). Os números dos outros não mudam.
 - **Quando tirar:** o martelo bateu (leilão encerrado), o lote foi retirado, ou o lance passou do teto.
-- **Ao atualizar um lote** (lance atual, análise FIPE): edite só as linhas daquele bloco e não mexa no
-  comentário `<!-- lote: ... -->`, que identifica o lote para o bot não repeti-lo.
+- **Ao atualizar um lote:** edite só as linhas daquele bloco e não mexa no comentário `<!-- lote: ... -->`,
+  que identifica o lote para o bot não repeti-lo.
 - **Lote tirado não volta:** o bot avisa cada lote uma única vez.
 - **Reaparições:** um carro que não vendeu pode voltar em outro evento com **outro número de anúncio**, e o
   bot o avisa como lote novo. Ao revisar a lista, compare marca, modelo e versão, ano, **quilometragem** e
-  **final de placa** (aparece no card do site); se coincidirem, é o mesmo carro. Anote nos dois blocos
-  `- **Reaparição de:** <link do outro>` e não apague nenhum: pode ser oportunidade (sem lances antes) ou
-  problema oculto, e o Rafael decide caso a caso.
+  **final de placa** (no campo Documento ou no card do site); se coincidirem, é o mesmo carro. Anote nos
+  dois blocos `- **Reaparição de:** <link do outro>` e não apague nenhum: pode ser oportunidade (sem lances
+  antes) ou problema oculto, e o Rafael decide caso a caso.
+
+## Campos de cada lote
+
+| Campo | Quem preenche | O que é |
+|---|---|---|
+| FIPE | bot (Copart) ou Rafael/agente | Valor FIPE do carro; `_pendente_` enquanto ninguém consultou |
+| Lance ao entrar | bot | Lance (ou preço) quando o lote entrou na lista, com o % da FIPE |
+| Lance atual | Rafael/agente | Atualizado ao acompanhar o lote |
+| Despesas admin. | bot (Kuss) ou Rafael/agente | Despesa fixa do leiloeiro por lote, além dos 5% de comissão |
+| Frete | Rafael/agente | Custo de trazer o carro do pátio até Londrina |
+| Manutenções | Rafael/agente | Reparos estimados |
+| Valor estimado na garagem | Rafael/agente | Lance + 5% + despesas + frete + manutenções + transferência, com o % da FIPE |
+| Pátio, Pregão, Documento, Observações | bot | Onde o carro está, data do leilão, placa parcial e estado, quando o site informa |
+| Link, Alvo | bot | Página do lote e veículo-alvo com o teto |
 """
 
 
-ROTULO_AO_ENTRAR = {"Lance atual": "Lance ao entrar", "Preço": "Preço ao entrar"}
-
-
-def _bloco_monitoramento(novo: LoteRelatorio, entrada: datetime, relatorio: str) -> str:
+def _bloco_monitoramento(novo: LoteRelatorio, numero: int) -> str:
     item = novo.item
     titulo = _escapar(item.titulo) + (f" — {item.ano}" if item.ano else "")
+    if novo.percentual_fipe:
+        lance = f"{item.preco} ({novo.percentual_fipe} da FIPE)"
+    elif novo.rotulo_preco != "Preço":
+        lance = f"{item.preco} (% da FIPE)"
+    else:
+        lance = item.preco
     linhas = [
         "", "---", "",
-        f"### {titulo}",
+        f"### {numero}. {titulo}",
+        "",
         f"<!-- lote: {novo.id_canonico} -->",
         "",
-        f"- **Entrou na lista:** {entrada:%d/%m/%Y %H:%M}"
-        + (" por semeadura: já estava no site na estreia da busca, sem aviso no Telegram"
-           if novo.origem == "semeadura" else "")
-        + f" (varredura `{relatorio}`)",
-        f"- **{ROTULO_AO_ENTRAR.get(novo.rotulo_preco, novo.rotulo_preco)}:** {item.preco}",
-        f"- **Leiloeiro:** {_escapar(item.leiloeiro)}",
+        f"- **FIPE:** {novo.fipe_valor or '_pendente_'}",
+        f"- **Lance ao entrar:** {lance}",
+        "- **Lance atual:**",
+        f"- **Despesas admin.:** {novo.despesas_adm}" if novo.despesas_adm else "- **Despesas admin.:**",
+        "- **Frete:**",
+        "- **Manutenções:**",
+        "- **Valor estimado na garagem:** (% da FIPE)",
     ]
+    if novo.patio:
+        linhas.append(f"- **Pátio:** {_escapar(novo.patio)}")
     if item.km:
         linhas.append(f"- **Km:** {item.km}")
-    linhas += _linhas_do_leiloeiro(novo)
-    linhas += [
-        f"- **Link:** {item.link}",
-        f"- **Alvo:** {novo.alvo} (teto {novo.teto})",
-        "- **Análise FIPE:** _pendente_",
-    ]
+    if novo.pregao:
+        linhas.append(f"- **Pregão:** {novo.pregao}")
+    if novo.documento:
+        linhas.append(f"- **Documento:** {_escapar(novo.documento)}")
+    if novo.observacoes:
+        linhas.append(f"- **Observações:** {_escapar(novo.observacoes)}")
+    linhas += [f"- **Link:** {item.link}", f"- **Alvo:** {novo.alvo} (teto {novo.teto})"]
     return "\n".join(linhas) + "\n"
 
 
-def acrescentar_monitoramento(caminho: Path, novos: list[LoteRelatorio], entrada: datetime, relatorio: str) -> int:
-    """Acrescenta no fim da lista os lotes que ainda não estão nela. Devolve quantos entraram.
+def _proximo_numero(existente: str | None) -> int:
+    numeros = [int(n) for n in re.findall(r"^### (\d+)\. ", existente or "", re.M)]
+    return max(numeros, default=0) + 1
 
-    Só abre o arquivo para leitura (deduplicação pelo comentário de id) e para acréscimo: o conteúdo
-    existente, inclusive anotações, nunca é reescrito.
+
+def acrescentar_monitoramento(caminho: Path, novos: list[LoteRelatorio]) -> int:
+    """Acrescenta no fim da lista os lotes que ainda não estão nela, numerados a partir do maior número
+    existente. Devolve quantos entraram.
+
+    Só abre a lista para leitura (deduplicação pelo comentário de id) e para acréscimo: o conteúdo existente,
+    inclusive anotações, nunca é reescrito. Cria o arquivo de comentários (regras) se ele não existir.
     """
     existente = caminho.read_text(encoding="utf-8") if caminho.exists() else None
     pendentes = [n for n in novos if n.id_canonico and f"<!-- lote: {n.id_canonico} -->" not in (existente or "")]
     if not pendentes:
         return 0
     caminho.parent.mkdir(parents=True, exist_ok=True)
+    comentarios = caminho.parent / ARQUIVO_COMENTARIOS
+    if not comentarios.exists():
+        comentarios.write_text(COMENTARIOS_MONITORAMENTO, encoding="utf-8", newline="\n")
     if existente is None:
         with caminho.open("x", encoding="utf-8", newline="\n") as arquivo:
             arquivo.write(CABECALHO_MONITORAMENTO)
+    numero = _proximo_numero(existente)
     with caminho.open("a", encoding="utf-8", newline="\n") as arquivo:
-        for novo in pendentes:
-            arquivo.write(_bloco_monitoramento(novo, entrada, relatorio))
+        for indice, novo in enumerate(pendentes):
+            arquivo.write(_bloco_monitoramento(novo, numero + indice))
     return len(pendentes)

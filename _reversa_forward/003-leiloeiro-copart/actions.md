@@ -85,6 +85,7 @@ Política de escrita: `allowLegacyEdits: true`, `allowedPaths` vazio (liberaçã
 
 | ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
 |----|-----------|--------------|-------------|--------------|-------------|--------|
+| E002 | Novo formato da lista `lotes-a-monitorar.md` (numerada; FIPE, lance ao entrar com % da FIPE, lance atual, despesas, frete, manutenções e valor estimado na garagem no topo; sem "Entrou na lista", "Leiloeiro" e "Análise FIPE"); regras em `comentarios-lotes-a-monitorar.md`; conversão única dos 12 lotes existentes | E001 | - | `src/bot_leilao/notificacao/relatorio.py` | 🟢 | `[X]` |
 | E001 | Copart sem `GET /vehicleFinderSearch` antes da busca (o Imperva barrava a página HTML; a busca JSON passa); seção "Leiloeiros" no relatório com a situação de cada um; linha "Pátio" anotada nos 3 lotes do Kuss já presentes na lista | T022, T026 | - | `src/bot_leilao/coleta/copart.py`, `src/bot_leilao/notificacao/relatorio.py`, `src/bot_leilao/orquestrador.py` | 🟢 | `[X]` |
 
 ## Notas de execução
