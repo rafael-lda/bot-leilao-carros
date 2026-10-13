@@ -1,18 +1,10 @@
 {
   "schema-version": 1,
-  "feature-dir": "_reversa_forward/003-leiloeiro-copart",
-  "feature-id": "003",
-  "short-name": "leiloeiro-copart",
-  "started-at": "2026-10-11T14:42:49-03:00",
-  "current-stage": "sync",
-  "stages-completed": [
-    "requirements",
-    "clarify",
-    "plan",
-    "to-do",
-    "audit",
-    "coding",
-    "sync"
-  ],
+  "feature-dir": "_reversa_forward/004-leiloeiro-freitas",
+  "feature-id": "004",
+  "short-name": "leiloeiro-freitas",
+  "started-at": "2026-10-13T12:39:18-03:00",
+  "current-stage": "requirements",
+  "stages-completed": [],
   "paused-features": []
 }
