@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import logging
+import ssl
 import time
 from collections.abc import Callable, Sequence
+from pathlib import Path
 from urllib.parse import urlsplit
 
+import certifi
 import httpx
 
 from bot_leilao.coleta.modelos import Requisicao, ResultadoHTTP, Veredito
@@ -23,6 +26,18 @@ CABECALHOS_NAVEGADOR = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
 }
+
+# Feature 004 (D-83): intermediários oficiais que alguns leiloeiros esquecem de enviar. Ver o LEIA-ME da pasta.
+PASTA_CERTIFICADOS = Path(__file__).resolve().parent / "certificados"
+
+
+def contexto_tls() -> ssl.SSLContext:
+    """Raízes do `certifi` mais os intermediários da pasta de certificados, com verificação completa (nunca desligada)."""
+    contexto = ssl.create_default_context(cafile=certifi.where())
+    for pem in sorted(PASTA_CERTIFICADOS.glob("*.pem")):
+        contexto.load_verify_locations(cafile=str(pem))
+    return contexto
+
 
 _MARCAS_DESAFIO = (b"cf-chl", b"Just a moment", b"challenge-platform")
 # Imperva/Incapsula (Copart, feature 003, D-60): o desafio pode vir com status 200, em HTML.
@@ -59,8 +74,10 @@ class ClienteHTTP:
         self.relogio = relogio
         self.dormir = dormir
         self._ultimo_envio: dict[str, float] = {}
+        self.contexto_tls = contexto_tls()
         self._cliente = httpx.Client(
             transport=transporte,
+            verify=self.contexto_tls,
             headers=CABECALHOS_NAVEGADOR,
             follow_redirects=True,
             max_redirects=max_redirecionamentos,
@@ -106,6 +123,9 @@ class ClienteHTTP:
         except httpx.TimeoutException:
             return Veredito.FALHA_REDE, None, None, req.url, "timeout", True, None
         except httpx.TransportError as erro:
+            if "CERTIFICATE_VERIFY_FAILED" in str(erro):  # D-84: não se resolve tentando de novo
+                log.warning("coleta  | certificado de %s não verificado: %s", host, erro)
+                return Veredito.FALHA_REDE, None, None, req.url, f"certificado: {host}", False, None
             log.debug("coleta  | erro de transporte em %s: %s", host, type(erro).__name__)
             return Veredito.FALHA_REDE, None, None, req.url, f"conexao: {host} ({type(erro).__name__})", True, None
 

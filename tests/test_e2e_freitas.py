@@ -47,7 +47,7 @@ def test_lote_de_financeira_que_casa_e_avisado_com_patio_pregao_e_link(raiz, rel
     assert "1. RENAULT/DUSTER INTP CVT — 2024" in digest
     assert "R$ 50.500 — Freitas Leiloeiro — SANTO ANDRE - SP — Pregão 16/10 10:00" in digest
     assert "Obs.: IPVA 2026 PAGO" in digest
-    assert LINK_DUSTER in digest
+    assert LINK_DUSTER.replace("&", "&amp;") in digest, "modo HTML do Telegram: o & do link vai escapado"
     assert cenario.notificados() == ["freitas-leiloeiro:8112-1"]
 
 

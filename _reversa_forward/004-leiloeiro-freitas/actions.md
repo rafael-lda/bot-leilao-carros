@@ -47,10 +47,10 @@ Política de escrita: `allowLegacyEdits: true`, `allowedPaths` vazio (liberaçã
 
 | ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
 |----|-----------|--------------|-------------|--------------|-------------|--------|
-| T010 | Contexto TLS do `ClienteHTTP` com `certifi` + `.pem` da pasta de certificados; erro `CERTIFICATE_VERIFY_FAILED` → motivo `certificado: <host>`, sem novas tentativas (D-83, D-84) | T005, T002 | `[//]` | `src/…/coleta/http.py` | 🟢 | `[ ]` |
-| T011 | Sinônimo `m.benz` na tabela comum (D-79) | T008 | `[//]` | `src/…/parsing/marcas.py` | 🟢 | `[ ]` |
-| T012 | `coleta/freitas.py`: `AdaptadorFreitas` (filtros, requisição, paginação até a mensagem de fim, aviso de repetição, tipo, detalhe) e registro (D-74 a D-78, D-82) | T006 | `[//]` | `src/…/coleta/freitas.py` | 🟢 | `[ ]` |
-| T013 | `parsing/freitas.py`: `ParserFreitas` (cards, em loteamento ignorado, vazia e quebra) e `aplicar_detalhe` (pátio, despesas com composição, selos, retirado) e registro (D-76 a D-82) | T007, T011 | - | `src/…/parsing/freitas.py` | 🟢 | `[ ]` |
+| T010 | Contexto TLS do `ClienteHTTP` com `certifi` + `.pem` da pasta de certificados; erro `CERTIFICATE_VERIFY_FAILED` → motivo `certificado: <host>`, sem novas tentativas (D-83, D-84) | T005, T002 | `[//]` | `src/…/coleta/http.py` | 🟢 | `[X]` |
+| T011 | Sinônimo `m.benz` na tabela comum (D-79) | T008 | `[//]` | `src/…/parsing/marcas.py` | 🟢 | `[X]` |
+| T012 | `coleta/freitas.py`: `AdaptadorFreitas` (filtros, requisição, paginação até a mensagem de fim, aviso de repetição, tipo, detalhe) e registro (D-74 a D-78, D-82) | T006 | `[//]` | `src/…/coleta/freitas.py` | 🟢 | `[X]` |
+| T013 | `parsing/freitas.py`: `ParserFreitas` (cards, em loteamento ignorado, vazia e quebra) e `aplicar_detalhe` (pátio, despesas com composição, selos, retirado) e registro (D-76 a D-82) | T007, T011 | - | `src/…/parsing/freitas.py` | 🟢 | `[X]` |
 
 ## Fase 4, Integração
 
@@ -72,6 +72,9 @@ Política de escrita: `allowLegacyEdits: true`, `allowedPaths` vazio (liberaçã
 ## Notas de execução
 
 - **Etapa 1 concluída (2026-10-13):** 568 testes passando (565 anteriores + 3 novos que já valem: nenhum `verify=False` no código e dois ponta a ponta que hoje passam por vazio, porque o Freitas ainda não está registrado); 10 falhando e 2 módulos de teste sem coletar, à espera das etapas 2 e 3.
+- **T013 (2026-10-13):** primeiro leiloeiro com `&` no link; no aviso (modo HTML do Telegram) o `&` vai escapado como `&amp;` e o Telegram mostra o link normal. A expectativa do teste ponta a ponta foi ajustada (o código estava certo).
+- **T010 (2026-10-13):** o código passa a importar `certifi` diretamente (antes vinha só como dependência do `httpx`); a declaração explícita entra no T015.
+- **Etapa 2 concluída (2026-10-13):** 606 testes passando; 2 falhando (alerta de certificado), à espera do T014.
 
 ## Histórico de alterações
 
