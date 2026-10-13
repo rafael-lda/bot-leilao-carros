@@ -243,6 +243,7 @@ reescreve, reordena, renumera nem apaga nada. Quem tira lotes de lá é o Rafael
 | Manutenções | Rafael/agente | Reparos estimados |
 | Valor estimado na garagem | Rafael/agente | Lance + 5% + despesas + frete + manutenções + transferência, com o % da FIPE |
 | Pátio, Pregão, Documento, Observações | bot | Onde o carro está, data do leilão, placa parcial e estado, quando o site informa |
+| Câmbio | Rafael/agente | Automático, manual ou CVT; alguns leiloeiros informam (título, página do lote ou catálogo), outros não: identificar lote a lote pelo link |
 | Link, Alvo | bot | Página do lote e veículo-alvo com o teto |
 """
 
@@ -280,7 +281,8 @@ def _bloco_monitoramento(novo: LoteRelatorio, numero: int) -> str:
         linhas.append(f"- **Documento:** {_escapar(novo.documento)}")
     if novo.observacoes:
         linhas.append(f"- **Observações:** {_escapar(novo.observacoes)}")
-    linhas += [f"- **Link:** {item.link}", f"- **Alvo:** {novo.alvo} (teto {novo.teto})"]
+    # Câmbio em branco: só alguns leiloeiros informam; o Rafael ou um agente identifica lote a lote (2026-10-13).
+    linhas += [f"- **Link:** {item.link}", "- **Câmbio:**", f"- **Alvo:** {novo.alvo} (teto {novo.teto})"]
     return "\n".join(linhas) + "\n"
 
 

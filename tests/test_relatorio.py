@@ -144,6 +144,7 @@ def test_formato_do_lote_definido_pelo_rafael(tmp_path):
         "- **Valor estimado na garagem:** (% da FIPE)",
         "- **Km:** 35.647 km",
         f"- **Link:** {LINK}",
+        "- **Câmbio:**",
         "- **Alvo:** nissan-versa-2023-2024 (teto R$ 69.300)",
     ]
 

@@ -163,6 +163,8 @@ Cenário: Formato alterado vira alerta
 
 **O que muda:** o bot passa a escrever os lotes novos nesse formato, numerados a partir do maior número já existente (lote apagado não renumera os outros), e cria o arquivo de comentários se ele não existir (nunca o sobrescreve). Os 12 lotes já presentes foram convertidos uma vez, preservando identificadores, links e anotações.
 
+**Complemento (2026-10-13, pedido do Rafael):** linha **Câmbio**, em branco, logo antes de Alvo. Só alguns leiloeiros informam o câmbio (título, página do lote ou catálogo); o Rafael ou um agente de IA identifica lote a lote pelo link. Acrescentada aos 12 lotes e à tabela de campos dos comentários.
+
 ## 11. Histórico de alterações
 
 | Data | Alteração | Autor |
