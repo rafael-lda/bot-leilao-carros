@@ -1,0 +1,9 @@
+{"ts": "2026-10-13T13:42:18-03:00", "action": "T001", "status": "done", "files": ["tests/fixtures/freitas/"]}
+{"ts": "2026-10-13T13:42:18-03:00", "action": "T002", "status": "done", "files": ["src/bot_leilao/coleta/certificados/"]}
+{"ts": "2026-10-13T13:42:18-03:00", "action": "T003", "status": "done", "files": ["scripts/capturar_fixtures.py"]}
+{"ts": "2026-10-13T13:42:18-03:00", "action": "T004", "status": "done", "files": ["tests/apoio.py"]}
+{"ts": "2026-10-13T13:42:18-03:00", "action": "T005", "status": "done", "files": ["tests/test_coleta_http.py"]}
+{"ts": "2026-10-13T13:42:18-03:00", "action": "T006", "status": "done", "files": ["tests/test_coleta_freitas.py"]}
+{"ts": "2026-10-13T13:42:18-03:00", "action": "T007", "status": "done", "files": ["tests/test_parsing_freitas.py"]}
+{"ts": "2026-10-13T13:42:18-03:00", "action": "T008", "status": "done", "files": ["tests/test_marcas.py"]}
+{"ts": "2026-10-13T13:42:18-03:00", "action": "T009", "status": "done", "files": ["tests/test_e2e_freitas.py"]}

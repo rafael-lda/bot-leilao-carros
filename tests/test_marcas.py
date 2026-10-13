@@ -49,6 +49,7 @@ def test_marca_vazia_e_nula():
     ("CAOACHERY", "caoa chery"),
     ("M BENZ", "mercedes-benz"),
     ("LR", "land rover"),
+    ("M.BENZ", "mercedes-benz"),   # Freitas, 2026-10-13
 ])
 def test_grafias_do_claudio_kuss(bruta, canonica, caplog):
     """Censo de 391 lotes do Claudio Kuss, 2026-10-10 (roadmap D-42)."""

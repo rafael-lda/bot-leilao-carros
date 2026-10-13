@@ -210,3 +210,46 @@ def test_json_que_cita_a_palavra_nao_e_bloqueio(roteiro, relogio):
     corpo = b'{"returnCode":1,"data":{"nota":"Request unsuccessful _Incapsula_Resource"}}'
     transp = roteiro(lambda r: httpx.Response(200, content=corpo, headers={"Content-Type": "application/json"}))
     assert _cliente(transp, relogio).requisitar(Requisicao("GET", URL)).ok
+
+
+# --- Feature 004: intermediários oficiais e falha de certificado (D-83, D-84) -----------------------
+
+def test_contexto_tls_confia_no_certifi_e_nos_intermediarios_da_pasta():
+    from bot_leilao.coleta.http import contexto_tls
+
+    nomes = {dict(campo[0] for campo in c["subject"]).get("commonName") for c in contexto_tls().get_ca_certs()}
+    assert "GlobalSign GCC R6 AlphaSSL CA 2025" in nomes, "intermediário do Freitas"
+    assert len(contexto_tls().get_ca_certs()) > 100, "raízes do pacote certifi"
+
+
+def test_cliente_usa_o_contexto_com_verificacao(relogio):
+    import ssl
+
+    cliente = ClienteHTTP(relogio=relogio.agora, dormir=relogio.dormir)
+    assert cliente.contexto_tls.verify_mode == ssl.CERT_REQUIRED
+    assert cliente.contexto_tls.check_hostname is True
+    cliente.fechar()
+
+
+def test_falha_de_certificado_vira_motivo_proprio_sem_novas_tentativas(roteiro, relogio):
+    from apoio import ERRO_CERTIFICADO
+
+    def recusar(request):
+        raise httpx.ConnectError(ERRO_CERTIFICADO, request=request)
+
+    transp = roteiro(recusar)
+    resultado = _cliente(transp, relogio).requisitar(Requisicao("GET", "https://www.freitasleiloeiro.com.br/x"))
+    assert resultado.veredito is Veredito.FALHA_REDE
+    assert resultado.motivo == "certificado: www.freitasleiloeiro.com.br"
+    assert resultado.tentativas == 1 and len(transp.chamadas) == 1
+
+
+def test_nenhum_codigo_desliga_a_verificacao():
+    """D-83: nunca `verify=False`, nem por um dia, nem só para um leiloeiro."""
+    from pathlib import Path
+
+    raiz = Path(__file__).resolve().parent.parent
+    proibidos = ("verify=False", "CERT_NONE", "check_hostname = False", "check_hostname=False", "_create_unverified")
+    achados = [(str(p.relative_to(raiz)), termo) for p in list((raiz / "src").rglob("*.py")) + [raiz / "scripts" / "capturar_fixtures.py"]
+               for termo in proibidos if termo in p.read_text(encoding="utf-8")]
+    assert achados == []

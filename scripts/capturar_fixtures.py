@@ -5,8 +5,9 @@ Uso (rede necessária, cerca de 30 segundos cada):
     python scripts/capturar_fixtures.py                  # Vip Leilões
     python scripts/capturar_fixtures.py --claudio-kuss   # Claudio Kuss Leilões
     python scripts/capturar_fixtures.py --copart         # Copart (busca pública em JSON)
+    python scripts/capturar_fixtures.py --freitas        # Freitas Leiloeiro (busca pública em HTML)
 
-Grava em tests/fixtures/vip/, tests/fixtures/claudio_kuss/ ou tests/fixtures/copart/. Respeita a mesma conduta do coletor: sessão com
+Grava em tests/fixtures/<leiloeiro>/. Respeita a mesma conduta do coletor: sessão com
 cookies, no máximo 3 redirecionamentos e 5 segundos entre requisições.
 Rodar de novo só quando o layout do Vip mudar e o parser precisar de conserto.
 """
@@ -222,10 +223,62 @@ def main_copart() -> None:
     print(f"financiamento: {total} lotes. lotes_selecionados.json é composto à mão (ver amostras da feature 003).")
 
 
+# --- Freitas Leiloeiro (feature 004; interfaces/freitas.md) ----------------------------------------
+
+FREITAS = "https://www.freitasleiloeiro.com.br"
+DESTINO_FREITAS = DESTINO.parent / "freitas"
+CERTIFICADOS = Path(__file__).resolve().parent.parent / "src" / "bot_leilao" / "coleta" / "certificados"
+PARAMETROS_FREITAS = {"Nome": "", "Categoria": "1", "TipoLoteId": "0", "FaixaValor": "0", "Condicao": "inteiros",
+                      "PatioId": "0", "AnoModeloMin": "0", "AnoModeloMax": "0", "ArCondicionado": "false",
+                      "DirecaoAssistida": "false", "Tag": "", "Estado": "", "Cidade": "", "ClienteSclId": "0",
+                      "TopRows": "200"}
+
+
+def main_freitas() -> None:
+    """O servidor do Freitas envia o intermediário errado: a cadeia é completada com os .pem oficiais da pasta
+    de certificados do bot (D-83). A verificação nunca é desligada."""
+    import ssl
+
+    import certifi
+
+    DESTINO_FREITAS.mkdir(parents=True, exist_ok=True)
+    contexto = ssl.create_default_context(cafile=certifi.where())
+    for pem in sorted(CERTIFICADOS.glob("*.pem")):
+        contexto.load_verify_locations(str(pem))
+    cap = Capturador()
+    cap.cliente = httpx.Client(headers=CABECALHOS, follow_redirects=True, max_redirects=3, timeout=60.0, verify=contexto)
+    cabecalhos = {"X-Requested-With": "XMLHttpRequest", "Referer": f"{FREITAS}/Leiloes/Pesquisar?query=&categoria=1"}
+
+    def gravar_freitas(nome: str, conteudo: str) -> None:
+        (DESTINO_FREITAS / nome).write_text(conteudo, encoding="utf-8")
+        print(f"gravado tests/fixtures/freitas/{nome} ({len(conteudo.encode()) // 1024} KB)")
+
+    pagina, primeira_com_lotes = 1, ""
+    while True:
+        cap._esperar()
+        resposta = cap.cliente.get(f"{FREITAS}/Leiloes/PesquisarLotes", headers=cabecalhos,
+                                   params={**PARAMETROS_FREITAS, "PageNumber": str(pagina)})
+        resposta.raise_for_status()
+        if "Nenhum lote localizado" in resposta.text:
+            gravar_freitas("lotes_fim.html", resposta.text)
+            break
+        primeira_com_lotes = primeira_com_lotes or resposta.text
+        if pagina == 2:
+            gravar_freitas("lotes_pag2.html", resposta.text)
+        pagina += 1
+    lote = re.search(r"leilaoId=(\d+)&loteNumero=(\d+)", primeira_com_lotes)
+    if lote:
+        detalhe = cap.get(f"{FREITAS}/Leiloes/LoteDetalhes?leilaoId={lote.group(1)}&loteNumero={lote.group(2)}")
+        gravar_freitas(f"detalhe_{lote.group(1)}_{lote.group(2)}.html", detalhe.text)
+    print("cards_selecionados.html é composto à mão (ver amostras da feature 004).")
+
+
 if __name__ == "__main__":
     if "--claudio-kuss" in sys.argv[1:]:
         main_kuss()
     elif "--copart" in sys.argv[1:]:
         main_copart()
+    elif "--freitas" in sys.argv[1:]:
+        main_freitas()
     else:
         main()

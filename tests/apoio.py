@@ -128,6 +128,7 @@ class CenarioE2E:
     `vip`: bytes da página de busca, uma exceção httpx (classe) ou um status HTTP.
     `kuss`: `SiteKuss` que responde pelo host do Claudio Kuss (feature 002), ou None.
     `copart`: `SiteCopart` que responde pelo host da Copart (feature 003), ou None.
+    `freitas`: `SiteFreitas` que responde pelo host do Freitas (feature 004), ou None.
     `telegram`: status HTTP das respostas do Telegram (200 = ok), ou uma exceção httpx (classe).
     """
 
@@ -142,6 +143,7 @@ class CenarioE2E:
         self.vip = pagina_vazia()
         self.kuss: "SiteKuss | None" = None
         self.copart: "SiteCopart | None" = None
+        self.freitas: "SiteFreitas | None" = None
         self.telegram = 200
         self.mensagens: list[str] = []
         self.chamadas: list[_httpx.Request] = []
@@ -174,6 +176,9 @@ class CenarioE2E:
         if request.url.host == HOST_COPART:
             assert self.copart is not None, "o cenário não simula a Copart"
             return self.copart.responder(request)
+        if request.url.host == HOST_FREITAS:
+            assert self.freitas is not None, "o cenário não simula o Freitas"
+            return self.freitas.responder(request)
         if not isinstance(self.vip, bytes):
             return self._falhar(self.vip, request)
         if request.url.path == "/":
@@ -428,3 +433,121 @@ class SiteCopart:
 
     def buscas(self) -> list[dict]:
         return [form for metodo, caminho, form in self.chamadas if caminho == "/public/vehicleFinder/search"]
+
+
+# ---------------------------------------------------------------------------
+# Freitas Leiloeiro (feature 004): busca pública em HTML simulada a partir das fixtures reais de 2026-10-13.
+# ---------------------------------------------------------------------------
+
+import re as _re
+
+FIXTURES_FREITAS = FIXTURES / "freitas"
+HOST_FREITAS = "www.freitasleiloeiro.com.br"
+INICIO_CARD = '<div class="col-md-4 col-6 mb-3">'
+ERRO_CERTIFICADO = ("[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer "
+                    "certificate (_ssl.c:1081)")
+
+LEILOEIRO_FREITAS = """\
+leiloeiros:
+  - nome: Freitas Leiloeiro
+    base_url: https://www.freitasleiloeiro.com.br
+    estrategia_acesso: publico
+    nivel_coleta: script
+    buscas:
+      - descricao: Inteiros
+        filtros:
+          categoria: 1
+          condicao: inteiros
+"""
+
+LEILOEIROS_VIP_E_FREITAS = LEILOEIRO_VIP + LEILOEIRO_FREITAS.removeprefix("leiloeiros:\n")
+
+
+def cards_freitas_reais() -> dict[str, str]:
+    """Cards reais escolhidos (cards_selecionados.html), por "leilão/lote": 8112/1 Duster CVT 23/24 com maior lance;
+    8103/124 I/NISSAN SENTRA; 8103/3 HB20; 8112/12 sem etiqueta; 8111/700 em loteamento; 8103/57 M.BENZ;
+    8103/9 só com lance inicial."""
+    html = (FIXTURES_FREITAS / "cards_selecionados.html").read_text(encoding="utf-8")
+    cards = {}
+    for parte in html.split(INICIO_CARD)[1:]:
+        chave = "/".join(_re.search(r"leilaoId=(\d+)&loteNumero=(\d+)", parte).groups())
+        cards[chave] = INICIO_CARD + parte.rsplit("    </div>\n", 1)[0] if parte.rstrip().endswith("</div>") else INICIO_CARD + parte
+    return cards
+
+
+def card_freitas(base: str = "8112/1", lote: str | None = None, desc: str | None = None, valor: str | None = None,
+                 etiqueta: str | None = None) -> str:
+    """Um card real do Freitas com trocas: `lote` ("8112/50"), `desc` (descrição do veículo), `valor`
+    ("R$ 40.000,00"), `etiqueta` ("" tira a FINANCEIRA)."""
+    card = cards_freitas_reais()[base]
+    if lote is not None:
+        leilao, numero = lote.split("/")
+        card = _re.sub(r"leilaoId=\d+&loteNumero=\d+", f"leilaoId={leilao}&loteNumero={numero}", card)
+        card = _re.sub(r'(cardLote-lote">\s*)\S+', lambda m: m.group(1) + numero.zfill(3), card, count=1)
+    if desc is not None:
+        card = _re.sub(r'(cardLote-descVeic">\s*<span>)[^<]*', lambda m: m.group(1) + desc, card)
+    if valor is not None:
+        card = _re.sub(r'(cardLote-vlr">)[^<]*', lambda m: m.group(1) + " " + valor, card)
+    if etiqueta is not None:
+        card = _re.sub(r'(cardLote-details">\s*<span[^>]*>)[^<]*', lambda m: m.group(1) + etiqueta, card)
+    return card
+
+
+def detalhe_freitas(nome: str = "detalhe_8112_1.html") -> bytes:
+    return (FIXTURES_FREITAS / nome).read_bytes()
+
+
+class SiteFreitas:
+    """Freitas simulado: `GET /Leiloes/PesquisarLotes` por `PageNumber`/`TopRows` sobre `cards` (até a mensagem de
+    fim real), `GET /Leiloes/LoteDetalhes` por leilão e lote (`detalhes`: "8112-1" → bytes, status ou exceção;
+    padrão: o detalhe real do 8112/1). `paginas` força páginas explícitas (lista de listas de cards);
+    `bloqueio`: status com a página de bloqueio do firewall; `certificado_invalido`: simula a falha de verificação
+    que acontece sem o intermediário; `corpo`: bytes no lugar da página de lotes."""
+
+    def __init__(self, cards: list[str] | None = None, paginas: list | None = None, detalhes: dict | None = None,
+                 bloqueio: int | None = None, certificado_invalido: bool = False, corpo: bytes | None = None) -> None:
+        self.cards = cards if cards is not None else list(cards_freitas_reais().values())
+        self.paginas = paginas
+        self.detalhes = detalhes or {}
+        self.bloqueio = bloqueio
+        self.certificado_invalido = certificado_invalido
+        self.corpo = corpo
+        self.chamadas: list[tuple[str, dict]] = []
+
+    def _html(self, conteudo) -> _httpx.Response:
+        if isinstance(conteudo, str):
+            conteudo = conteudo.encode("utf-8")
+        return _httpx.Response(200, content=conteudo, headers={"Content-Type": "text/html; charset=utf-8"})
+
+    def responder(self, request: _httpx.Request) -> _httpx.Response:
+        params = dict(request.url.params)
+        self.chamadas.append((request.url.path, params))
+        if self.certificado_invalido:
+            raise _httpx.ConnectError(ERRO_CERTIFICADO, request=request)
+        if self.bloqueio is not None:
+            return _httpx.Response(self.bloqueio, text="<html><title>Acesso Bloqueado</title>GoCache</html>")
+        if request.url.path == "/Leiloes/PesquisarLotes":
+            if self.corpo is not None:
+                return self._html(self.corpo)
+            pagina, tamanho = int(params.get("PageNumber", "1")), int(params.get("TopRows", "12"))
+            if self.paginas is not None:
+                fatia = self.paginas[pagina - 1] if pagina <= len(self.paginas) else []
+            else:
+                fatia = self.cards[(pagina - 1) * tamanho:pagina * tamanho]
+            if not fatia:
+                return self._html((FIXTURES_FREITAS / "lotes_fim.html").read_bytes())
+            return self._html('\n\n    <div class="row">\n' + "".join(fatia) + "    </div>\n")
+        if request.url.path == "/Leiloes/LoteDetalhes":
+            item = self.detalhes.get(f"{params.get('leilaoId')}-{params.get('loteNumero')}", detalhe_freitas())
+            if isinstance(item, int):
+                return _httpx.Response(item, text="erro")
+            if isinstance(item, type):
+                raise item(f"falha simulada em {request.url}", request=request)
+            return self._html(item)
+        return _httpx.Response(404, text="não encontrado")
+
+    def buscas(self) -> list[dict]:
+        return [p for caminho, p in self.chamadas if caminho == "/Leiloes/PesquisarLotes"]
+
+    def detalhes_pedidos(self) -> list[str]:
+        return [f"{p['leilaoId']}-{p['loteNumero']}" for caminho, p in self.chamadas if caminho == "/Leiloes/LoteDetalhes"]
