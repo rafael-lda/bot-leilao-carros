@@ -1,17 +1,10 @@
 {
   "schema-version": 1,
-  "feature-dir": "_reversa_forward/004-leiloeiro-freitas",
-  "feature-id": "004",
-  "short-name": "leiloeiro-freitas",
-  "started-at": "2026-10-13T12:39:18-03:00",
-  "current-stage": "sync",
-  "stages-completed": [
-    "requirements",
-    "plan",
-    "to-do",
-    "audit",
-    "coding",
-    "sync"
-  ],
+  "feature-dir": "_reversa_forward/005-leiloeiro-milan",
+  "feature-id": "005",
+  "short-name": "leiloeiro-milan",
+  "started-at": "2026-10-13T14:57:00-03:00",
+  "current-stage": "requirements",
+  "stages-completed": [],
   "paused-features": []
 }
