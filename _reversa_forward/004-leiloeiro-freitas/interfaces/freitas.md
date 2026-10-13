@@ -65,5 +65,5 @@ O pátio e as despesas **variam por leilão** (8103 e 8111: Santa Bárbara d'Oes
 ## 4. Erros, idempotência e conduta
 
 - Só leitura. Página sem cards e sem a mensagem de fim → quebra (alerta).
-- Falha de certificado → `falha_rede` com motivo `certificado: ...` e alerta (D-84, D-85).
+- Falha de certificado → `falha_rede` com motivo `certificado: ...` e alerta (D-84, D-85). Procedimento de correção: `runbook-certificado.md` (no código, `src/bot_leilao/coleta/certificados/LEIA-ME.md`).
 - Varredura típica: 3 requisições de busca + 1 por lote detalhado; 5 s por host.

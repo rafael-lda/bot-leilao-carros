@@ -47,7 +47,7 @@ Verificações deste plano (2026-10-13, 9 requisições): 225 lotes "inteiros" e
 |----|---------|----------------|--------------------------|-------------|
 | D-83 | (RF-05) O `ClienteHTTP` cria o contexto TLS com o pacote `certifi` **mais** os intermediários oficiais em `src/bot_leilao/coleta/certificados/*.pem` (hoje só "GlobalSign GCC R6 AlphaSSL CA 2025", impressão digital registrada no contrato). Vale para todos os hosts. Nenhum caminho do código usa `verify=False` (teste que procura no código) | Acrescentar um intermediário legítimo não afrouxa nada: a cadeia continua terminando numa raiz do `certifi`. Verificado em 2026-10-13 sem `VERIFY_X509_PARTIAL_CHAIN` | `verify=False` para o Freitas (inaceitável); contexto só para o host do Freitas (mais código, mesmo efeito) | 🟢 |
 | D-84 | Falha de verificação de certificado vira motivo `certificado: <host>`, sem novas tentativas (não se resolve sozinha) | Hoje cairia em "conexao", tentando 3 vezes | — | 🟢 |
-| D-85 | (RF-08) O alerta por leiloeiro da feature 003 passa a cobrir também falha de certificado (além de bloqueio), 1 por dia | Certificado errado persiste até alguém agir (o Freitas renovar com outra cadeia, ou o intermediário vencer em 2027-05-21) | Alertar toda falha de rede (alarmes por instabilidade passageira) | 🟢 |
+| D-85 | (RF-08) O alerta por leiloeiro da feature 003 passa a cobrir também falha de certificado (além de bloqueio), 1 por dia. O texto do alerta aponta o procedimento de correção: `src/bot_leilao/coleta/certificados/LEIA-ME.md` (conteúdo em `runbook-certificado.md` desta feature: diagnóstico, casos A a E, como guardar um intermediário novo com segurança) | Certificado errado persiste até alguém agir (o Freitas renovar com outra cadeia, ou o intermediário vencer em 2027-05-21) | Alertar toda falha de rede (alarmes por instabilidade passageira) | 🟢 |
 
 ## 4. Premissas
 
@@ -64,7 +64,7 @@ Verificações deste plano (2026-10-13, 9 requisições): 225 lotes "inteiros" e
 | Adaptador Freitas | `coletor-lotes.md` RF-12 | componente-novo | `src/bot_leilao/coleta/freitas.py` (D-74 a D-78, D-82) |
 | Parser Freitas | `parser-lotes.md` | componente-novo | `src/bot_leilao/parsing/freitas.py` (D-76, D-77, D-79 a D-82) |
 | Cliente HTTP | `coletor-lotes.md` RF-07, RF-13 | regra-alterada | Intermediários oficiais no contexto TLS; motivo `certificado` (D-83, D-84) |
-| Certificados | — | componente-novo | `src/bot_leilao/coleta/certificados/globalsign-gcc-r6-alphassl-ca-2025.pem` |
+| Certificados | — | componente-novo | `src/bot_leilao/coleta/certificados/globalsign-gcc-r6-alphassl-ca-2025.pem` e `LEIA-ME.md` (o runbook) |
 | Tabela de sinônimos | `parser-lotes.md` RF-12 | regra-alterada | `m.benz` (D-79) |
 | Orquestrador | adendo da 003 | regra-alterada | Registro do Freitas; alerta também para falha de certificado (D-85) |
 | Cadastro | `config/leiloeiros.yaml` | regra-alterada (dados) | Bloco do Freitas |
