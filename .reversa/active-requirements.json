@@ -4,10 +4,11 @@
   "feature-id": "004",
   "short-name": "leiloeiro-freitas",
   "started-at": "2026-10-13T12:39:18-03:00",
-  "current-stage": "plan",
+  "current-stage": "to-do",
   "stages-completed": [
     "requirements",
-    "plan"
+    "plan",
+    "to-do"
   ],
   "paused-features": []
 }
