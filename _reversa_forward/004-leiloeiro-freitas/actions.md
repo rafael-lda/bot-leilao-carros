@@ -56,7 +56,7 @@ Política de escrita: `allowLegacyEdits: true`, `allowedPaths` vazio (liberaçã
 
 | ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
 |----|-----------|--------------|-------------|--------------|-------------|--------|
-| T014 | (RF-08) Orquestrador: registra `coleta.freitas` e `parsing.freitas`; o alerta por leiloeiro cobre também motivo `certificado`, com o texto apontando `src/bot_leilao/coleta/certificados/LEIA-ME.md`; a seção "Leiloeiros" do relatório mostra "falha de certificado" (D-85) | T012, T013, T009, T010 | - | `src/…/orquestrador.py` | 🟢 | `[ ]` |
+| T014 | (RF-08) Orquestrador: registra `coleta.freitas` e `parsing.freitas`; o alerta por leiloeiro cobre também motivo `certificado`, com o texto apontando `src/bot_leilao/coleta/certificados/LEIA-ME.md`; a seção "Leiloeiros" do relatório mostra "falha de acesso (certificado: <host>)", como no runbook (D-85) | T012, T013, T009, T010 | - | `src/…/orquestrador.py` | 🟢 | `[ ]` |
 | T015 | `pyproject.toml`: os `.pem` e o `LEIA-ME.md` da pasta de certificados entram como dados do pacote (instalação não editável) | T002 | `[//]` | `pyproject.toml` | 🟡 | `[ ]` |
 | T016 | (RF-01) Bloco do Freitas em `config/leiloeiros.yaml` (data-delta §3), com o contrato citado no cabeçalho | T014 | - | `config/leiloeiros.yaml` | 🟢 | `[ ]` |
 | T017 | (RF-02, RF-09) Dry-run real no container: Freitas lido até a mensagem de fim, sem repetição e sem alerta; contagem de lotes em loteamento no log; varredura com os 4 leiloeiros abaixo de 10 minutos. Se falhar, `ativo: false` e registro nas Notas | T016 | - | (execução) | 🟡 | `[ ]` |
@@ -76,3 +76,4 @@ Política de escrita: `allowLegacyEdits: true`, `allowedPaths` vazio (liberaçã
 | Data | Alteração | Autor |
 |------|-----------|-------|
 | 2026-10-13 | Versão inicial gerada por `/reversa-to-do` | reversa |
+| 2026-10-13 | Correção do `/reversa-audit` (A007): texto da seção "Leiloeiros" alinhado ao runbook | Claude |

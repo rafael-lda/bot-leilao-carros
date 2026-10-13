@@ -57,19 +57,22 @@ Projeto greenfield com as features 001, 002 e 003 entregues.
    - Tipo: mantida
 9. **RN-09:** O sistema continua sem dar lances e sem usar a área de usuário. 🟢
    - Tipo: mantida
+10. **RN-10:** Lote **"EM LOTEAMENTO"** (card com lote "X" e número provisório, 700 em diante) não entra na filtragem: fica de fora, com a contagem no log, até ganhar número definitivo. O número provisório deve mudar no loteamento, e com ele o identificador, o que geraria aviso duplicado do mesmo carro. 🟡
+   - Origem: plano (D-77), auditoria de 2026-10-13 (A002)
+   - Tipo: nova
 
 ## 5. Requisitos Funcionais
 
 | ID | Requisito | Prioridade | Critério de aceite | Confidência |
 |----|-----------|------------|--------------------|-------------|
 | RF-01 | O sistema deve aceitar o Freitas em `config/leiloeiros.yaml` como leiloeiro público, nível `script`, com busca declarada por filtros do site (`categoria: 1`, `condicao: inteiros`) | Must | Com o bloco ativo, a configuração carrega; chave desconhecida aborta antes da rede citando o Freitas | 🟢 |
-| RF-02 | O sistema deve coletar todas as páginas da busca até o site indicar o fim ("Nenhum lote localizado") | Must | 225 lotes em 2 páginas de 200 mais a página de fim; nenhum lote repetido | 🟢 |
-| RF-03 | O sistema deve converter cada card em lote normalizado: id pelo leilão e lote, marca e modelo de `MARCA/MODELO VERSÃO`, anos `AA/AA`, preço (maior lance ou inicial), data e hora do pregão, placa parcial, tipo de leilão pela etiqueta e link do detalhe | Must | O card do lote 1 do leilão 8112 produz marca `renault`, modelo `duster intp cvt`, ano de modelo 2024, preço R$ 50.500, pregão 16/10/2026 10:00, tipo `financiamento` e link `…/Leiloes/LoteDetalhes?leilaoId=8112&loteNumero=1` | 🟢 |
-| RF-04 | O sistema deve completar, pelo detalhe, o pátio, as despesas operacionais e as observações dos lotes que vão para o aviso ou para a lista | Must | O lote 8112/1 sai com pátio "Santo André - SP" e despesas R$ 2.350 | 🟢 |
+| RF-02 | O sistema deve coletar todas as páginas da busca até o site indicar o fim ("Nenhum lote localizado") | Must | 225 cards lidos em 2 páginas de 200 mais a página de fim, nenhum repetido; os 21 em loteamento ficam de fora com a contagem no log (RN-10), e 204 lotes seguem para a filtragem (dados de 2026-10-13) | 🟢 |
+| RF-03 | O sistema deve converter cada card (exceto os em loteamento, RN-10) em lote normalizado: id pelo leilão e lote, marca e modelo de `MARCA/MODELO VERSÃO`, anos `AA/AA`, preço (maior lance ou inicial), data e hora do pregão, placa parcial, tipo de leilão pela etiqueta e link do detalhe | Must | O card do lote 1 do leilão 8112 produz marca `renault`, modelo `duster intp cvt`, ano de modelo 2024, preço R$ 50.500, pregão 16/10/2026 10:00, tipo `financiamento` e link `…/Leiloes/LoteDetalhes?leilaoId=8112&loteNumero=1` | 🟢 |
+| RF-04 | O sistema deve completar, pelo detalhe, o pátio, as despesas operacionais e as observações dos lotes que vão para o aviso ou para a lista | Must | O lote 8112/1 sai com pátio "SANTO ANDRE - SP" (como o site escreve, no mesmo formato da Copart) e despesas R$ 2.350 (as "despesas operacionais" do Freitas, mais as de logística quando houver, vão na linha "Despesas admin." do relatório e da lista) | 🟢 |
 | RF-05 | O sistema deve manter a verificação completa do certificado, completando a cadeia com o intermediário oficial guardado no projeto | Must | Sem o intermediário a conexão falha como hoje; com ele, conecta; nenhum caminho do código desliga a verificação | 🟢 |
 | RF-06 | O sistema deve tratar o fim da busca sem lotes como busca vazia legítima, e uma resposta fora do formato como quebra com alerta citando o Freitas | Must | Busca sem lotes não alerta; HTML alterado alerta | 🟢 |
 | RF-07 | O sistema deve aplicar ao Freitas a semeadura, a deduplicação, o relatório (com a seção "Leiloeiros") e a lista de monitoramento existentes | Must | A primeira varredura não avisa os lotes do Freitas no Telegram, mas os lista no relatório e na lista numerada | 🟢 |
-| RF-08 | A falha do Freitas (certificado, bloqueio, rede, quebra) não deve impedir os outros leiloeiros, e bloqueio gera alerta | Must | Com o Freitas fora, Vip, Kuss e Copart seguem; execução em sucesso parcial | 🟢 |
+| RF-08 | A falha do Freitas (certificado, bloqueio, rede, quebra) não deve impedir os outros leiloeiros; bloqueio e **falha de certificado** geram alerta (1 por dia), e o alerta de certificado aponta o procedimento de correção (`src/bot_leilao/coleta/certificados/LEIA-ME.md`, o runbook) | Must | Com o Freitas fora, Vip, Kuss e Copart seguem; execução em sucesso parcial; certificado inválido gera alerta citando o LEIA-ME | 🟢 |
 | RF-09 | A varredura completa (4 leiloeiros) deve ficar abaixo de 10 minutos | Should | Medida no dry-run real | 🟡 |
 
 ## 6. Requisitos Não Funcionais
@@ -129,10 +132,12 @@ Cenário: Freitas bloqueando não derruba os outros
 
 ## 10. Lacunas
 
-- 🟡 **Verificação técnica para o plano:** se o pátio e as despesas são iguais para todos os lotes de um leilão (daria para ler uma vez por leilão em vez de por lote); o significado do logo do comitente (id numérico, sem nome no card); se a etiqueta do card tem outros valores além de FINANCEIRA; formato da data quando o leilão tem segunda praça; se o certificado intermediário muda quando o Freitas renovar o certificado (validade do intermediário: maio de 2027).
+- ✅ Respondidas no plano (2026-10-13): pátio e despesas **variam por leilão** (Santa Bárbara d'Oeste-SP no 8103 e 8111; Santo André-SP no 8112; R$ 350 de logística no 8111), então o detalhe é lido por lote; a etiqueta só aparece como "FINANCEIRA" ou vazia; o card tem uma data e uma hora; a troca de certificado tem procedimento próprio (`runbook-certificado.md`).
+- 🟡 Em aberto, sem impacto nesta feature: o significado do logo do comitente (id numérico, sem nome no card).
 
 ## 11. Histórico de alterações
 
 | Data | Alteração | Autor |
 |------|-----------|-------|
+| 2026-10-13 | Correções do `/reversa-audit` (A001, A002, A004 a A006): pátio no formato do site, RN-10 (lotes em loteamento), alerta de certificado no RF-08, lacunas respondidas, termo de despesas | Claude, com OK do Rafael |
 | 2026-10-13 | Versão inicial gerada por `/reversa-requirements` a partir dos prints do Rafael e de 6 requisições ao Freitas (busca, 3 páginas de lotes, detalhe) | reversa |
