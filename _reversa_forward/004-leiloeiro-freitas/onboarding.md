@@ -12,9 +12,9 @@ No terminal do VS Code (fora do container): `venv\Scripts\activate` e `pytest -q
 
 `varrer.bat` ou `python -m bot_leilao varrer`. O que esperar:
 
-- no log, `Freitas Leiloeiro` com 3 páginas e `parser  | busca=freitas-leiloeiro:... | ~225 lotes | ok`, e uma linha com a quantidade de lotes "em loteamento" ignorados;
+- no log (dry-run de 2026-10-13 no container): `Freitas Leiloeiro | busca=freitas-leiloeiro:... | 3 página(s) | ok`, `21 lote(s) em loteamento ignorado(s)` e `234 lotes | 0 descartados | ok`, sem aviso de lote repetido nem de certificado; a varredura inteira, com os 4 leiloeiros, levou **6m43s**;
 - no relatório, a seção "Leiloeiros" com "Freitas Leiloeiro | ok: N lote(s) lido(s)";
-- nenhum aviso do Freitas no Telegram (estreia); os candidatos, se houver, no relatório ("Já estavam no site") e na lista numerada, com pátio (ex.: "SANTA BARBARA D OESTE - SP") e despesas.
+- nenhum aviso do Freitas no Telegram (estreia); os candidatos, se houver, no relatório ("Já estavam no site") e na lista numerada, com pátio (ex.: "SANTA BARBARA D OESTE - SP") e despesas. Em 2026-10-13 nenhum lote do Freitas casava com os alvos (Duster 2014 e 2024 e Sentra 2013, fora das faixas de ano).
 
 ## 3. Se aparecer alerta
 

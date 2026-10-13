@@ -66,7 +66,7 @@
 | Emenda | Testes |
 |--------|--------|
 | E001 — relatório Markdown por varredura | `test_relatorio.py` (11 testes), `test_e2e_fluxo.py::test_cada_varredura_gera_um_relatorio_so_com_os_lotes_novos`, `test_e2e_fluxo.py::test_dry_run_nao_gera_relatorio`, `test_e2e_fluxo.py::test_varredura_com_falha_tambem_gera_relatorio`, `test_e2e_fluxo.py::test_relatorio_nao_contem_o_token`, `test_e2e_fluxo.py::test_falha_ao_gravar_relatorio_nao_derruba_a_varredura` |
-| E002 — lista acumulada de lotes a monitorar | `test_relatorio.py::test_lista_criada_com_regras_de_manutencao_no_topo`, `test_relatorio.py::test_acrescenta_no_fim_sem_tocar_no_que_ja_existe`, `test_relatorio.py::test_nao_repete_lote_que_ja_esta_na_lista`, `test_relatorio.py::test_sem_lotes_novos_nao_cria_nem_altera`, `test_e2e_fluxo.py::test_lote_avisado_entra_na_lista_uma_unica_vez`, `test_e2e_fluxo.py::test_lote_semeado_entra_na_lista_marcado_como_semeadura`, `test_e2e_fluxo.py::test_lote_so_entra_depois_que_o_telegram_confirma`, `test_e2e_fluxo.py::test_lote_tirado_da_lista_nao_volta`, `test_e2e_fluxo.py::test_dry_run_nao_escreve_na_lista` |
+| E002 — lista acumulada de lotes a monitorar | `test_relatorio.py::test_lista_criada_com_as_regras_num_arquivo_a_parte`, `test_relatorio.py::test_acrescenta_no_fim_sem_tocar_no_que_ja_existe`, `test_relatorio.py::test_nao_repete_lote_que_ja_esta_na_lista`, `test_relatorio.py::test_sem_lotes_novos_nao_cria_nem_altera`, `test_e2e_fluxo.py::test_lote_avisado_entra_na_lista_uma_unica_vez`, `test_e2e_fluxo.py::test_lote_semeado_entra_na_lista_marcado_como_semeadura`, `test_e2e_fluxo.py::test_lote_so_entra_depois_que_o_telegram_confirma`, `test_e2e_fluxo.py::test_lote_tirado_da_lista_nao_volta`, `test_e2e_fluxo.py::test_dry_run_nao_escreve_na_lista` |
 
 ## Feature 002: Claudio Kuss Leilões
 
@@ -105,7 +105,7 @@
 
 | Emenda | Testes |
 |--------|--------|
-| E001 da 002 — semeados no relatório e na lista, sem aviso | `test_relatorio.py::test_relatorio_lista_os_semeados_numa_secao_propria`, `test_relatorio.py::test_lista_marca_o_lote_que_entrou_por_semeadura`, `test_e2e_fluxo.py::test_lote_semeado_entra_na_lista_marcado_como_semeadura`, `test_e2e_fluxo.py::test_semeado_nao_volta_a_entrar_na_lista`, `test_e2e_claudio_kuss.py::test_primeira_varredura_semeia_o_kuss_sem_aviso_e_mostra_nos_documentos`, `test_e2e_claudio_kuss.py::test_semeado_retirado_ou_sucata_e_registrado_mas_nao_aparece`, `test_e2e_claudio_kuss.py::test_dry_run_nao_detalha_semeados` |
+| E001 da 002 — semeados no relatório e na lista, sem aviso | `test_relatorio.py::test_relatorio_lista_os_semeados_numa_secao_propria`, `test_relatorio.py::test_lote_da_semeadura_entra_no_mesmo_formato`, `test_e2e_fluxo.py::test_lote_semeado_entra_na_lista_marcado_como_semeadura`, `test_e2e_fluxo.py::test_semeado_nao_volta_a_entrar_na_lista`, `test_e2e_claudio_kuss.py::test_primeira_varredura_semeia_o_kuss_sem_aviso_e_mostra_nos_documentos`, `test_e2e_claudio_kuss.py::test_semeado_retirado_ou_sucata_e_registrado_mas_nao_aparece`, `test_e2e_claudio_kuss.py::test_dry_run_nao_detalha_semeados` |
 
 ## Feature 003: Copart (e pátio para todos)
 
@@ -136,3 +136,27 @@
 |--------|--------|
 | E001 da 003 — Copart sem a página HTML; situação dos leiloeiros no relatório | `test_coleta_copart.py::test_nao_abre_a_pagina_html_da_busca`, `test_e2e_copart.py::test_busca_nao_passa_pela_pagina_html`, `test_e2e_copart.py::test_copart_bloqueando_nao_impede_o_vip_e_gera_alerta`, `test_relatorio.py::test_relatorio_mostra_a_situacao_de_cada_leiloeiro`, `test_relatorio.py::test_sem_situacao_de_leiloeiros_nao_ha_secao` |
 | E002 da 003 — novo formato da lista, numerada, regras à parte | `test_relatorio.py::test_lista_criada_com_as_regras_num_arquivo_a_parte`, `test_relatorio.py::test_formato_do_lote_definido_pelo_rafael`, `test_relatorio.py::test_numeracao_continua_do_maior_numero_mesmo_com_lotes_apagados`, `test_relatorio.py::test_arquivo_de_comentarios_nao_e_sobrescrito`, `test_relatorio.py::test_lote_da_semeadura_entra_no_mesmo_formato` |
+
+## Feature 004: Freitas Leiloeiro (e certificados)
+
+> Fonte: `_reversa_forward/004-leiloeiro-freitas/requirements.md`. Fixtures reais de 2026-10-13 em `tests/fixtures/freitas/`; site simulado por `apoio.SiteFreitas`.
+
+| Req. | O que exige | Testes |
+|------|-------------|--------|
+| RF-01 | Cadastro com filtros do site; chave desconhecida aborta | `test_coleta_freitas.py::test_registrado_pelo_id_do_leiloeiro`, `test_coleta_freitas.py::test_filtros_aceitos_e_chave_desconhecida`, `test_coleta_freitas.py::test_filtros_viram_os_parametros_do_site`, `test_parsing_freitas.py::test_registrado` |
+| RF-02 | Todas as páginas até a mensagem de fim, sem repetição | `test_coleta_freitas.py::test_percorre_ate_a_mensagem_de_fim`, `test_coleta_freitas.py::test_pagina_com_menos_de_200_nao_encerra_a_busca`, `test_coleta_freitas.py::test_lote_repetido_entre_paginas_gera_aviso`, `test_e2e_freitas.py::test_le_ate_a_mensagem_de_fim_sem_repeticao` |
+| RF-03 | Card em lote normalizado (exceto em loteamento) | `test_parsing_freitas.py::test_duster_real_com_todos_os_campos`, `test_parsing_freitas.py::test_importado_sem_barra_entre_marca_e_modelo`, `test_parsing_freitas.py::test_lance_inicial_quando_ainda_sem_lances`, `test_parsing_freitas.py::test_em_loteamento_nao_e_devolvido_e_vai_para_o_log`, `test_marcas.py::test_grafias_do_claudio_kuss` |
+| RF-04 | Pátio, despesas e observações pelo detalhe | `test_parsing_freitas.py::test_detalhe_real_do_duster`, `test_parsing_freitas.py::test_detalhe_real_em_santa_barbara`, `test_parsing_freitas.py::test_despesas_de_logistica_somadas_com_a_composicao_nas_observacoes`, `test_e2e_freitas.py::test_estreia_lista_os_semeados_com_patio_e_despesas` |
+| RF-05 | Verificação completa com o intermediário oficial | `test_coleta_http.py::test_contexto_tls_confia_no_certifi_e_nos_intermediarios_da_pasta`, `test_coleta_http.py::test_cliente_usa_o_contexto_com_verificacao`, `test_coleta_http.py::test_nenhum_codigo_desliga_a_verificacao` |
+| RF-06 | Fim sem lotes = vazia; formato alterado = quebra | `test_parsing_freitas.py::test_mensagem_de_fim_e_busca_vazia`, `test_parsing_freitas.py::test_sem_cards_e_sem_mensagem_de_fim_levanta`, `test_parsing_freitas.py::test_card_com_descricao_fora_do_formato_levanta` |
+| RF-07 | Semeadura, relatório e lista | `test_e2e_freitas.py::test_estreia_lista_os_semeados_com_patio_e_despesas` |
+| RF-08 | Falha não derruba os outros; bloqueio e certificado geram alerta | `test_e2e_freitas.py::test_freitas_bloqueando_nao_derruba_o_vip_e_gera_alerta`, `test_e2e_freitas.py::test_falha_de_certificado_gera_alerta_que_aponta_o_runbook`, `test_e2e_freitas.py::test_alerta_de_certificado_no_maximo_um_por_dia`, `test_coleta_http.py::test_falha_de_certificado_vira_motivo_proprio_sem_novas_tentativas` |
+| RF-09 | Varredura < 10 min | Sem teste automatizado; dry-run real de 2026-10-13: 6m43s (Vip 13, Kuss 45, Copart 16, Freitas 3 páginas) |
+
+| # | Cenário (requirements §7) | Teste |
+|---|---------------------------|-------|
+| 1 | Lotes inteiros do Freitas entram na varredura | `test_e2e_freitas.py::test_le_ate_a_mensagem_de_fim_sem_repeticao` |
+| 2 | Lote de financeira que casa é avisado | `test_e2e_freitas.py::test_lote_de_financeira_que_casa_e_avisado_com_patio_pregao_e_link` |
+| 3 | Lote sem etiqueta de financeira não é avisado | `test_e2e_freitas.py::test_lote_sem_etiqueta_de_financeira_nao_e_avisado` |
+| 4 | Cadeia incompleta não desliga a verificação | `test_coleta_http.py::test_contexto_tls_confia_no_certifi_e_nos_intermediarios_da_pasta`, `test_coleta_http.py::test_nenhum_codigo_desliga_a_verificacao` |
+| 5 | Freitas bloqueando não derruba os outros | `test_e2e_freitas.py::test_freitas_bloqueando_nao_derruba_o_vip_e_gera_alerta` |

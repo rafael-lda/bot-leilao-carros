@@ -11,3 +11,10 @@
 {"ts": "2026-10-13T13:55:28-03:00", "action": "T011", "status": "done", "files": ["src/bot_leilao/parsing/marcas.py"]}
 {"ts": "2026-10-13T13:55:28-03:00", "action": "T012", "status": "done", "files": ["src/bot_leilao/coleta/freitas.py"]}
 {"ts": "2026-10-13T13:55:28-03:00", "action": "T013", "status": "done", "files": ["src/bot_leilao/parsing/freitas.py", "tests/test_e2e_freitas.py"]}
+{"ts": "2026-10-13T14:27:49-03:00", "action": "T014", "status": "done", "files": ["src/bot_leilao/orquestrador.py"]}
+{"ts": "2026-10-13T14:27:49-03:00", "action": "T015", "status": "done", "files": ["pyproject.toml"]}
+{"ts": "2026-10-13T14:27:49-03:00", "action": "T016", "status": "done", "files": ["config/leiloeiros.yaml"]}
+{"ts": "2026-10-13T14:36:31-03:00", "action": "T017", "status": "done", "files": ["(execução)"]}
+{"ts": "2026-10-13T14:36:42-03:00", "action": "T018", "status": "done", "files": ["README.md"]}
+{"ts": "2026-10-13T14:36:42-03:00", "action": "T019", "status": "done", "files": ["tests/RASTREABILIDADE.md"]}
+{"ts": "2026-10-13T14:36:42-03:00", "action": "T020", "status": "done", "files": ["_reversa_forward/004-leiloeiro-freitas/onboarding.md"]}

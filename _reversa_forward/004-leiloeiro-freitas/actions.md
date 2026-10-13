@@ -56,18 +56,18 @@ Política de escrita: `allowLegacyEdits: true`, `allowedPaths` vazio (liberaçã
 
 | ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
 |----|-----------|--------------|-------------|--------------|-------------|--------|
-| T014 | (RF-08) Orquestrador: registra `coleta.freitas` e `parsing.freitas`; o alerta por leiloeiro cobre também motivo `certificado`, com o texto apontando `src/bot_leilao/coleta/certificados/LEIA-ME.md`; a seção "Leiloeiros" do relatório mostra "falha de acesso (certificado: <host>)", como no runbook (D-85) | T012, T013, T009, T010 | - | `src/…/orquestrador.py` | 🟢 | `[ ]` |
-| T015 | `pyproject.toml`: os `.pem` e o `LEIA-ME.md` da pasta de certificados entram como dados do pacote (instalação não editável) | T002 | `[//]` | `pyproject.toml` | 🟡 | `[ ]` |
-| T016 | (RF-01) Bloco do Freitas em `config/leiloeiros.yaml` (data-delta §3), com o contrato citado no cabeçalho | T014 | - | `config/leiloeiros.yaml` | 🟢 | `[ ]` |
-| T017 | (RF-02, RF-09) Dry-run real no container: Freitas lido até a mensagem de fim, sem repetição e sem alerta; contagem de lotes em loteamento no log; varredura com os 4 leiloeiros abaixo de 10 minutos. Se falhar, `ativo: false` e registro nas Notas | T016 | - | (execução) | 🟡 | `[ ]` |
+| T014 | (RF-08) Orquestrador: registra `coleta.freitas` e `parsing.freitas`; o alerta por leiloeiro cobre também motivo `certificado`, com o texto apontando `src/bot_leilao/coleta/certificados/LEIA-ME.md`; a seção "Leiloeiros" do relatório mostra "falha de acesso (certificado: <host>)", como no runbook (D-85) | T012, T013, T009, T010 | - | `src/…/orquestrador.py` | 🟢 | `[X]` |
+| T015 | `pyproject.toml`: os `.pem` e o `LEIA-ME.md` da pasta de certificados entram como dados do pacote (instalação não editável) | T002 | `[//]` | `pyproject.toml` | 🟡 | `[X]` |
+| T016 | (RF-01) Bloco do Freitas em `config/leiloeiros.yaml` (data-delta §3), com o contrato citado no cabeçalho | T014 | - | `config/leiloeiros.yaml` | 🟢 | `[X]` |
+| T017 | (RF-02, RF-09) Dry-run real no container: Freitas lido até a mensagem de fim, sem repetição e sem alerta; contagem de lotes em loteamento no log; varredura com os 4 leiloeiros abaixo de 10 minutos. Se falhar, `ativo: false` e registro nas Notas | T016 | - | (execução) | 🟡 | `[X]` |
 
 ## Fase 5, Polimento
 
 | ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
 |----|-----------|--------------|-------------|--------------|-------------|--------|
-| T018 | README: Freitas na tabela de leiloeiros; pasta de certificados e o runbook | T016 | `[//]` | `README.md` | 🟢 | `[ ]` |
-| T019 | Seção "Feature 004" em `tests/RASTREABILIDADE.md`, conferida mecanicamente | T014 | `[//]` | `tests/RASTREABILIDADE.md` | 🟢 | `[ ]` |
-| T020 | Ajustar `onboarding.md` com o que o dry-run real mostrou | T017 | `[//]` | `_reversa_forward/004-…/onboarding.md` | 🟢 | `[ ]` |
+| T018 | README: Freitas na tabela de leiloeiros; pasta de certificados e o runbook | T016 | `[//]` | `README.md` | 🟢 | `[X]` |
+| T019 | Seção "Feature 004" em `tests/RASTREABILIDADE.md`, conferida mecanicamente | T014 | `[//]` | `tests/RASTREABILIDADE.md` | 🟢 | `[X]` |
+| T020 | Ajustar `onboarding.md` com o que o dry-run real mostrou | T017 | `[//]` | `_reversa_forward/004-…/onboarding.md` | 🟢 | `[X]` |
 
 ## Notas de execução
 
@@ -75,6 +75,9 @@ Política de escrita: `allowLegacyEdits: true`, `allowedPaths` vazio (liberaçã
 - **T013 (2026-10-13):** primeiro leiloeiro com `&` no link; no aviso (modo HTML do Telegram) o `&` vai escapado como `&amp;` e o Telegram mostra o link normal. A expectativa do teste ponta a ponta foi ajustada (o código estava certo).
 - **T010 (2026-10-13):** o código passa a importar `certifi` diretamente (antes vinha só como dependência do `httpx`); a declaração explícita entra no T015.
 - **Etapa 2 concluída (2026-10-13):** 606 testes passando; 2 falhando (alerta de certificado), à espera do T014.
+- **T017 (2026-10-13), dry-run real no container:** 6m43s com os 4 leiloeiros; Freitas 3 páginas, 255 cards, 21 em loteamento ignorados, 234 lotes, sem repetição, sem certificado, sem alerta; Vip 13 páginas (um 429 com 30 s), Kuss 45, Copart 16. Nenhum candidato novo (12 já conhecidos); nenhum lote do Freitas casa com os alvos atuais.
+- **T019 (2026-10-13):** a conferência mecânica achou duas referências antigas da 003 (testes renomeados na emenda E002) e elas foram corrigidas.
+- **Etapa 3 concluída (2026-10-13):** T014–T020; 608 testes passando; rastreabilidade conferida; `legacy-impact.md` e `regression-watch.md` (W025–W029) gerados.
 
 ## Histórico de alterações
 
@@ -82,3 +85,4 @@ Política de escrita: `allowLegacyEdits: true`, `allowedPaths` vazio (liberaçã
 |------|-----------|-------|
 | 2026-10-13 | Versão inicial gerada por `/reversa-to-do` | reversa |
 | 2026-10-13 | Correção do `/reversa-audit` (A007): texto da seção "Leiloeiros" alinhado ao runbook | Claude |
+| 2026-10-13 | Codificação concluída em três etapas (T001–T020) | `/reversa-coding` |

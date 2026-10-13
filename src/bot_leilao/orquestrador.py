@@ -18,9 +18,11 @@ import httpx
 
 import bot_leilao.coleta.claudio_kuss  # noqa: F401 — registra o adaptador (feature 002)
 import bot_leilao.coleta.copart  # noqa: F401 — registra o adaptador (feature 003)
+import bot_leilao.coleta.freitas  # noqa: F401 — registra o adaptador (feature 004)
 import bot_leilao.coleta.vip  # noqa: F401 — registra o adaptador
 import bot_leilao.parsing.claudio_kuss  # noqa: F401 — registra o parser (feature 002)
 import bot_leilao.parsing.copart  # noqa: F401 — registra o parser (feature 003)
+import bot_leilao.parsing.freitas  # noqa: F401 — registra o parser (feature 004)
 import bot_leilao.parsing.vip  # noqa: F401 — registra o parser
 from bot_leilao.coleta import registro
 from bot_leilao.coleta.coletor import Coletor
@@ -51,6 +53,7 @@ log = logging.getLogger(__name__)
 
 PASTA_RELATORIOS = "1OUTPUT"  # emenda E001: um relatório Markdown por varredura real, fora do git
 LISTA_MONITORAMENTO = "lotes-a-monitorar.md"  # emenda E002: lista acumulada, o bot só acrescenta
+RUNBOOK_CERTIFICADO = "src/bot_leilao/coleta/certificados/LEIA-ME.md"
 CODIGO_SAIDA = {"sucesso": 0, "sucesso_parcial": 0, "falha": 1, "recusada": 3}
 
 
@@ -423,6 +426,18 @@ def _alertas(leiloeiros, respostas, parsings, agora_local: datetime) -> list[Ale
                                      mensagem=f"o site bloqueou o acesso do bot ({'; '.join(sorted(set(motivos)))}). "
                                               "Este leiloeiro ficou sem cobertura nesta varredura; os outros "
                                               "seguem normalmente.")))
+    # Certificado inválido (feature 004, D-85): não se resolve sozinho; o alerta aponta o procedimento.
+    certificados: dict[str, list[str]] = defaultdict(list)
+    for resposta in respostas:
+        if resposta.veredito is Veredito.FALHA_REDE and "certificado:" in (resposta.motivo or ""):
+            certificados[resposta.leiloeiro_id].append(resposta.motivo)
+    for leiloeiro_id, motivos in certificados.items():
+        pendentes.append(AlertaPendente(
+            leiloeiros=(leiloeiro_id,),
+            alerta=AlertaOperacional(executado_em=agora_local, leiloeiro=nomes.get(leiloeiro_id, leiloeiro_id),
+                                     mensagem=f"o certificado do site não pôde ser verificado ({'; '.join(sorted(set(motivos)))})"
+                                              ". Por segurança a conexão não foi feita, e este leiloeiro ficou sem "
+                                              f"cobertura. Como resolver: {RUNBOOK_CERTIFICADO}")))
     quebras: dict[str, list[str]] = defaultdict(list)
     for parsing in parsings.values():
         if parsing.quebra_suspeita:

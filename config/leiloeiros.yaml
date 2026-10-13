@@ -4,6 +4,7 @@
 #   Vip:          _reversa_forward/001-mvp-varredura-ponta-a-ponta/interfaces/vip-pesquisa.md
 #   Claudio Kuss: _reversa_forward/002-leiloeiro-claudio-kuss/interfaces/claudio-kuss.md
 #   Copart:       _reversa_forward/003-leiloeiro-copart/interfaces/copart-busca.md
+#   Freitas:      _reversa_forward/004-leiloeiro-freitas/interfaces/freitas.md
 # Não filtre por marca nem modelo: esse recorte é feito pelos veículos-alvo
 # (cadastro-leiloeiros, seção 6.1.1, "busca ampla").
 leiloeiros:
@@ -45,3 +46,18 @@ leiloeiros:
       - descricao: Recuperados de financiamento, qualquer marca e categoria
         filtros:
           condicao: FINANCIAMENTO
+
+  # Busca pública do Freitas (sem login). Só veículos "Inteiros" (sem sinistro); o tipo de leilão
+  # vem da etiqueta FINANCEIRA de cada lote. O servidor envia a cadeia de certificado errada: o bot
+  # completa com o intermediário oficial (src/bot_leilao/coleta/certificados/LEIA-ME.md).
+  # Para desligar: ativo: false
+  - nome: Freitas Leiloeiro
+    base_url: https://www.freitasleiloeiro.com.br
+    ativo: true
+    estrategia_acesso: publico
+    nivel_coleta: script
+    buscas:
+      - descricao: Veículos inteiros (sem sinistro), qualquer marca
+        filtros:
+          categoria: 1
+          condicao: inteiros

@@ -14,6 +14,7 @@ dependencies = [
     "lxml>=5",
     "PyYAML>=6",
     "python-dotenv>=1",
+    "certifi",   # raízes de confiança; os intermediários extras ficam em coleta/certificados (feature 004)
 ]
 
 [project.optional-dependencies]
@@ -21,6 +22,9 @@ dev = ["pytest>=8"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+"bot_leilao.coleta" = ["certificados/*.pem", "certificados/LEIA-ME.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
