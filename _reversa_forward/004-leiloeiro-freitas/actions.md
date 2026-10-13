@@ -10,7 +10,7 @@
 |---------|-------|
 | Total de ações | 20 |
 | Paralelizáveis (`[//]`) | 16 |
-| Maior cadeia de dependência | 7 (T001 → T004 → T009 → T014 → T016 → T017 → T020) |
+| Maior cadeia de dependência | 8 (T001 → T004 → T006 → T012 → T014 → T016 → T017 → T020) |
 
 Convenções: `src/bot_leilao/` é abreviado como `src/…`. Testes antes do núcleo (TDD); a suíte anterior continua verde ao fim de cada etapa.
 
