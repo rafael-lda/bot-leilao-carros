@@ -8,7 +8,7 @@
 
 > **Ordem combinada em 2026-10-10:** 002 = Claudio Kuss; depois, a skill `analisar-lotes` ("Custo na garagem", itens 2, 3 e 8 unificados).
 >
-> **Atualização de 2026-10-11:** 002 e 003 (Copart) entregues. O Rafael quer os 5 leiloeiros da lista: faltam **Milan** (Cloudflare "managed" no site inteiro: precisa do degrau Apify do item 9, que entra junto com a troca automática "bloqueou → Apify" para todos) e **Freitas** (bloqueio deliberado do firewall: degraus mais altos da escada). Antes, conferir em janela anônima se a busca do Milan abre sem login.
+> **Atualização de 2026-10-11:** 002 e 003 (Copart) entregues. O Rafael quer os 5 leiloeiros da lista: falta o **Milan** (Cloudflare "managed" no site inteiro: precisa do degrau Apify do item 9, que entra junto com a troca automática "bloqueou → Apify" para todos); conferir antes em janela anônima se a busca do Milan abre sem login. O Freitas entrou na feature 004 (2026-10-13) sem Apify: o "bloqueio" de 10/10 não se repetiu e o problema era a cadeia de certificado.
 
 ### ★ Custo na garagem em Londrina — skill `analisar-lotes` (une os itens 2, 3 e 8)
 
@@ -120,6 +120,7 @@
 - **001 — MVP de varredura ponta a ponta** (2026-10-04), com as emendas E001 (relatório por varredura em `1OUTPUT/`) e E002 (lista de lotes a monitorar).
 - **002 — Leiloeiro Claudio Kuss** (2026-10-10), com a emenda E001 de 2026-10-11 (lotes da semeadura no relatório e na lista de monitoramento). Adendo: `_reversa_sdd/addenda/002-leiloeiro-claudio-kuss.md`.
 - **003 — Leiloeiro Copart** (2026-10-11): busca pública em JSON, pátio e FIPE em todo aviso, alerta de bloqueio por leiloeiro. Adendo: `_reversa_sdd/addenda/003-leiloeiro-copart.md`.
+- **004 — Leiloeiro Freitas** (2026-10-13): busca pública de veículos "Inteiros", etiqueta FINANCEIRA por lote, cadeia de certificado completada com o intermediário oficial e alerta de certificado com runbook. Adendo: `_reversa_sdd/addenda/004-leiloeiro-freitas.md`.
 - **Palavras a excluir no veículo-alvo** (antigo item 4), entregue na feature 003 (RF-10): `excluir: [Oroch]` no alvo Duster.
 - **Agendamento automático:** resolvido sem código com o Agendador de Tarefas do Windows (`scripts/agendar_windows.ps1`), em 2026-10-08.
 - **Atalho de duplo clique:** `scripts/varrer.bat`, em 2026-10-08.
