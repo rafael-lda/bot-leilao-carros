@@ -39,8 +39,8 @@ Projeto greenfield com as features 001 a 004 entregues.
 1. **RN-01:** O bot considera os leilões da agenda de veículos do Milan (`/agenda/veiculos`) cuja descrição indica **recuperados de financiamento**; leilões judiciais e de outros tipos ficam de fora. 🟢
    - Origem: agenda de 2026-10-13 (um judicial, um "recuperados de financiamento")
    - Tipo: nova
-2. **RN-02:** Os lotes de um leilão "recuperados de financiamento" recebem `tipo_leilao = financiamento`, por herança do leilão, e o **comitente** de cada lote (ex.: Grupo Safra, Banco Honda, Locadora Grillo) vai para as observações. [DÚVIDA: aceitar todos os lotes desses leilões, como no Claudio Kuss, ou só os de comitente banco ou financeira?] 🔴
-   - Origem: catálogo de 2026-10-11 (115 de ~125 carros de banco ou financeira; locadora, montadora e comitente não informado no resto)
+2. **RN-02:** Os lotes de um leilão "recuperados de financiamento" recebem `tipo_leilao = financiamento`, por herança do leilão, e o **comitente** de cada lote (ex.: Grupo Safra, Banco Honda, Locadora Grillo) vai para as observações. **Todos os lotes desses leilões são aceitos**, como no Claudio Kuss: o comitente aparece no aviso e na lista para o Rafael julgar (lote de locadora ou montadora não é descartado automaticamente). 🟢
+   - Origem: catálogo de 2026-10-11 (115 de ~125 carros de banco ou financeira; locadora, montadora e comitente não informado no resto); decisão do Rafael na sessão de esclarecimento de 2026-10-13
    - Tipo: nova
 3. **RN-03:** Do catálogo vêm km, câmbio, estado (texto do lote, inclusive avisos como "VEÍCULO NÃO FUNCIONA, MOTOR VIRA MAS NÃO PEGA") e comitente; da página do leilão vem o **lance atual**. Os dois se juntam pelo número do lote. 🟢
    - Tipo: nova
@@ -130,6 +130,11 @@ Cenário: Troca automática para o Apify quando habilitada
 
 ## 9. Esclarecimentos
 
+### Sessão 2026-10-13
+
+- **Q:** Os leilões "recuperados de financiamento" do Milan misturam comitentes (bancos e financeiras na maioria; locadora, montadora e comitente não informado no resto). Considerar todos os lotes, ou só os de banco ou financeira?
+  **R:** Todos, com o comitente nas observações (recomendação aceita). Regra igual à do Claudio Kuss, sem lista de bancos para manter, sem perder carro bom de locadora. Registrado em RN-02.
+
 ## 10. Lacunas
 
 - 🔴 **Verificação técnica para o plano (decide o desenho):** se o Milan busca os lotes num endereço de dados aberto (sem o desafio), o que dispensaria o Apify; qual ator do Apify usar (navegador sem cabeça para passar o desafio do Cloudflare) e o custo real por página; se o desafio "managed" passa pelo Apify com IP de datacenter ou exige IP residencial; o pátio de cada leilão (endereço na página do leilão); se o catálogo e a página do leilão mudam de formato entre leilões.
@@ -139,4 +144,5 @@ Cenário: Troca automática para o Apify quando habilitada
 
 | Data | Alteração | Autor |
 |------|-----------|-------|
+| 2026-10-13 | Sessão de esclarecimento: RN-02 (todos os lotes, comitente nas observações) | `/reversa-clarify` |
 | 2026-10-13 | Versão inicial gerada por `/reversa-requirements` a partir dos prints do Rafael, do catálogo de 2026-10-11, de 4 requisições de teste (todas com desafio do Cloudflare) e da spec do coletor | reversa |
