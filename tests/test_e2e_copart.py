@@ -91,7 +91,10 @@ def test_copart_bloqueando_nao_impede_o_vip_e_gera_alerta(raiz, relogio, agora):
     assert "Copart" in alerta and "bloque" in alerta.lower()
     busca = cenario.banco().execute("SELECT veredito, motivo FROM execucao_busca WHERE leiloeiro_id='copart' "
                                     "ORDER BY iniciado_em DESC").fetchone()
-    assert (busca["veredito"], busca["motivo"]) == ("bloqueado", "preparacao_sessao: desafio_antibot")
+    assert (busca["veredito"], busca["motivo"]) == ("bloqueado", "pagina 1: desafio_antibot")
+    relatorio = sorted((raiz / "1OUTPUT").glob("*_varredura*.md"))[-1].read_text(encoding="utf-8")
+    assert "| Copart | bloqueado pelo site (pagina 1: desafio_antibot) |" in relatorio
+    assert "| Vip Leilões | ok: 1 lote(s) lido(s) |" in relatorio
 
 
 def test_alerta_de_bloqueio_no_maximo_um_por_dia(raiz, relogio, agora):
@@ -118,6 +121,12 @@ def test_duster_oroch_excluida_pelo_alvo(raiz, relogio, agora):
     (digest,) = cenario.mensagens
     assert "lotDetail/2000" in digest
     assert "OROCH" not in digest
+
+
+def test_busca_nao_passa_pela_pagina_html(raiz, relogio, agora):
+    cenario = _cenario(raiz, relogio, agora, lotes=[])
+    cenario.varrer()
+    assert all(caminho == "/public/vehicleFinder/search" for _, caminho, _ in cenario.copart.chamadas)
 
 
 def test_estreia_da_copart_lista_os_semeados_com_patio(raiz, relogio, agora):

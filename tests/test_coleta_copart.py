@@ -43,14 +43,10 @@ def test_filtros_aceitos_e_chave_desconhecida():
         adaptador.validar_filtros({"condicao": "FINANCIAMENTO", "procedencia": 4})
 
 
-def test_preparar_sessao_abre_a_pagina_da_busca(roteiro, relogio):
-    from bot_leilao.coleta.http import ClienteHTTP
-
-    transp = roteiro(lambda r: httpx.Response(200, text="<html>busca</html>"))
-    cliente = ClienteHTTP(transp.transporte, relogio=relogio.agora, dormir=relogio.dormir)
-    assert AdaptadorCopart().preparar_sessao(cliente).ok
-    (chamada,) = transp.chamadas
-    assert (chamada.method, str(chamada.url)) == ("GET", f"{BASE}/vehicleFinderSearch")
+def test_nao_abre_a_pagina_html_da_busca():
+    """Emenda E001 (2026-10-13): o Imperva barra a página HTML da busca, mas não a busca JSON. Abrir a página
+    "como um navegador" (D-56) era o que provocava o bloqueio."""
+    assert AdaptadorCopart().preparar_sessao(None) is None
 
 
 def test_requisicao_da_primeira_pagina():

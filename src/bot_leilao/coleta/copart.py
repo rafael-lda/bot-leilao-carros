@@ -11,7 +11,7 @@ import json
 import logging
 from collections.abc import Mapping
 
-from bot_leilao.coleta.modelos import Requisicao, ResultadoHTTP
+from bot_leilao.coleta.modelos import Requisicao
 from bot_leilao.coleta.registro import registrar_adaptador
 
 log = logging.getLogger(__name__)
@@ -51,9 +51,11 @@ class AdaptadorCopart:
             if not all(str(v).strip() for v in _valores(valor)):
                 raise ValueError(f"o filtro '{chave}' da {NOME} não aceita valor vazio")
 
-    def preparar_sessao(self, cliente) -> ResultadoHTTP:
-        """Abre a página da busca, como um navegador, para obter os cookies do Imperva (D-56)."""
-        return cliente.requisitar(Requisicao("GET", f"{BASE}/vehicleFinderSearch"))
+    def preparar_sessao(self, cliente) -> None:
+        """Nenhuma: a busca JSON responde sem sessão. Emenda E001 (2026-10-13): o Imperva passou a barrar a página
+        HTML `/vehicleFinderSearch` (desafio com status 200) e deixa a busca JSON passar; abrir a página antes
+        (D-56, "como um navegador") era o que provocava o bloqueio."""
+        return None
 
     def montar_requisicao(self, filtros: Mapping, pagina: int) -> Requisicao:
         self.validar_filtros(filtros)

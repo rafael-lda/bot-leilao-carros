@@ -81,6 +81,12 @@ Política de escrita: `allowLegacyEdits: true`, `allowedPaths` vazio (liberaçã
 | T031 | Seção "Feature 003" em `tests/RASTREABILIDADE.md`, conferida mecanicamente | T026 | `[//]` | `tests/RASTREABILIDADE.md` | 🟢 | `[X]` |
 | T032 | Ajustar `onboarding.md` com o que o dry-run real mostrou | T029 | `[//]` | `_reversa_forward/003-…/onboarding.md` | 🟢 | `[X]` |
 
+## Emendas
+
+| ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
+|----|-----------|--------------|-------------|--------------|-------------|--------|
+| E001 | Copart sem `GET /vehicleFinderSearch` antes da busca (o Imperva barrava a página HTML; a busca JSON passa); seção "Leiloeiros" no relatório com a situação de cada um; linha "Pátio" anotada nos 3 lotes do Kuss já presentes na lista | T022, T026 | - | `src/bot_leilao/coleta/copart.py`, `src/bot_leilao/notificacao/relatorio.py`, `src/bot_leilao/orquestrador.py` | 🟢 | `[X]` |
+
 ## Notas de execução
 
 - **T014 (2026-10-11), lacuna achada ao escrever o teste:** o RF-07 promete alerta quando a Copart bloquear, mas o orquestrador só alertava quebra de parser e falha geral (todos os leiloeiros). Bloqueio de **um** leiloeiro virava só "sucesso parcial" no banco, sem aviso no Telegram, contra o princípio de não falhar em silêncio. Resolução: T026 passa a incluir um alerta de bloqueio por leiloeiro ("acesso bloqueado pelo site"), com o mesmo limite de 1 por dia por leiloeiro. A falha geral continua tendo prioridade (alerta único). Testes: `test_e2e_copart.py::test_copart_bloqueando_nao_impede_o_vip_e_gera_alerta`, `::test_alerta_de_bloqueio_no_maximo_um_por_dia`.

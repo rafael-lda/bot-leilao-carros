@@ -48,3 +48,10 @@ W019, W020, W021, W022, W023, W024, todos na seção "Observações" (sem peso d
 - `_reversa_forward/003-leiloeiro-copart/actions.md` (notas de execução, incluindo o alerta de bloqueio)
 - `_reversa_forward/003-leiloeiro-copart/interfaces/copart-busca.md`
 - `_reversa_forward/003-leiloeiro-copart/audit/cross-check.md`
+
+## Atualização 2026-10-13
+
+| Artefato | Seção | Tipo de impacto | Delta |
+|----------|-------|-----------------|-------|
+| `_reversa_sdd/sdd/coletor-lotes.md` | §6 RF-12 | delta-de-contrato-externo | A Copart não abre mais a página HTML `/vehicleFinderSearch` antes da busca: o Imperva passou a barrá-la (desafio com status 200) e a busca JSON responde sem sessão. Emenda E001 da feature 003. |
+| `_reversa_sdd/sdd/agendador-observabilidade.md` | §6 (relatório da execução) | regra-nova | O relatório Markdown de cada varredura tem a seção "Leiloeiros", com a situação de cada um (lido, bloqueado, falha de acesso ou leitor quebrado), para o veredito parcial ter explicação. |

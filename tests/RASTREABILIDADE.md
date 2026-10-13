@@ -131,3 +131,7 @@
 | 3 | Todo aviso mostra o pátio | `test_e2e_copart.py::test_todo_aviso_mostra_o_patio` |
 | 4 | Copart bloqueando não derruba os outros | `test_e2e_copart.py::test_copart_bloqueando_nao_impede_o_vip_e_gera_alerta` |
 | 5 | Formato alterado vira alerta | `test_e2e_copart.py::test_formato_alterado_vira_alerta_da_copart` |
+
+| Emenda | Testes |
+|--------|--------|
+| E001 da 003 — Copart sem a página HTML; situação dos leiloeiros no relatório | `test_coleta_copart.py::test_nao_abre_a_pagina_html_da_busca`, `test_e2e_copart.py::test_busca_nao_passa_pela_pagina_html`, `test_e2e_copart.py::test_copart_bloqueando_nao_impede_o_vip_e_gera_alerta`, `test_relatorio.py::test_relatorio_mostra_a_situacao_de_cada_leiloeiro`, `test_relatorio.py::test_sem_situacao_de_leiloeiros_nao_ha_secao` |

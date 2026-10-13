@@ -146,6 +146,17 @@ Cenário: Formato alterado vira alerta
 
 - 🟡 **Verificação técnica para o plano:** campo exato do valor FIPE e da data do leilão no JSON (vazios nos lotes "Aguardando Classificação"); significado de `hb` (lance atual) versus lance inicial; lotes "Compre Agora" (84 no site) e se entram; leitura das 16 páginas no ritmo do bot sem desafio do Imperva (teste realista pedido pelo Rafael); grafias de marca da Copart frente à tabela de sinônimos.
 
+## Emendas
+
+### E001 — Copart sem a página HTML e situação dos leiloeiros no relatório (2026-10-13)
+
+**Motivo:** na primeira varredura real depois da entrega (13/10/2026 07:34, notebook do Rafael), o Imperva respondeu a abertura da página `/vehicleFinderSearch` com a página de desafio (status 200). O bot detectou certo (bloqueado + alerta no Telegram), mas a Copart ficou sem leitura: nada foi semeado e nada entrou na lista. Teste no mesmo dia, da mesma internet: a página HTML continua barrada e a **busca JSON responde normalmente sem ela** (1.507 lotes). Além disso, o relatório do dia dizia só "sucesso_parcial", sem dizer qual leiloeiro falhou, e os 3 lotes do Kuss já na lista não mostravam o pátio (entraram antes do campo existir; o bot só acrescenta).
+
+**O que muda:**
+- A Copart deixa de abrir a página HTML antes da busca (revê a D-56 do roadmap).
+- O relatório de cada varredura ganha a seção **"Leiloeiros"**, com a situação de cada um: "ok: N lote(s) lido(s)", "bloqueado pelo site (...)", "falha de acesso (...)" ou "o leitor não entendeu a página (...)".
+- Os 3 lotes do Kuss na lista receberam à mão a linha "Pátio: Curitiba - PR".
+
 ## 11. Histórico de alterações
 
 | Data | Alteração | Autor |
@@ -153,4 +164,5 @@ Cenário: Formato alterado vira alerta
 | 2026-10-11 | Versão inicial gerada por `/reversa-requirements` a partir da triagem da Copart (CSV exportado, prints e 9 requisições à busca JSON) | reversa |
 | 2026-10-11 | Sessão de esclarecimento: RN-06 (avisar lote aguardando classificação) resolvida | `/reversa-clarify` |
 | 2026-10-11 | RN-09 e RF-10 (palavras a excluir no veículo-alvo), pedido do Rafael durante o plano | Rafael + Claude |
+| 2026-10-13 | Emenda E001: Copart sem a página HTML; situação dos leiloeiros no relatório | Rafael + Claude |
 | 2026-10-11 | Correções do `/reversa-audit` (A001, A002, A005 a A007): RF-05 alinhado ao formato de Observações e Pregão; RN-06 com "a definir" nas observações; grafia do pátio do Kuss; ordem das regras e requisitos. Decisões do Rafael para A001 e A002 | Rafael + Claude |

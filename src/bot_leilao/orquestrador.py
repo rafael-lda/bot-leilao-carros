@@ -102,6 +102,7 @@ class _Execucao:
         # Emenda E001 (relatório Markdown)
         self.novos: list[LoteRelatorio] = []
         self.semeados_lotes: list[LoteRelatorio] = []   # E001 da feature 002
+        self.leiloeiros: list[tuple[str, str]] = []     # situação de cada leiloeiro; E001 da feature 003
         self.telegram: str | None = None
         self.semeados = 0
         self.em_semeadura = False
@@ -168,7 +169,8 @@ def _gravar_relatorio(raiz: Path, estado: "_Execucao", inicio_local: datetime, s
         caminho = gravar_relatorio(raiz / PASTA_RELATORIOS, DadosRelatorio(
             inicio=inicio_local, duracao_s=segundos, veredito=estado.veredito, motivo=estado.motivo,
             novos=estado.novos, telegram=estado.seguro(estado.telegram), semeados=estado.semeados,
-            em_semeadura=estado.em_semeadura, semeados_lotes=estado.semeados_lotes))
+            em_semeadura=estado.em_semeadura, semeados_lotes=estado.semeados_lotes,
+            leiloeiros=[(nome, estado.seguro(situacao)) for nome, situacao in estado.leiloeiros]))
         log.info("exec    | relatório gravado em %s", caminho)
         nome_relatorio = caminho.name
     except Exception as erro:  # noqa: BLE001
@@ -260,6 +262,7 @@ def _executar(raiz: Path, dry_run: bool, deps: Dependencias, fuso: tzinfo, con, 
     finally:
         cliente.fechar()
     estado.contagens.update(filtragem.contagens())
+    estado.leiloeiros = _situacao_leiloeiros(leiloeiros.ativos, respostas, parsings)
 
     # Semeadura e digest.
     if filtragem.buscas_a_semear:
@@ -352,6 +355,26 @@ def _processar(respostas, leiloeiros, adaptadores) -> tuple[dict[str, ResultadoP
              if r.veredito is Veredito.OK and not parsings[r.busca_id].quebra_suspeita
              and not parsings[r.busca_id].sem_conteudo}
     return parsings, aptas
+
+
+def _situacao_leiloeiros(leiloeiros, respostas, parsings) -> list[tuple[str, str]]:
+    """Uma linha por leiloeiro para o relatório (E001 da feature 003): o veredito parcial passa a ter explicação."""
+    situacoes = []
+    for leiloeiro in leiloeiros:
+        dele = [r for r in respostas if r.leiloeiro_id == leiloeiro.id]
+        bloqueadas = [r.motivo or "bloqueado" for r in dele if r.veredito is Veredito.BLOQUEADO]
+        falhas = [r.motivo or r.veredito.value for r in dele if r.veredito not in (Veredito.OK, Veredito.BLOQUEADO)]
+        quebras = [parsings[r.busca_id].motivo_quebra or "quebra" for r in dele if parsings[r.busca_id].quebra_suspeita]
+        if bloqueadas:
+            situacao = f"bloqueado pelo site ({'; '.join(sorted(set(bloqueadas)))})"
+        elif falhas:
+            situacao = f"falha de acesso ({'; '.join(sorted(set(falhas)))})"
+        elif quebras:
+            situacao = f"o leitor não entendeu a página ({'; '.join(quebras)})"
+        else:
+            situacao = f"ok: {sum(len(parsings[r.busca_id].lotes) for r in dele)} lote(s) lido(s)"
+        situacoes.append((leiloeiro.nome, situacao))
+    return situacoes
 
 
 def _enriquecer(filtragem, cliente: ClienteHTTP, adaptadores, detalhar_semeados: bool) -> list:

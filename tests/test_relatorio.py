@@ -281,3 +281,18 @@ def test_lista_traz_patio_e_fipe(tmp_path):
     texto = caminho.read_text(encoding="utf-8")
     assert "- **Pátio:** VITÓRIA DE SANTO ANTÃO - PE" in texto
     assert "- **FIPE:** R$ 80.266 (lance = 45% da FIPE)" in texto
+
+
+# --- Emenda E001 da feature 003: situação de cada leiloeiro no relatório ----------------------------
+
+def test_relatorio_mostra_a_situacao_de_cada_leiloeiro():
+    texto = montar_relatorio(_dados(veredito="sucesso_parcial", leiloeiros=[
+        ("Vip Leilões", "ok: 130 lote(s) lido(s)"), ("Copart", "bloqueado pelo site (pagina 1: desafio_antibot)")]))
+    assert "## Leiloeiros" in texto
+    assert "| Vip Leilões | ok: 130 lote(s) lido(s) |" in texto
+    assert "| Copart | bloqueado pelo site (pagina 1: desafio_antibot) |" in texto
+    assert texto.index("## Leiloeiros") < texto.index("## Lotes novos")
+
+
+def test_sem_situacao_de_leiloeiros_nao_ha_secao():
+    assert "## Leiloeiros" not in montar_relatorio(_dados())

@@ -12,7 +12,7 @@
 | Base | `https://www.copart.com.br` 🟢 |
 | Proteção | Imperva (cabeçalho `x-cdn: Imperva`); em 2026-10-11, 35 requisições (2 leituras completas) passaram sem desafio 🟢. Na triagem de 2026-10-10 a página inicial foi barrada 🟡 |
 | Login | não exigido para a busca 🟢 (verificado pelo Rafael em janela anônima e pelo bot) |
-| Sessão | `preparar_sessao`: `GET /vehicleFinderSearch` (página da busca, 200, ~220 KB), para obter os cookies do Imperva como um navegador; as leituras de teste funcionaram também sem esse passo 🟡 |
+| Sessão | **nenhuma** (emenda E001, 2026-10-13): a página `GET /vehicleFinderSearch` passou a receber o desafio do Imperva (status 200), enquanto a busca JSON responde sem sessão 🟢 |
 | Área proibida | `/data/...`, `/client/...` (área de membro) — nunca chamar |
 
 ## 2. Busca: `POST /public/vehicleFinder/search`

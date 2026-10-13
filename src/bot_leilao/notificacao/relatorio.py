@@ -104,6 +104,7 @@ class DadosRelatorio:
     semeados: int = 0
     em_semeadura: bool = False
     semeados_lotes: list[LoteRelatorio] = field(default_factory=list)   # E001 da feature 002
+    leiloeiros: list[tuple[str, str]] = field(default_factory=list)      # (nome, situação); E001 da feature 003
 
 
 def _duracao(segundos: float) -> str:
@@ -128,6 +129,12 @@ def montar_relatorio(dados: DadosRelatorio) -> str:
         f"| Lotes novos | {len(dados.novos)} |",
         f"| Telegram | {_celula(dados.telegram) if dados.telegram else 'nada a enviar'} |",
         "",
+    ]
+    if dados.leiloeiros:
+        linhas += ["## Leiloeiros", "", "| Leiloeiro | Situação |", "|---|---|"]
+        linhas += [f"| {_celula(nome)} | {_celula(situacao)} |" for nome, situacao in dados.leiloeiros]
+        linhas.append("")
+    linhas += [
         "## Lotes novos",
         "",
     ]
