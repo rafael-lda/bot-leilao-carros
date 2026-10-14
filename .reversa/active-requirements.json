@@ -4,10 +4,12 @@
   "feature-id": "005",
   "short-name": "leiloeiro-milan",
   "started-at": "2026-10-13T14:57:00-03:00",
-  "current-stage": "clarify",
+  "current-stage": "to-do",
   "stages-completed": [
     "requirements",
-    "clarify"
+    "clarify",
+    "plan",
+    "to-do"
   ],
   "paused-features": []
 }

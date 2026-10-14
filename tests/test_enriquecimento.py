@@ -92,3 +92,80 @@ def test_sucata_no_detalhe_sai_da_lista_e_e_contada(relogio):
     resultado = _enriquecer([_kuss(), _vip()], site, relogio)
     assert [c.lote.leiloeiro_id for c in resultado.novos] == ["vip-leiloes"]
     assert (resultado.sucatas, resultado.retirados) == (1, 0)
+
+
+# --- Feature 005: nível do leiloeiro no detalhe e teto conferido depois dele (D-87, D-98) -------------
+
+from decimal import Decimal  # noqa: E402
+
+from apoio import BASE_MILAN, lote_milan_com_lance  # noqa: E402
+from bot_leilao.coleta.modelos import ResultadoHTTP, Veredito  # noqa: E402
+
+
+class ClienteDePaginas:
+    """Devolve o mesmo conteúdo para qualquer requisição e guarda as requisições."""
+
+    def __init__(self, conteudo: bytes):
+        self.conteudo = conteudo
+        self.recebidas = []
+
+    def requisitar(self, requisicao):
+        self.recebidas.append(requisicao)
+        return ResultadoHTTP(veredito=Veredito.OK, status_http=200, conteudo=self.conteudo, tentativas=1,
+                             duracao_ms=1, url=requisicao.url)
+
+
+def _creta_milan():
+    import bot_leilao.coleta.milan  # noqa: F401 — registra o adaptador (importado aqui: os testes acima não dependem dele)
+    import bot_leilao.parsing.milan  # noqa: F401 — registra o parser
+
+    creta = lote(id_canonico="milan-leiloes:15618-046", leiloeiro_id="milan-leiloes", busca_id="milan-leiloes:f",
+                 link=f"{BASE_MILAN}/leilao/15618/lote/046", titulo="HYUNDAI CRETA ACTION 1.6 FLEX 4P ANO 2022/2022",
+                 marca="hyundai", modelo="creta action 1.6 flex 4p", ano_fabricacao=2022, ano_modelo=2022,
+                 lance_inicial=None, lance_corrente=None, quilometragem=99020, evento_id="15618")
+    teto_55 = alvo(id="hyundai-creta", marca="Hyundai", modelo="Creta", ano_min=2017, ano_max=2022,
+                   preco_maximo=Decimal("55000"))
+    return Candidato(lote=creta, alvo=teto_55, preco_a_confirmar=True, km_a_confirmar=False)
+
+
+def _pagina_do_lote(lance):
+    return lote_milan_com_lance("046", lance)["content"].encode("utf-8")
+
+
+def test_detalhe_sai_pelo_nivel_do_leiloeiro():
+    cliente = ClienteDePaginas(_pagina_do_lote("50.000,00"))
+    enriquecer([_creta_milan()], cliente, registro.adaptadores(), nucleo.parsers(), niveis={"milan-leiloes": "apify"})
+    (requisicao,) = cliente.recebidas
+    assert requisicao.nivel == "apify"
+
+
+def test_sem_mapa_de_niveis_o_detalhe_sai_pelo_script():
+    cliente = ClienteDePaginas(_pagina_do_lote("50.000,00"))
+    enriquecer([_creta_milan()], cliente, registro.adaptadores(), nucleo.parsers())
+    assert cliente.recebidas[0].nivel == "script"
+
+
+def test_lance_do_detalhe_dentro_do_teto_segue_para_o_aviso():
+    resultado = enriquecer([_creta_milan()], ClienteDePaginas(_pagina_do_lote("50.000,00")), registro.adaptadores(),
+                           nucleo.parsers())
+    (candidato,) = resultado.novos
+    assert candidato.lote.lance_corrente == Decimal("50000")
+    assert resultado.acima_do_teto == 0
+
+
+def test_lance_do_detalhe_acima_do_teto_sai_do_aviso_e_e_contado(caplog):
+    with caplog.at_level(logging.INFO, logger="bot_leilao"):
+        resultado = enriquecer([_creta_milan()], ClienteDePaginas(_pagina_do_lote("70.000,00")),
+                               registro.adaptadores(), nucleo.parsers())
+    assert resultado.novos == []
+    assert resultado.acima_do_teto == 1
+    assert resultado.detalhados == 1
+    assert "milan-leiloes:15618-046" in caplog.text and "teto" in caplog.text
+
+
+def test_detalhe_sem_lance_mantem_o_candidato_com_preco_a_confirmar():
+    resultado = enriquecer([_creta_milan()], ClienteDePaginas(_pagina_do_lote("---")), registro.adaptadores(),
+                           nucleo.parsers())
+    (candidato,) = resultado.novos
+    assert candidato.lote.lance_corrente is None
+    assert resultado.acima_do_teto == 0

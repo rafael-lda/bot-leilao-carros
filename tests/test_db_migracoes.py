@@ -7,7 +7,7 @@ import pytest
 from bot_leilao.db.conexao import ErroBanco, conectar, de_iso, para_iso
 from bot_leilao.db.migracoes import VERSAO_ATUAL, migrar
 
-TABELAS = {"lote_conhecido", "busca_semeada", "execucao", "execucao_leiloeiro", "execucao_busca"}
+TABELAS = {"lote_conhecido", "busca_semeada", "execucao", "execucao_leiloeiro", "execucao_busca", "evento_visto"}
 INDICES = {"ix_lote_conhecido_registrado_em", "ix_lote_conhecido_leiloeiro",
            "ix_execucao_iniciado_em", "ix_execucao_leiloeiro_leiloeiro"}
 
@@ -26,10 +26,10 @@ def test_conectar_cria_pasta_e_aplica_pragmas(tmp_path):
 
 def test_migrar_cria_as_cinco_tabelas_e_indices(caminho_banco):
     con = conectar(caminho_banco)
-    assert migrar(con) == VERSAO_ATUAL == 1
+    assert migrar(con) == VERSAO_ATUAL == 2  # feature 005: evento_visto
     assert TABELAS <= _nomes(con, "table")
     assert INDICES <= _nomes(con, "index")
-    assert con.execute("PRAGMA user_version").fetchone()[0] == 1
+    assert con.execute("PRAGMA user_version").fetchone()[0] == 2
 
 
 def test_migrar_e_idempotente(caminho_banco):
@@ -37,7 +37,7 @@ def test_migrar_e_idempotente(caminho_banco):
     migrar(con)
     con.execute("INSERT INTO execucao (id, iniciado_em, modo) VALUES ('x', '2026-10-05T11:00:00.000Z', 'normal')")
     con.commit()
-    assert migrar(con) == 1
+    assert migrar(con) == 2
     assert con.execute("SELECT COUNT(*) FROM execucao").fetchone()[0] == 1
 
 

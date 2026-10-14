@@ -163,11 +163,53 @@ def test_logado_ativo_nao_implementado_nesta_versao(raiz):
     assert "não implementado" in str(erro.value)
 
 
-@pytest.mark.parametrize("nivel", ["apify", "apify_residencial"])
-def test_nivel_pago_ativo_nao_implementado_nesta_versao(raiz, nivel):
+def test_nivel_apify_residencial_ainda_nao_implementado(raiz):
     with pytest.raises(ErroConfiguracao) as erro:
-        _carregar(raiz, _yaml(nivel_coleta=nivel))
+        _carregar(raiz, _yaml(nivel_coleta="apify_residencial"))
     assert "não implementado" in str(erro.value)
+
+
+# --- Feature 005: nível apify, intervalo e ator (D-88, D-90, D-101) ---------------------------------
+
+
+def test_nivel_apify_implementado_com_ator_padrao_e_sem_intervalo(raiz):
+    (vip,) = _carregar(raiz, _yaml(nivel_coleta="apify")).ativos
+    assert vip.nivel_coleta == "apify"
+    assert vip.apify_ator is None, "ausente = ator padrão do cliente Apify"
+    assert vip.intervalo_horas is None
+
+
+@pytest.mark.parametrize("valor, esperado", [("1", 1), ("72", 72), ("720", 720)])
+def test_intervalo_horas_aceito(raiz, valor, esperado):
+    (vip,) = _carregar(raiz, _yaml(intervalo_horas=valor)).ativos
+    assert vip.intervalo_horas == esperado
+
+
+@pytest.mark.parametrize("valor", ["0", "-5", "721", "3.5", "tres", "true", "''"])
+def test_intervalo_horas_invalido_cita_o_campo_e_a_faixa(raiz, valor):
+    with pytest.raises(ErroConfiguracao) as erro:
+        _carregar(raiz, _yaml(intervalo_horas=valor))
+    assert "intervalo_horas" in str(erro.value)
+    assert "1 e 720" in str(erro.value)
+
+
+def test_apify_ator_conhecido(raiz):
+    (vip,) = _carregar(raiz, _yaml(nivel_coleta="apify", apify_ator="neatrat/cloudflare-scraper")).ativos
+    assert vip.apify_ator == "neatrat/cloudflare-scraper"
+
+
+def test_apify_ator_sem_perfil_lista_os_conhecidos(raiz):
+    with pytest.raises(ErroConfiguracao) as erro:
+        _carregar(raiz, _yaml(nivel_coleta="apify", apify_ator="alguem/outro-ator"))
+    assert "alguem/outro-ator" in str(erro.value)
+    assert "neatrat/cloudflare-scraper" in str(erro.value)
+
+
+def test_apify_ator_so_vale_com_nivel_apify(raiz):
+    with pytest.raises(ErroConfiguracao) as erro:
+        _carregar(raiz, _yaml(apify_ator="neatrat/cloudflare-scraper"))
+    assert "apify_ator" in str(erro.value)
+    assert "nivel_coleta: apify" in str(erro.value)
 
 
 def test_nivel_omitido_vale_script(raiz):

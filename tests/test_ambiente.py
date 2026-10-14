@@ -58,3 +58,40 @@ def test_dry_run_dispensa_variaveis_do_telegram(raiz):
     ambiente = carregar_ambiente(raiz, exigir_telegram=False, environ={})
     assert ambiente.telegram_token is None
     assert ambiente.segredos == []
+
+
+# --- Feature 005: token do Apify (RF-02; roadmap D-90) ------------------------------------------------
+
+TOKEN_APIFY = "apify_api_SegredoDeTesteComTamanhoSuficiente123"
+
+
+def test_token_do_apify_lido_do_env_e_mascarado_como_segredo(raiz):
+    _env(raiz, f"TELEGRAM_BOT_TOKEN={TOKEN}\nTELEGRAM_CHAT_ID=1\nAPIFY_TOKEN={TOKEN_APIFY}\n")
+    ambiente = carregar_ambiente(raiz, environ={}, exigir_apify=("Milan Leilões",))
+    assert ambiente.apify_token == TOKEN_APIFY
+    assert TOKEN_APIFY in ambiente.segredos
+    assert TOKEN in ambiente.segredos
+
+
+def test_token_do_apify_tambem_vem_do_ambiente(raiz):
+    ambiente = carregar_ambiente(raiz, environ={"TELEGRAM_BOT_TOKEN": TOKEN, "TELEGRAM_CHAT_ID": "1",
+                                                "APIFY_TOKEN": TOKEN_APIFY})
+    assert ambiente.apify_token == TOKEN_APIFY
+
+
+@pytest.mark.parametrize("linha", ["", "APIFY_TOKEN=\n", "APIFY_TOKEN=   \n"])
+def test_sem_token_do_apify_aborta_so_quando_exigido_citando_leiloeiro_e_variavel(raiz, linha):
+    _env(raiz, f"TELEGRAM_BOT_TOKEN={TOKEN}\nTELEGRAM_CHAT_ID=1\n{linha}")
+    assert carregar_ambiente(raiz, environ={}).apify_token is None, "sem leiloeiro pago, o token não é exigido"
+    with pytest.raises(ErroConfiguracao) as erro:
+        carregar_ambiente(raiz, environ={}, exigir_apify=("Milan Leilões",))
+    assert "APIFY_TOKEN" in str(erro.value)
+    assert "Milan Leilões" in str(erro.value)
+
+
+def test_token_do_apify_exigido_mesmo_em_dry_run(raiz):
+    with pytest.raises(ErroConfiguracao, match="APIFY_TOKEN"):
+        carregar_ambiente(raiz, exigir_telegram=False, environ={}, exigir_apify=("Milan Leilões",))
+    ambiente = carregar_ambiente(raiz, exigir_telegram=False, environ={"APIFY_TOKEN": TOKEN_APIFY},
+                                 exigir_apify=("Milan Leilões",))
+    assert ambiente.segredos == [TOKEN_APIFY]

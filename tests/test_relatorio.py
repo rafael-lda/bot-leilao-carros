@@ -338,3 +338,26 @@ def test_relatorio_mostra_a_situacao_de_cada_leiloeiro():
 
 def test_sem_situacao_de_leiloeiros_nao_ha_secao():
     assert "## Leiloeiros" not in montar_relatorio(_dados())
+
+
+# --- Feature 005: câmbio informado pelo leiloeiro (RN-04; roadmap D-99) ------------------------------
+
+
+def test_cambio_informado_preenche_a_linha_da_lista(tmp_path):
+    caminho = tmp_path / "lotes-a-monitorar.md"
+    acrescentar_monitoramento(caminho, [lote_de(_candidato(cambio="automático"), "Milan Leilões")])
+    texto = caminho.read_text(encoding="utf-8")
+    assert "- **Câmbio:** automático\n" in texto
+
+
+def test_cambio_desconhecido_deixa_a_linha_em_branco(tmp_path):
+    caminho = tmp_path / "lotes-a-monitorar.md"
+    acrescentar_monitoramento(caminho, [lote_de(_candidato(cambio=None), "Vip Leilões")])
+    assert "- **Câmbio:**\n" in caminho.read_text(encoding="utf-8")
+
+
+def test_cambio_no_relatorio_da_varredura_so_quando_informado():
+    com = montar_relatorio(_dados(novos=[lote_de(_candidato(cambio="manual"), "Milan Leilões")]))
+    sem = montar_relatorio(_dados())
+    assert "- **Câmbio:** manual" in com
+    assert "Câmbio" not in sem

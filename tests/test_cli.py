@@ -93,3 +93,38 @@ def test_log_em_arquivo(cenario):
     log = (cenario.raiz / "dados" / "logs" / "bot-leilao.log").read_text(encoding="utf-8")
     assert "coleta  | Vip Leilões" in log
     assert "exec    | sucesso" in log
+
+
+# --- Feature 005: varredura sem os leiloeiros pagos (RF-11; roadmap D-100) ----------------------------
+
+
+def _capturar_varrer(monkeypatch):
+    import bot_leilao.cli as cli
+    from bot_leilao.orquestrador import _resultado
+
+    chamadas = []
+
+    def falso(raiz, dry_run=False, deps=None, sem_pagos=False):
+        chamadas.append({"dry_run": dry_run, "sem_pagos": sem_pagos})
+        return _resultado("sucesso")
+
+    monkeypatch.setattr(cli, "varrer", falso)
+    return chamadas
+
+
+def test_opcao_sem_pagos_chega_ao_orquestrador(cenario, monkeypatch):
+    chamadas = _capturar_varrer(monkeypatch)
+    assert _rodar(cenario, "varrer", "--sem-pagos") == 0
+    assert chamadas == [{"dry_run": False, "sem_pagos": True}]
+
+
+def test_sem_a_opcao_os_pagos_entram(cenario, monkeypatch):
+    chamadas = _capturar_varrer(monkeypatch)
+    _rodar(cenario, "varrer", "--dry-run")
+    assert chamadas == [{"dry_run": True, "sem_pagos": False}]
+
+
+def test_ajuda_explica_a_opcao(capsys):
+    with pytest.raises(SystemExit):
+        principal(["varrer", "--help"])
+    assert "--sem-pagos" in capsys.readouterr().out

@@ -56,3 +56,14 @@ def test_grafias_do_claudio_kuss(bruta, canonica, caplog):
     with caplog.at_level(logging.INFO, logger="bot_leilao"):
         assert marca_canonica(bruta) == canonica
     assert "fora da tabela" not in caplog.text
+
+
+@pytest.mark.parametrize("bruta, canonica", [("M-BENZ", "mercedes-benz"), ("CINTROEN", "citroen")])
+def test_grafias_do_milan(bruta, canonica, caplog):
+    """Feature 005 (D-95): `I/M-BENZ A200` e o erro de digitação `CINTROEN C3` do catálogo de 2026-10-13."""
+    assert marca_canonica(bruta) == canonica
+    assert "fora da tabela" not in caplog.text
+
+
+def test_jaguar_e_marca_conhecida():
+    assert "jaguar" in MARCAS_CONHECIDAS

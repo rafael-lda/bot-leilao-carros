@@ -64,6 +64,7 @@ def alvo(**campos):
 # ---------------------------------------------------------------------------
 
 import json as _json
+import re as _re
 import sqlite3 as _sqlite3
 from datetime import timedelta as _timedelta
 
@@ -129,6 +130,8 @@ class CenarioE2E:
     `kuss`: `SiteKuss` que responde pelo host do Claudio Kuss (feature 002), ou None.
     `copart`: `SiteCopart` que responde pelo host da Copart (feature 003), ou None.
     `freitas`: `SiteFreitas` que responde pelo host do Freitas (feature 004), ou None.
+    `apify`: `ApifySimulado` que responde pelo host da API do Apify (feature 005), ou None. Requisição direta ao
+    host do Milan nunca deveria acontecer: fica em `chamadas_milan_locais` e recebe o desafio do Cloudflare.
     `telegram`: status HTTP das respostas do Telegram (200 = ok), ou uma exceção httpx (classe).
     """
 
@@ -144,16 +147,20 @@ class CenarioE2E:
         self.kuss: "SiteKuss | None" = None
         self.copart: "SiteCopart | None" = None
         self.freitas: "SiteFreitas | None" = None
+        self.apify: "ApifySimulado | None" = None
         self.telegram = 200
         self.mensagens: list[str] = []
         self.chamadas: list[_httpx.Request] = []
         self.ao_enviar = None
         self.transporte = _httpx.MockTransport(self._responder)
-        self.deps = Dependencias(
+        campos = dict(
             transporte_leiloeiros=self.transporte, transporte_telegram=self.transporte,
             relogio=relogio.agora, dormir=relogio.dormir, agora=agora, fuso=FUSO_SP,
             environ={"TELEGRAM_BOT_TOKEN": TOKEN_TESTE, "TELEGRAM_CHAT_ID": str(CHAT_TESTE)},
         )
+        if "transporte_apify" in Dependencias.__dataclass_fields__:  # feature 005
+            campos["transporte_apify"] = self.transporte
+        self.deps = Dependencias(**campos)
 
     def _falhar(self, alvo, request):
         if isinstance(alvo, int):
@@ -179,17 +186,43 @@ class CenarioE2E:
         if request.url.host == HOST_FREITAS:
             assert self.freitas is not None, "o cenário não simula o Freitas"
             return self.freitas.responder(request)
+        if request.url.host == HOST_APIFY:
+            assert self.apify is not None, "o cenário não simula o Apify"
+            return self.apify.responder(request)
+        if request.url.host == HOST_MILAN:
+            return _httpx.Response(403, text="<title>Just a moment...</title><script src=/cdn-cgi/challenge-platform/>")
         if not isinstance(self.vip, bytes):
             return self._falhar(self.vip, request)
         if request.url.path == "/":
             return _httpx.Response(200, text="home", headers={"Set-Cookie": "__CBCanal=abc; Path=/"})
         return _httpx.Response(200, content=self.vip, headers={"Content-Type": "text/html; charset=utf-8"})
 
-    def varrer(self, dry_run: bool = False):
+    def varrer(self, dry_run: bool = False, **opcoes):
+        """`opcoes` vão direto ao orquestrador (ex.: `sem_pagos=True`, feature 005)."""
         from bot_leilao.orquestrador import varrer
 
         self.agora.avancar(minutes=5)
-        return varrer(self.raiz, dry_run=dry_run, deps=self.deps)
+        return varrer(self.raiz, dry_run=dry_run, deps=self.deps, **opcoes)
+
+    def relatorio(self) -> str:
+        """Texto do relatório da última varredura real (1OUTPUT/*_varredura*.md)."""
+        return sorted((self.raiz / "1OUTPUT").glob("*_varredura*.md"))[-1].read_text(encoding="utf-8")
+
+    def lista(self) -> str:
+        caminho = self.raiz / "1OUTPUT" / "lotes-a-monitorar.md"
+        return caminho.read_text(encoding="utf-8") if caminho.exists() else ""
+
+    def alertas(self) -> list[str]:
+        return [m for m in self.mensagens if "Alerta do sistema" in m]
+
+    @property
+    def chamadas_milan_locais(self) -> list:
+        """Requisições que saíram direto para o Milan, sem o Apify (feature 005): deve ficar vazia."""
+        return [c for c in self.chamadas if c.url.host == HOST_MILAN]
+
+    def com_token_apify(self, token: str = None) -> "CenarioE2E":
+        self.deps.environ = {**self.deps.environ, "APIFY_TOKEN": token or TOKEN_APIFY_TESTE}
+        return self
 
     @property
     def chamadas_vip(self) -> list:
@@ -551,3 +584,156 @@ class SiteFreitas:
 
     def detalhes_pedidos(self) -> list[str]:
         return [f"{p['leilaoId']}-{p['loteNumero']}" for caminho, p in self.chamadas if caminho == "/Leiloes/LoteDetalhes"]
+
+
+# ---------------------------------------------------------------------------
+# Milan e Apify (feature 005): respostas reais do ator de 2026-10-13 (tests/fixtures/milan/).
+# ---------------------------------------------------------------------------
+
+FIXTURES_MILAN = FIXTURES / "milan"
+HOST_MILAN = "milanleiloes.com.br"
+HOST_APIFY = "api.apify.com"
+BASE_MILAN = "https://milanleiloes.com.br"
+ATOR_PADRAO_TESTE = "neatrat/cloudflare-scraper"
+CAMINHO_EXECUCAO = "/v2/acts/neatrat~cloudflare-scraper/run-sync-get-dataset-items"
+TOKEN_APIFY_TESTE = "apify_api_SegredoDeTesteComTamanhoSuficiente123"
+
+LEILOEIRO_MILAN = """\
+leiloeiros:
+  - nome: Milan Leilões
+    base_url: https://milanleiloes.com.br
+    estrategia_acesso: publico
+    nivel_coleta: apify
+    buscas:
+      - descricao: Recuperados de financiamento
+        filtros:
+          descricao_contem: recuperados de financiamento
+"""
+
+LEILOEIROS_VIP_E_MILAN = LEILOEIRO_VIP + LEILOEIRO_MILAN.removeprefix("leiloeiros:\n")
+
+ALVO_CRETA = """\
+veiculos:
+  - marca: Hyundai
+    modelo: Creta
+    ano_min: 2017
+    ano_max: 2022
+    preco_maximo: 55000
+    tipos_leilao: [financiamento]
+"""
+
+
+def item_milan(nome: str) -> dict:
+    """Item do dataset do ator (dict com url, content, status, success...) de uma fixture do Milan."""
+    (item,) = _json.loads((FIXTURES_MILAN / nome).read_text(encoding="utf-8"))
+    return item
+
+
+def html_milan(nome: str) -> bytes:
+    """HTML renderizado (campo `content`) de uma fixture do Milan, como o `ClienteApify` entrega ao parser."""
+    return item_milan(nome)["content"].encode("utf-8")
+
+
+def lote_milan_com_lance(numero: str = "046", lance: str = "50.000,00") -> dict:
+    """Página real do lote com o valor do lance atual trocado (o 046 real está sem lance: `R$ ---`)."""
+    item = item_milan(f"lote_{numero}.json")
+    html = item["content"]
+    achado = _re.search(r"(<h4><span>R\$ </span>)([^<]+)(</h4>)", html)
+    assert achado, "bloco do lance atual não encontrado na fixture"
+    item["content"] = html[:achado.start(2)] + lance + html[achado.end(2):]
+    return item
+
+
+def agenda_milan_sem_financiamento() -> dict:
+    item = item_milan("agenda.json")
+    assert "RECUPERADOS DE FINANCIAMENTO" in item["content"]
+    item["content"] = item["content"].replace("RECUPERADOS DE FINANCIAMENTO", "SUCATAS E SALVADOS")
+    return item
+
+
+def paginas_milan_reais() -> dict:
+    """URL do site → item do ator, com as cinco páginas reais."""
+    return {
+        f"{BASE_MILAN}/agenda/veiculos": item_milan("agenda.json"),
+        f"{BASE_MILAN}/leilao/15618/catalogo": item_milan("catalogo_15618.json"),
+        f"{BASE_MILAN}/leilao/15618/lote/001": item_milan("lote_001.json"),
+        f"{BASE_MILAN}/leilao/15618/lote/046": item_milan("lote_046.json"),
+        f"{BASE_MILAN}/leilao/15618/lote/209": item_milan("lote_209.json"),
+    }
+
+
+ERROS_APIFY = {
+    "token": (401, {"error": {"type": "user-or-token-not-found",
+                              "message": "User was not found or authentication token is not valid"}}),
+    "cota": (402, {"error": {"type": "not-enough-usage-to-run-paid-actor",
+                             "message": "You have exceeded your monthly usage limit."}}),
+    "tempo": (408, {"error": {"type": "run-timeout-exceeded", "message": "Actor run did not finish in time."}}),
+    "plataforma": (503, {"error": {"type": "service-unavailable", "message": "Service unavailable"}}),
+}
+
+
+def item_desafio(url: str) -> dict:
+    """O ator não passou do Cloudflare: devolve a própria página do desafio."""
+    return {"url": url, "content": "<html><title>Just a moment...</title><div id=challenge-platform></div></html>",
+            "status": 403, "success": False}
+
+
+class ApifySimulado:
+    """API do Apify simulada.
+
+    `POST /v2/acts/<ator>/run-sync-get-dataset-items` devolve `[item]` da URL pedida, procurado em `paginas`
+    (URL → dict do item, lista pronta, status HTTP, exceção httpx ou um dos nomes de `ERROS_APIFY`); URL
+    ausente = 404 do site. `falha` força uma resposta para todas as execuções ("token", "cota", "tempo",
+    "plataforma", "desafio", "vazio"). Cada execução soma `preco` ao uso do ciclo, lido em
+    `GET /v2/users/me/limits` (`limites_falham` faz essa consulta responder 500).
+    """
+
+    def __init__(self, paginas: dict | None = None, falha: str | None = None, uso: float = 0.39, limite: float = 5.0,
+                 preco: float = 0.08, fim_ciclo: str = "2026-10-17T23:59:59.999Z") -> None:
+        self.paginas = paginas if paginas is not None else paginas_milan_reais()
+        self.falha = falha
+        self.uso = uso
+        self.limite = limite
+        self.preco = preco
+        self.fim_ciclo = fim_ciclo
+        self.limites_falham = False
+        self.chamadas: list[_httpx.Request] = []
+
+    def _erro(self, nome: str) -> _httpx.Response:
+        status, corpo = ERROS_APIFY[nome]
+        return _httpx.Response(status, json=corpo)
+
+    def responder(self, request: _httpx.Request) -> _httpx.Response:
+        self.chamadas.append(request)
+        if request.url.path == "/v2/users/me/limits":
+            if self.limites_falham:
+                return _httpx.Response(500, json={"error": {"type": "internal-error"}})
+            return _httpx.Response(200, json={"data": {
+                "monthlyUsageCycle": {"startAt": "2026-09-18T00:00:00.000Z", "endAt": self.fim_ciclo},
+                "limits": {"maxMonthlyUsageUsd": self.limite}, "current": {"monthlyUsageUsd": self.uso}}})
+        if request.method != "POST" or not request.url.path.endswith("/run-sync-get-dataset-items"):
+            return _httpx.Response(404, json={"error": {"type": "page-not-found"}})
+        url = _json.loads(request.content)["url"]
+        if self.falha in ERROS_APIFY:
+            return self._erro(self.falha)
+        self.uso += self.preco
+        if self.falha == "desafio":
+            return _httpx.Response(201, json=[item_desafio(url)])
+        if self.falha == "vazio":
+            return _httpx.Response(201, json=[])
+        item = self.paginas.get(url)
+        if item is None:
+            item = {"url": url, "content": "<html>404</html>", "status": 404, "success": False}
+        if isinstance(item, str):
+            return self._erro(item)
+        if isinstance(item, int):
+            return _httpx.Response(item, json={"error": {"type": "simulado"}})
+        if isinstance(item, type):
+            raise item(f"falha simulada em {request.url}", request=request)
+        return _httpx.Response(201, json=item if isinstance(item, list) else [item])
+
+    def execucoes(self) -> list[_httpx.Request]:
+        return [c for c in self.chamadas if c.url.path.endswith("/run-sync-get-dataset-items")]
+
+    def urls_pedidas(self) -> list[str]:
+        return [_json.loads(c.content)["url"] for c in self.execucoes()]

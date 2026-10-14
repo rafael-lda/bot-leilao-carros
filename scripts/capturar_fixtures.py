@@ -6,6 +6,7 @@ Uso (rede necessária, cerca de 30 segundos cada):
     python scripts/capturar_fixtures.py --claudio-kuss   # Claudio Kuss Leilões
     python scripts/capturar_fixtures.py --copart         # Copart (busca pública em JSON)
     python scripts/capturar_fixtures.py --freitas        # Freitas Leiloeiro (busca pública em HTML)
+    python scripts/capturar_fixtures.py --milan          # Milan Leilões, pelo Apify (custa ~US$ 0,24)
 
 Grava em tests/fixtures/<leiloeiro>/. Respeita a mesma conduta do coletor: sessão com
 cookies, no máximo 3 redirecionamentos e 5 segundos entre requisições.
@@ -273,6 +274,65 @@ def main_freitas() -> None:
     print("cards_selecionados.html é composto à mão (ver amostras da feature 004).")
 
 
+# --- Milan Leilões (feature 005; interfaces/milan.md e interfaces/apify.md) ----------------------------
+
+MILAN = "https://milanleiloes.com.br"
+DESTINO_MILAN = DESTINO.parent / "milan"
+ATOR_MILAN = "neatrat~cloudflare-scraper"
+PRECO_PAGINA_USD = 0.08
+
+
+def _anonimizar_milan(item: dict) -> dict:
+    """Mesmo tratamento das amostras: sem cookies (cf_clearance e rastreadores) e sem apelidos de licitantes."""
+    item = dict(item)
+    item.pop("cookies", None)
+    item["content"] = re.sub(r'([^\s<>"\\*])\*{3,}([^\s<>"\\*])', "U*****1", item.get("content") or "")
+    return item
+
+
+def main_milan() -> None:
+    """O site inteiro está atrás do Cloudflare: as páginas vêm pelo ator do Apify, com o token do .env."""
+    from dotenv import dotenv_values
+
+    raiz = Path(__file__).resolve().parent.parent
+    token = (dotenv_values(raiz / ".env").get("APIFY_TOKEN") or "").strip()
+    if not token:
+        raise SystemExit("APIFY_TOKEN ausente no .env.")
+    print(f"Serão 3 páginas pelo Apify, cerca de US$ {3 * PRECO_PAGINA_USD:.2f}. Ctrl+C em 5 s para cancelar.")
+    time.sleep(5)
+    DESTINO_MILAN.mkdir(parents=True, exist_ok=True)
+    cliente = httpx.Client(timeout=240.0, headers={"Authorization": f"Bearer {token}"})
+
+    def pagina(url: str) -> dict:
+        resposta = cliente.post(f"https://api.apify.com/v2/acts/{ATOR_MILAN}/run-sync-get-dataset-items",
+                                params={"timeout": "180"}, json={"url": url})
+        resposta.raise_for_status()
+        (item,) = resposta.json()
+        if item.get("status") != 200:
+            raise SystemExit(f"{url}: status {item.get('status')} (desafio não resolvido?)")
+        return _anonimizar_milan(item)
+
+    def gravar_milan(nome: str, item: dict) -> None:
+        texto = json.dumps([item], ensure_ascii=False)
+        (DESTINO_MILAN / nome).write_text(texto, encoding="utf-8")
+        print(f"gravado tests/fixtures/milan/{nome} ({len(texto.encode()) // 1024} KB)")
+
+    agenda = pagina(f"{MILAN}/agenda/veiculos")
+    gravar_milan("agenda.json", agenda)
+    leilao = next((m.group(1) for m in re.finditer(r'href="/leilao/veiculos/(\d+)"[^>]*>(?:(?!</a>).)*?RECUPERADOS DE '
+                                                   r"FINANCIAMENTO", agenda["content"], re.S)), None)
+    if leilao is None:
+        print("Nenhum leilão 'recuperados de financiamento' na agenda hoje; só a agenda foi gravada.")
+        return
+    catalogo = pagina(f"{MILAN}/leilao/{leilao}/catalogo")
+    gravar_milan(f"catalogo_{leilao}.json", catalogo)
+    numero = re.search(r"Lote\s+(\d{3}[A-Z]?)", catalogo["content"])
+    if numero:
+        gravar_milan(f"lote_{numero.group(1)}.json", pagina(f"{MILAN}/leilao/{leilao}/lote/{numero.group(1)}"))
+    print("Os testes usam os nomes da captura de 2026-10-13 (catalogo_15618.json, lote_001/046/209.json); "
+          "ajuste-os se trocar as fixtures.")
+
+
 if __name__ == "__main__":
     if "--claudio-kuss" in sys.argv[1:]:
         main_kuss()
@@ -280,5 +340,7 @@ if __name__ == "__main__":
         main_copart()
     elif "--freitas" in sys.argv[1:]:
         main_freitas()
+    elif "--milan" in sys.argv[1:]:
+        main_milan()
     else:
         main()

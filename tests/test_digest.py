@@ -232,3 +232,17 @@ def test_item_do_vip_ganha_o_patio():
 def test_sem_patio_nem_fipe_a_linha_fica_igual():
     item = item_de(Candidato(lote=lote(), alvo=alvo(), preco_a_confirmar=False, km_a_confirmar=False), "Vip Leilões")
     assert (item.patio, item.fipe) == (None, None)
+
+
+# --- Feature 005: câmbio no resumo quando o leiloeiro informa (cenário 2; roadmap D-99) -------------
+
+
+def test_cambio_vem_depois_do_km():
+    (bloco,) = montar_digest([item_de(_copart(quilometragem=99020, fipe=None, cambio="automático"), "Milan Leilões")],
+                             QUANDO)
+    assert ("   R$ 36.000 — Milan Leilões — 99.020 km — automático — VITÓRIA DE SANTO ANTÃO - PE — Pregão 15/10 08:30"
+            in bloco.split("\n"))
+
+
+def test_sem_cambio_a_linha_fica_igual():
+    assert item_de(_copart(), "Copart").cambio is None
