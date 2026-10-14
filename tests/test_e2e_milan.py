@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from apoio import (ALVO_CRETA, ALVO_VERSA, BASE_MILAN, LEILOEIRO_MILAN, LEILOEIROS_VIP_E_MILAN, TOKEN_APIFY_TESTE,
+from apoio import (ALVO_CRETA, ALVO_VERSA_2018, BASE_MILAN, LEILOEIRO_MILAN, LEILOEIROS_VIP_E_MILAN, TOKEN_APIFY_TESTE,
                    ApifySimulado, CenarioE2E, item_milan, lote_milan_com_lance, paginas_milan_reais, pagina_vazia,
                    pagina_vip)
 
@@ -82,7 +82,7 @@ def test_cenario_3_sem_token_aborta_antes_da_rede(raiz, relogio, agora):
 
 
 def test_cenario_4_cota_esgotada_vira_alerta_e_o_vip_segue(raiz, relogio, agora):
-    cenario = _cenario(raiz, relogio, agora, alvos=ALVO_VERSA, leiloeiros=LEILOEIROS_VIP_E_MILAN)
+    cenario = _cenario(raiz, relogio, agora, alvos=ALVO_VERSA_2018, leiloeiros=LEILOEIROS_VIP_E_MILAN)
     cenario.vip = pagina_vazia()
     cenario.varrer()  # semeia as duas buscas
     cenario.vip = pagina_vip()
@@ -109,7 +109,7 @@ def test_rf08_estreia_do_milan_semeia_e_lista_o_candidato_nos_documentos(raiz, r
 
 
 def test_token_do_apify_nunca_aparece_em_log_banco_ou_relatorio(raiz, relogio, agora, caplog):
-    cenario = _cenario(raiz, relogio, agora, alvos=ALVO_VERSA, leiloeiros=LEILOEIROS_VIP_E_MILAN, falha="token")
+    cenario = _cenario(raiz, relogio, agora, alvos=ALVO_VERSA_2018, leiloeiros=LEILOEIROS_VIP_E_MILAN, falha="token")
     cenario.varrer()
     assert TOKEN_APIFY_TESTE not in caplog.text
     assert all(TOKEN_APIFY_TESTE not in p.read_text(encoding="utf-8") for p in (raiz / "1OUTPUT").glob("*.md"))

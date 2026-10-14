@@ -2,7 +2,7 @@
 
 from datetime import datetime, timedelta, timezone
 
-from apoio import (ALVO_VERSA, BASE_MILAN, FUSO_SP, LEILOEIROS_VIP_E_MILAN, ApifySimulado, CenarioE2E, pagina_vazia,
+from apoio import (ALVO_VERSA_2018, BASE_MILAN, FUSO_SP, LEILOEIROS_VIP_E_MILAN, ApifySimulado, CenarioE2E, pagina_vazia,
                    pagina_vip)
 
 VESPERA = datetime(2026, 10, 13, 21, 0, tzinfo=timezone.utc)
@@ -11,7 +11,7 @@ SEM_PAGOS = "| Milan Leilões | não incluído nesta varredura (sem pagos) |"
 
 def _cenario(raiz, relogio, agora, leiloeiros=LEILOEIROS_VIP_E_MILAN, token=True):
     agora.instante = VESPERA
-    cenario = CenarioE2E(raiz, relogio, agora, alvos=ALVO_VERSA, leiloeiros=leiloeiros)
+    cenario = CenarioE2E(raiz, relogio, agora, alvos=ALVO_VERSA_2018, leiloeiros=leiloeiros)
     cenario.apify = ApifySimulado()
     cenario.vip = pagina_vazia()
     return cenario.com_token_apify() if token else cenario
@@ -23,7 +23,7 @@ def _com_intervalo(horas: int) -> str:
 
 def test_cenario_5_sem_pagos_nao_chama_o_apify_nem_exige_token(raiz, relogio, agora):
     cenario = _cenario(raiz, relogio, agora, token=False)
-    cenario.varrer()  # semeia o Vip
+    cenario.varrer(sem_pagos=True)  # semeia o Vip
     cenario.vip = pagina_vip()
 
     resultado = cenario.varrer(sem_pagos=True)

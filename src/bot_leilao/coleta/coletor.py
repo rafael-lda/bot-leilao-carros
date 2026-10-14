@@ -106,8 +106,10 @@ class Coletor:
                                 resultado.veredito.value.upper(), resultado.motivo)
                     return self._falha(busca, leiloeiro, momento, inicio, resultado.veredito, status,
                                        tentativas_max, f"pagina {numero}: {resultado.motivo}")
+                maximo = (self.cliente.tentativas_de(leiloeiro.nivel_coleta) if hasattr(self.cliente, "tentativas_de")
+                          else self.cliente.tentativas)
                 log.info("coleta  | %s | busca=%s | pág %d | %s | %s | tentativa %d/%d | ok", leiloeiro.nome, busca.id,
-                         numero, leiloeiro.nivel_coleta, status, resultado.tentativas, self.cliente.tentativas)
+                         numero, leiloeiro.nivel_coleta, status, resultado.tentativas, maximo)
                 paginas.append(Pagina(numero=numero, metodo=requisicao.metodo, url=resultado.url,
                                       conteudo=resultado.conteudo or b"", anotacoes=dict(requisicao.anotacoes or {})))
                 if not adaptador.tem_proxima_pagina(resultado.conteudo or b"", numero):

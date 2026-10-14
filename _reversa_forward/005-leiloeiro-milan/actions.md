@@ -76,23 +76,23 @@ Fora desta feature: troca automática `script` → `apify` (RF-07, Won't desde o
 
 | ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
 |----|-----------|--------------|-------------|--------------|-------------|--------|
-| T032 | (RF-01, RF-02, RF-08) Orquestrador: registra `coleta.milan` e `parsing.milan`; `Dependencias.transporte_apify`; monta `ClienteRoteado` com `ClienteHTTP` e, se a varredura incluir leiloeiro em `apify`, `ClienteApify` (token exigido antes da rede); passa o mapa de níveis ao enriquecimento; `acima_do_teto` no log e nas contagens (D-87, D-90, D-98) | T015, T020, T021, T022, T023, T024, T026, T027, T028, T031 | - | `src/…/orquestrador.py` | 🟢 | `[ ]` |
-| T033 | Orquestrador: seleção da varredura antes da coleta: `sem_pagos` pula níveis diferentes de `script` e `intervalo_horas` pula quem leu há pouco (`ultima_coleta_ok`); linhas "não incluído nesta varredura (sem pagos)" e "pulado pelo intervalo de H h (próxima leitura a partir de DD/MM HH:MM)" só na seção "Leiloeiros"; token só exigido se sobrar leiloeiro pago (D-100, D-101) | T016, T030, T032 | - | `src/…/orquestrador.py` | 🟢 | `[ ]` |
-| T034 | Orquestrador: antecedência: grava `evento_visto` pelas anotações de evento e pregão (só execução normal; `na_semeadura` quando a busca está em semeadura); linha "leilão novo X, visto N dia(s) antes do pregão"; alerta quando há `intervalo_horas` e a antecedência é menor (D-102) | T017, T029, T033 | - | `src/…/orquestrador.py` | 🟢 | `[ ]` |
-| T035 | (RF-06, RF-09) Orquestrador: linha de consumo do Apify na seção "Leiloeiros"; alertas por leiloeiro de token inválido, cota esgotada, tempo esgotado e plataforma indisponível, com o que fazer; alerta a 80% do ciclo, 1 por dia; desafio "via apify" pelo alerta de bloqueio existente (D-91, D-103) | T034 | - | `src/…/orquestrador.py` | 🟢 | `[ ]` |
-| T036 | Linha de comando: opção `--sem-pagos` em `varrer`, repassada ao orquestrador; texto de ajuda (D-100) | T014, T033 | - | `src/…/cli.py` | 🟢 | `[ ]` |
-| T037 | Atalhos: `scripts/varrer.bat` passa `--sem-pagos` (comentário explicando); `scripts/varrer-completo.bat` novo, igual ao atual sem a opção (D-100) | T036 | - | `scripts/varrer-completo.bat` | 🟢 | `[ ]` |
-| T038 | (RF-01) Bloco do Milan em `config/leiloeiros.yaml` (data-delta §3.1, contrato citado no cabeçalho, `intervalo_horas` e `apify_ator` comentados); `APIFY_TOKEN` em `.env.example` com a origem do token | T032 | - | `config/leiloeiros.yaml` | 🟢 | `[ ]` |
-| T039 | (RF-10) Dry-run real no container com o Milan pelo Apify: páginas e consumo no log, nenhuma chamada local ao Milan, nenhum alerta; varredura com os 5 leiloeiros abaixo de 10 minutos. Se a agenda não tiver leilão de financiamento no dia, registrar "busca vazia" nas Notas. Se falhar, `ativo: false` e registro nas Notas | T035, T038 | - | (execução) | 🟡 | `[ ]` |
+| T032 | (RF-01, RF-02, RF-08) Orquestrador: registra `coleta.milan` e `parsing.milan`; `Dependencias.transporte_apify`; monta `ClienteRoteado` com `ClienteHTTP` e, se a varredura incluir leiloeiro em `apify`, `ClienteApify` (token exigido antes da rede); passa o mapa de níveis ao enriquecimento; `acima_do_teto` no log e nas contagens (D-87, D-90, D-98) | T015, T020, T021, T022, T023, T024, T026, T027, T028, T031 | - | `src/…/orquestrador.py` | 🟢 | `[X]` |
+| T033 | Orquestrador: seleção da varredura antes da coleta: `sem_pagos` pula níveis diferentes de `script` e `intervalo_horas` pula quem leu há pouco (`ultima_coleta_ok`); linhas "não incluído nesta varredura (sem pagos)" e "pulado pelo intervalo de H h (próxima leitura a partir de DD/MM HH:MM)" só na seção "Leiloeiros"; token só exigido se sobrar leiloeiro pago (D-100, D-101) | T016, T030, T032 | - | `src/…/orquestrador.py` | 🟢 | `[X]` |
+| T034 | Orquestrador: antecedência: grava `evento_visto` pelas anotações de evento e pregão (só execução normal; `na_semeadura` quando a busca está em semeadura); linha "leilão novo X, visto N dia(s) antes do pregão"; alerta quando há `intervalo_horas` e a antecedência é menor (D-102) | T017, T029, T033 | - | `src/…/orquestrador.py` | 🟢 | `[X]` |
+| T035 | (RF-06, RF-09) Orquestrador: linha de consumo do Apify na seção "Leiloeiros"; alertas por leiloeiro de token inválido, cota esgotada, tempo esgotado e plataforma indisponível, com o que fazer; alerta a 80% do ciclo, 1 por dia; desafio "via apify" pelo alerta de bloqueio existente (D-91, D-103) | T034 | - | `src/…/orquestrador.py` | 🟢 | `[X]` |
+| T036 | Linha de comando: opção `--sem-pagos` em `varrer`, repassada ao orquestrador; texto de ajuda (D-100) | T014, T033 | - | `src/…/cli.py` | 🟢 | `[X]` |
+| T037 | Atalhos: `scripts/varrer.bat` passa `--sem-pagos` (comentário explicando); `scripts/varrer-completo.bat` novo, igual ao atual sem a opção (D-100) | T036 | - | `scripts/varrer-completo.bat` | 🟢 | `[X]` |
+| T038 | (RF-01) Bloco do Milan em `config/leiloeiros.yaml` (data-delta §3.1, contrato citado no cabeçalho, `intervalo_horas` e `apify_ator` comentados); `APIFY_TOKEN` em `.env.example` com a origem do token | T032 | - | `config/leiloeiros.yaml` | 🟢 | `[X]` |
+| T039 | (RF-10) Dry-run real no container com o Milan pelo Apify: páginas e consumo no log, nenhuma chamada local ao Milan, nenhum alerta; varredura com os 5 leiloeiros abaixo de 10 minutos. Se a agenda não tiver leilão de financiamento no dia, registrar "busca vazia" nas Notas. Se falhar, `ativo: false` e registro nas Notas | T035, T038 | - | (execução) | 🟡 | `[X]` |
 
 ## Fase 5, Polimento
 
 | ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
 |----|-----------|--------------|-------------|--------------|-------------|--------|
-| T040 | README: Milan na tabela de leiloeiros; nível Apify (token, custo por página, consumo no relatório, alerta de 80%); atalhos `varrer.bat` e `varrer-completo.bat`; `intervalo_horas` | T037, T038 | `[//]` | `README.md` | 🟢 | `[ ]` |
-| T041 | Seção "Feature 005" em `tests/RASTREABILIDADE.md` (RF, cenários e decisões D-86 a D-103 → testes), conferida mecanicamente | T035 | `[//]` | `tests/RASTREABILIDADE.md` | 🟢 | `[ ]` |
-| T042 | Ajustar `onboarding.md` com o que o dry-run real mostrou (custo, tempo, textos das linhas do relatório) | T039 | `[//]` | `_reversa_forward/005-…/onboarding.md` | 🟢 | `[ ]` |
-| T043 | Backlog: item novo "troca automática `script` → `apify`" (RF-07 adiado pela D-92, com o motivo: o ator só faz GET) e Milan movido para "Feitas" ao fim | - | `[//]` | `_reversa_forward/backlog.md` | 🟢 | `[ ]` |
+| T040 | README: Milan na tabela de leiloeiros; nível Apify (token, custo por página, consumo no relatório, alerta de 80%); atalhos `varrer.bat` e `varrer-completo.bat`; `intervalo_horas` | T037, T038 | `[//]` | `README.md` | 🟢 | `[X]` |
+| T041 | Seção "Feature 005" em `tests/RASTREABILIDADE.md` (RF, cenários e decisões D-86 a D-103 → testes), conferida mecanicamente | T035 | `[//]` | `tests/RASTREABILIDADE.md` | 🟢 | `[X]` |
+| T042 | Ajustar `onboarding.md` com o que o dry-run real mostrou (custo, tempo, textos das linhas do relatório) | T039 | `[//]` | `_reversa_forward/005-…/onboarding.md` | 🟢 | `[X]` |
+| T043 | Backlog: item novo "troca automática `script` → `apify`" (RF-07 adiado pela D-92, com o motivo: o ator só faz GET) e Milan movido para "Feitas" ao fim | - | `[//]` | `_reversa_forward/backlog.md` | 🟢 | `[X]` |
 
 ## Notas de execução
 
@@ -105,10 +105,16 @@ Fora desta feature: troca automática `script` → `apify` (RF-07, Won't desde o
 - **T028 (2026-10-14):** a revalidação usa o `casa(lote, alvo)` do motor; ponta a ponta do Kuss e do Freitas seguem verdes.
 - **T031 (2026-10-14):** câmbio também na 2ª linha do resumo do Telegram, depois do km (cenário 2), além do relatório e da lista.
 - **Etapa 2 concluída (2026-10-14):** T018–T031; 705 testes passando; 22 falhando (orquestrador e linha de comando: `test_e2e_milan`, `test_e2e_ritmo`, `test_e2e_apify_alertas`, `test_cli`), à espera da etapa 3.
+- **T033 (2026-10-14):** a seleção (`--sem-pagos`, intervalo) acontece antes de carregar os segredos, para o token só ser exigido quando sobra leiloeiro pago. Os pulados entram só na seção "Leiloeiros".
+- **T035 (2026-10-14):** o alerta de gasto usa a chave `apify` no limite de 1 por dia (linha própria em `execucao_leiloeiro`, sem busca ok, que não conta como coleta). O lote acima do teto depois do detalhe soma em `descartados_sem_casar` (sem coluna nova no banco).
+- **Testes (2026-10-14):** o catálogo real do Milan tem um Nissan Versa 2019 (lote 021), que casa com o alvo de teste `ALVO_VERSA`; os testes que precisam de "nenhum candidato no Milan" usam `ALVO_VERSA_2018`.
+- **T039 (2026-10-14, 23h35), dry-run real no container:** 5m49s com os 5 leiloeiros (Vip 11 páginas, Kuss evento 898, Copart 16, Freitas 2 com 34 em loteamento, Milan 1 pelo Apify com status 200). A agenda do Milan não tinha leilão de financiamento (o 15618 foi de manhã): busca vazia, sem quebra. 2.036 lotes, 11 candidatos, todos já conhecidos; nenhum alerta. Consumo lido: US$ 0,05 (o evento por item, US$ 0,03, entra segundos depois; registrado no contrato e no W033). O log mostrava "tentativa 1/3" para o Apify: corrigido para o máximo do nível (2).
+- **Etapa 3 concluída (2026-10-14):** T032–T043; 727 testes passando; rastreabilidade conferida (50 referências); `legacy-impact.md` e `regression-watch.md` (W030–W037) gerados.
 
 ## Histórico de alterações
 
 | Data | Alteração | Autor |
 |------|-----------|-------|
 | 2026-10-13 | Versão inicial gerada por `/reversa-to-do` | reversa |
+| 2026-10-14 | Codificação concluída em três etapas (T001–T043) | `/reversa-coding` |
 | 2026-10-13 | Referências aos RF-11 a RF-14 e ao cenário 5 novo, depois do esclarecimento pós-audit | `/reversa-clarify` |

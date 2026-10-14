@@ -112,6 +112,12 @@
 - **Comportamento humano simulado** (variar horários e intervalos) é possível, mas o Imperva também examina a impressão digital do navegador; tratar como reforço, não como garantia.
 - **Triagem de 2026-10-11:** Milan (Cloudflare "managed" no site inteiro, inclusive `robots.txt` e catálogo; leilão de 14/10 com 247 lotes, ~125 carros, km, câmbio e comitente no catálogo) e Copart (exportação CSV com 692 carros de financiamento, FIPE, monta, documento e pátio; 80% dos pátios no NE/CO). Freitas fora (bloqueio deliberado).
 
+### 10. Troca automática `script` → `apify` (RF-07 da feature 005, adiado em 2026-10-13)
+
+- **O que é:** um leiloeiro em `script` que for bloqueado seria tentado de novo pelo Apify na mesma varredura, se o Rafael habilitar para ele.
+- **Por que ficou fora da 005 (D-92):** o ator usado (`neatrat/cloudflare-scraper`) só faz GET de uma URL, sem corpo nem cabeçalhos; a busca da Copart (POST JSON) e a do Kuss (POST) não passariam por ele, e nenhum leiloeiro em `script` estava bloqueado.
+- **Para retomar:** escolher um ator (ou serviço de desbloqueio) que aceite POST e cabeçalhos, criar o perfil dele em `src/bot_leilao/coleta/apify.py` (`PERFIS_ATOR`) e um campo por leiloeiro para habilitar a troca.
+
 ## Em andamento
 
 - Nenhuma feature aberta.
@@ -122,6 +128,7 @@
 - **002 — Leiloeiro Claudio Kuss** (2026-10-10), com a emenda E001 de 2026-10-11 (lotes da semeadura no relatório e na lista de monitoramento). Adendo: `_reversa_sdd/addenda/002-leiloeiro-claudio-kuss.md`.
 - **003 — Leiloeiro Copart** (2026-10-11): busca pública em JSON, pátio e FIPE em todo aviso, alerta de bloqueio por leiloeiro. Adendo: `_reversa_sdd/addenda/003-leiloeiro-copart.md`.
 - **004 — Leiloeiro Freitas** (2026-10-13): busca pública de veículos "Inteiros", etiqueta FINANCEIRA por lote, cadeia de certificado completada com o intermediário oficial e alerta de certificado com runbook. Adendo: `_reversa_sdd/addenda/004-leiloeiro-freitas.md`.
+- **005 — Leiloeiro Milan** (2026-10-14): primeiro leiloeiro pago, pelo Apify (ator `neatrat/cloudflare-scraper`, ~US$ 0,08 por página); agenda → catálogo dos leilões de financiamento, lance pela página do lote só dos candidatos; `--sem-pagos` com os atalhos `varrer.bat` (sem pagos) e `varrer-completo.bat`; `intervalo_horas`; antecedência dos leilões; alerta de gasto a 80%; câmbio no resumo e na lista. Troca automática adiada (item 10). Adendo: pendente do `/reversa-sync`.
 - **Palavras a excluir no veículo-alvo** (antigo item 4), entregue na feature 003 (RF-10): `excluir: [Oroch]` no alvo Duster.
 - **Agendamento automático:** resolvido sem código com o Agendador de Tarefas do Windows (`scripts/agendar_windows.ps1`), em 2026-10-08.
 - **Atalho de duplo clique:** `scripts/varrer.bat`, em 2026-10-08.

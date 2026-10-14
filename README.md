@@ -2,7 +2,7 @@
 
 Varre sites de leilão de carros, filtra os lotes pelos veículos que você procura e avisa no Telegram, com marca, modelo, ano, preço e o link do lote.
 
-Hoje monitora quatro leiloeiros. O bot só observa e avisa: ele nunca dá lance. Todo aviso mostra o **pátio** (onde o carro está), porque o frete até Londrina pode inviabilizar o lote.
+Hoje monitora cinco leiloeiros. O bot só observa e avisa: ele nunca dá lance. Todo aviso mostra o **pátio** (onde o carro está), porque o frete até Londrina pode inviabilizar o lote.
 
 | Leiloeiro | O que o bot lê | Particularidades |
 |---|---|---|
@@ -10,6 +10,7 @@ Hoje monitora quatro leiloeiros. O bot só observa e avisa: ele nunca dá lance.
 | **Claudio Kuss Leilões** (Curitiba) | Eventos "Veículos - Financeiras" | Leilão por evento com data marcada: o aviso traz a **data do pregão**. Não informa km nem monta, e o evento mistura financiamento e sinistro: o aviso traz as **observações** do lote ("SINISTRADO", "MECÂNICA COM PROBLEMAS"...) para você descartar à mão. Sucata e lotes retirados ficam de fora. Antes do pregão quase nenhum lote tem lance, então a maioria chega como "Preço a confirmar" |
 | **Copart** | Condição FINANCIAMENTO (~1.500 lotes, de todas as categorias) | Busca pública, sem login. O aviso traz **pátio, FIPE**, data do leilão e o estado do lote (dano, documento, monta, motor, comitente). A maioria fica no Nordeste e em Goiás, e muitos aguardam classificação (sem data, FIPE nem lance). "Compre Agora" usa o preço fixo |
 | **Freitas Leiloeiro** (Santo André e Santa Bárbara d'Oeste-SP) | Veículos "Inteiros" (sem sinistro), só os lotes com a etiqueta FINANCEIRA casam com os alvos | Leilão por evento: o aviso traz o pregão, o pátio e as despesas (R$ 2.350, às vezes mais logística). Lotes "em loteamento" só entram quando ganham número definitivo. O site envia a cadeia de certificado errada: o bot a completa com o intermediário oficial guardado em `src/bot_leilao/coleta/certificados/` |
+| **Milan Leilões** (Rod. Raposo Tavares, São Paulo-SP) | Leilões "recuperados de financiamento" da agenda de veículos, todos os lotes | O site inteiro está atrás do Cloudflare: as páginas vêm pelo **Apify** (pago, ver abaixo). Do catálogo saem km, **câmbio**, avisos do estado e o **comitente** (banco, financeira, locadora); o lance atual vem da página do lote, só para os carros que casam com um alvo. Lote que passa do teto depois de lido o lance não é avisado |
 
 ## Como funciona
 
@@ -46,11 +47,14 @@ Copie `.env.example` para `.env` e preencha o token do bot e o seu chat id. O pa
 |---|---|
 | `python -m bot_leilao varrer` | Executa uma varredura completa |
 | `python -m bot_leilao varrer --dry-run` | Coleta de verdade, mas só mostra no console o que enviaria; não grava lotes |
+| `python -m bot_leilao varrer --sem-pagos` | Varredura sem os leiloeiros pagos (hoje, o Milan): custo zero no Apify |
 | `python -m bot_leilao testar-telegram` | Envia uma mensagem de teste para conferir o `.env` |
 
 Todos aceitam `--raiz <pasta>` (a pasta com `config/`, `dados/` e `.env`; padrão: a atual).
 
 Códigos de saída: `0` sucesso (inclusive parcial), `1` falha, `2` uso incorreto, `3` outra varredura em andamento.
+
+Atalhos no Windows (duplo clique): `scripts\varrer.bat` roda **sem os pagos** (o do dia a dia); `scripts\varrer-completo.bat` roda com todos. O agendamento (seg, qua e sex às 08h, `scripts/agendar_windows.ps1`) roda com todos.
 
 ## Configuração
 
@@ -59,6 +63,7 @@ Na primeira execução, os dois arquivos de `config/` são criados como exemplo,
 - **Veículos-alvo:** adicionar é colar um bloco, pausar é `ativo: false`. Escreva a marca por extenso (Mitsubishi, Chevrolet): as abreviações do site são traduzidas. Para tirar versões que o modelo pega junto, use `excluir` (ex.: `excluir: [Oroch]` no alvo Duster tira a picape Duster Oroch); prefira palavras específicas.
 - **Leiloeiros:** a busca é declarada como filtros do site (no Vip, os do formulário; no Claudio Kuss, a `categoria` do evento; na Copart, as facetas da busca, como `condicao`; no Freitas, `categoria` e `condicao`). Não filtre por marca ou modelo ali; esse recorte é feito pelos veículos-alvo. Para desligar um leiloeiro, `ativo: false` no bloco dele.
 - **Segredos:** token e credenciais ficam só no `.env`, que nunca vai para o git e nunca aparece em log.
+- **Apify (leiloeiros pagos):** um leiloeiro com `nivel_coleta: apify` (o Milan) é lido por um ator da loja do Apify que passa pelo Cloudflare. Precisa de `APIFY_TOKEN` no `.env` (console.apify.com → Settings → API & Integrations). Cada página custa cerca de US$ 0,08 (uns US$ 1,90 por mês no ritmo atual, dentro dos US$ 5 do plano gratuito). A seção "Leiloeiros" do relatório mostra as páginas e o gasto da varredura e do mês, e chega um alerta quando o mês passa de 80% do limite. Para espaçar um leiloeiro pago, `intervalo_horas: 72` no bloco dele (lido no máximo a cada 72 h); o bot mede com quantos dias de antecedência cada leilão aparece e avisa se o intervalo ficar curto. Contrato e troca de ator: `_reversa_forward/005-leiloeiro-milan/interfaces/apify.md`.
 - **Certificados:** a verificação de certificado nunca é desligada. Se chegar um alerta de certificado de algum leiloeiro, siga `src/bot_leilao/coleta/certificados/LEIA-ME.md` (diagnóstico em 5 minutos e o que fazer em cada caso).
 
 ## Estrutura
@@ -66,14 +71,14 @@ Na primeira execução, os dois arquivos de `config/` são criados como exemplo,
 ```
 src/bot_leilao/
   config/        veículos-alvo, leiloeiros, .env, coerência entre alvos e buscas
-  coleta/        cliente HTTP, coletor, adaptador por leiloeiro (vip.py, claudio_kuss.py, copart.py, freitas.py), detalhe dos lotes novos, certificados/
-  parsing/       normalização, sinônimos de marca, parser por leiloeiro (vip.py, claudio_kuss.py, copart.py, freitas.py)
+  coleta/        cliente HTTP, cliente Apify e roteamento por nível, coletor, adaptador por leiloeiro (vip.py, claudio_kuss.py, copart.py, freitas.py, milan.py), detalhe dos lotes novos, certificados/
+  parsing/       normalização, sinônimos de marca, parser por leiloeiro (vip.py, claudio_kuss.py, copart.py, freitas.py, milan.py)
   filtro/        critérios, deduplicação e semeadura
   notificacao/   resumo, alertas e envio ao Telegram
-  db/            SQLite, migrações e trava de execução
+  db/            SQLite, migrações, leilões vistos (antecedência) e trava de execução
   orquestrador.py, cli.py
-tests/           testes sem rede; fixtures reais em tests/fixtures/ (vip, claudio_kuss, copart, freitas)
-scripts/         captura das fixtures (capturar_fixtures.py [--claudio-kuss | --copart | --freitas])
+tests/           testes sem rede; fixtures reais em tests/fixtures/ (vip, claudio_kuss, copart, freitas, milan)
+scripts/         captura das fixtures (capturar_fixtures.py [--claudio-kuss | --copart | --freitas | --milan]), atalhos varrer.bat e varrer-completo.bat
 ```
 
 ## Documentação de projeto

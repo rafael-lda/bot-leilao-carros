@@ -27,16 +27,17 @@ O que esperar no terminal e no log (`dados\logs`):
 
 - `coleta | Milan Leilões | ... | apify | ...` nas páginas do Milan (agenda e um catálogo por leilão de financiamento).
 - Uma linha de consumo: páginas pelo Apify e gasto da varredura.
-- A lista de candidatos, com os do Milan (se houver alvo no leilão da vez).
+- A lista de candidatos, com os do Milan (se houver alvo no leilão da vez). O dry-run não abre a página dos lotes da semeadura, então os candidatos aparecem sem o lance atual.
+- Se a agenda não tiver leilão "recuperados de financiamento" no dia, o log diz `nenhum leilão 'recuperados de financiamento' na agenda` e o Milan fica só na agenda.
 
-Custo: US$ 0,16 a 0,40 (agenda, catálogo e as páginas dos candidatos).
+Custo: US$ 0,08 sem leilão na agenda; US$ 0,16 com um leilão; mais US$ 0,08 por candidato na varredura real. Tempo com os 5 leiloeiros: 5m49s no dry-run de 2026-10-14 (Milan só com a agenda).
 
 ## 4. Primeira varredura real (semeadura do Milan)
 
 Dê dois cliques em `scripts\varrer-completo.bat`.
 
 - Nada do Milan chega no Telegram nesta primeira vez (semeadura).
-- Os candidatos do Milan entram no relatório `1OUTPUT\relatorio-<data>.md` e na `1OUTPUT\lotes-a-monitorar.md`, com km, lance (da página do lote), pátio, pregão, **câmbio** e observações (avisos do estado e comitente).
+- Os candidatos do Milan entram no relatório `1OUTPUT\AAAA-MM-DD_HHhMM_varredura.md` e na `1OUTPUT\lotes-a-monitorar.md`, com km, lance (da página do lote), pátio, pregão, **câmbio** e observações (avisos do estado e comitente).
 - Na seção "Leiloeiros" do relatório, a linha do Milan mostra quantos lotes foram lidos, as páginas e o gasto no Apify, e o gasto do ciclo.
 
 ## 5. Atalhos do dia a dia
@@ -44,14 +45,14 @@ Dê dois cliques em `scripts\varrer-completo.bat`.
 | Atalho | O que roda | Custo |
 |--------|-----------|-------|
 | `scripts\varrer.bat` | Vip, Claudio Kuss, Copart e Freitas (sem os pagos) | zero |
-| `scripts\varrer-completo.bat` | Os 5, com o Milan | ~US$ 0,16 a 0,40 |
-| Agendamento (seg, qua e sex às 08h) | Os 5 | ~US$ 0,16 a 0,40 por varredura |
+| `scripts\varrer-completo.bat` | Os 5, com o Milan | ~US$ 0,08 a 0,40 |
+| Agendamento (seg, qua e sex às 08h) | Os 5 | ~US$ 0,08 a 0,40 por varredura |
 
 Com o `varrer.bat`, a seção "Leiloeiros" do relatório diz "Milan: não incluído nesta varredura (sem pagos)". A lista de lotes e o Telegram não mudam.
 
 ## 6. Acompanhar o gasto
 
-- No relatório: linha do Milan na seção "Leiloeiros" ("ciclo US$ Y de 5,00 até DD/MM").
+- No relatório: linha do Milan na seção "Leiloeiros" ("Apify: 2 página(s), US$ 0,16 nesta varredura; ciclo US$ Y de 5,00 até DD/MM"). O gasto "nesta varredura" pode sair um pouco abaixo do real (o Apify cobra parte do preço segundos depois); o do ciclo acerta na varredura seguinte.
 - No Apify: https://console.apify.com → **Billing / Usage**.
 - Ao passar de 80% do limite do ciclo, chega um alerta no Telegram.
 

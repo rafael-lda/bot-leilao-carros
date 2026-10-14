@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 
-from apoio import (ALVO_VERSA, ATOR_PADRAO_TESTE, BASE_MILAN, LEILOEIRO_MILAN, LEILOEIROS_VIP_E_MILAN, ApifySimulado,
+from apoio import (ALVO_VERSA_2018, ATOR_PADRAO_TESTE, BASE_MILAN, LEILOEIRO_MILAN, LEILOEIROS_VIP_E_MILAN, ApifySimulado,
                    CenarioE2E, item_milan, pagina_vazia)
 
 VESPERA = datetime(2026, 10, 13, 21, 0, tzinfo=timezone.utc)
@@ -11,7 +11,7 @@ AGENDA = f"{BASE_MILAN}/agenda/veiculos"
 
 def _cenario(raiz, relogio, agora, leiloeiros=LEILOEIROS_VIP_E_MILAN, quando=VESPERA, **apify):
     agora.instante = quando
-    cenario = CenarioE2E(raiz, relogio, agora, alvos=ALVO_VERSA, leiloeiros=leiloeiros)
+    cenario = CenarioE2E(raiz, relogio, agora, alvos=ALVO_VERSA_2018, leiloeiros=leiloeiros)
     cenario.apify = ApifySimulado(**apify)
     cenario.vip = pagina_vazia()
     return cenario.com_token_apify()

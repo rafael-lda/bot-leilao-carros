@@ -11,30 +11,36 @@ import time
 from collections import Counter, defaultdict
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
-from datetime import datetime, timezone, tzinfo
+from datetime import datetime, timedelta, timezone, tzinfo
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import httpx
 
 import bot_leilao.coleta.claudio_kuss  # noqa: F401 — registra o adaptador (feature 002)
 import bot_leilao.coleta.copart  # noqa: F401 — registra o adaptador (feature 003)
 import bot_leilao.coleta.freitas  # noqa: F401 — registra o adaptador (feature 004)
+import bot_leilao.coleta.milan  # noqa: F401 — registra o adaptador (feature 005)
 import bot_leilao.coleta.vip  # noqa: F401 — registra o adaptador
 import bot_leilao.parsing.claudio_kuss  # noqa: F401 — registra o parser (feature 002)
 import bot_leilao.parsing.copart  # noqa: F401 — registra o parser (feature 003)
 import bot_leilao.parsing.freitas  # noqa: F401 — registra o parser (feature 004)
+import bot_leilao.parsing.milan  # noqa: F401 — registra o parser (feature 005)
 import bot_leilao.parsing.vip  # noqa: F401 — registra o parser
 from bot_leilao.coleta import registro
+from bot_leilao.coleta.apify import ClienteApify, Consumo
 from bot_leilao.coleta.coletor import Coletor
 from bot_leilao.coleta.enriquecimento import enriquecer
 from bot_leilao.coleta.http import ClienteHTTP
 from bot_leilao.coleta.modelos import Veredito
+from bot_leilao.coleta.roteador import ClienteRoteado
 from bot_leilao.config.ambiente import carregar_ambiente
 from bot_leilao.config.arquivos import ConfiguracaoAusente, ErroConfiguracao
 from bot_leilao.config.coerencia import verificar_coerencia
 from bot_leilao.config.leiloeiros import carregar_leiloeiros
 from bot_leilao.config.veiculos import carregar_veiculos
 from bot_leilao.db.conexao import ErroBanco, conectar
+from bot_leilao.db.eventos import RepositorioEventos
 from bot_leilao.db.execucoes import RegistroBusca, RepositorioExecucoes
 from bot_leilao.db.lotes import RepositorioLotes
 from bot_leilao.db.migracoes import migrar
@@ -55,6 +61,8 @@ PASTA_RELATORIOS = "1OUTPUT"  # emenda E001: um relatório Markdown por varredur
 LISTA_MONITORAMENTO = "lotes-a-monitorar.md"  # emenda E002: lista acumulada, o bot só acrescenta
 RUNBOOK_CERTIFICADO = "src/bot_leilao/coleta/certificados/LEIA-ME.md"
 CODIGO_SAIDA = {"sucesso": 0, "sucesso_parcial": 0, "falha": 1, "recusada": 3}
+ALERTA_GASTO_APIFY = 0.80   # feature 005 (RN-13, D-91): alerta quando o ciclo passa de 80% do limite
+ID_ALERTA_APIFY = "apify"   # chave do limite de 1 alerta por dia para o alerta de gasto
 
 
 def _agora_utc() -> datetime:
@@ -67,6 +75,7 @@ class Dependencias:
 
     transporte_leiloeiros: httpx.BaseTransport | None = None
     transporte_telegram: httpx.BaseTransport | None = None
+    transporte_apify: httpx.BaseTransport | None = None   # feature 005
     relogio: Callable[[], float] = time.monotonic
     dormir: Callable[[float], None] = time.sleep
     agora: Callable[[], datetime] = _agora_utc
@@ -114,7 +123,9 @@ class _Execucao:
         return None if texto is None else mascarar(texto, self.segredos)
 
 
-def varrer(raiz: Path, dry_run: bool = False, deps: Dependencias | None = None) -> ResultadoVarredura:
+def varrer(raiz: Path, dry_run: bool = False, deps: Dependencias | None = None,
+           sem_pagos: bool = False) -> ResultadoVarredura:
+    """`sem_pagos`: pula os leiloeiros de nível pago (feature 005, D-100)."""
     deps = deps or Dependencias()
     fuso = deps.fuso or datetime.now().astimezone().tzinfo
     dados = raiz / "dados"
@@ -143,7 +154,7 @@ def varrer(raiz: Path, dry_run: bool = False, deps: Dependencias | None = None) 
         execucao_id = repo_exec.abrir(modo, inicio)
         estado = _Execucao()
         try:
-            _executar(raiz, dry_run, deps, fuso, con, repo_exec, execucao_id, estado)
+            _executar(raiz, dry_run, deps, fuso, con, repo_exec, execucao_id, estado, sem_pagos)
         except Exception as erro:  # noqa: BLE001 — a execução sempre é registrada (RNF-03 do agendador)
             log.exception("exec    | erro interno")
             estado.veredito, estado.motivo = "falha", f"erro_interno: {type(erro).__name__}: {erro}"[:300]
@@ -200,7 +211,8 @@ class _ExemplosCriados(ErroConfiguracao):
     """Arquivo(s) de configuração ausente(s): exemplos criados, execução abortada."""
 
 
-def _carregar_configuracao(raiz: Path, dry_run: bool, deps: Dependencias):
+def _carregar_configuracao(raiz: Path, dry_run: bool, deps: Dependencias, selecionar):
+    """`selecionar(ativos) -> (incluídos, pulados)`: o token do Apify só é exigido para pagos incluídos (D-90)."""
     config = raiz / "config"
     ausentes: list[ConfiguracaoAusente] = []
     veiculos = leiloeiros = None
@@ -216,17 +228,41 @@ def _carregar_configuracao(raiz: Path, dry_run: bool, deps: Dependencias):
         criados = ", ".join(str(e.caminho) for e in ausentes)
         raise _ExemplosCriados(f"Criei arquivo(s) de exemplo em {criados}. Edite-os, ative o que quiser monitorar "
                                "e rode de novo.")
-    ambiente = carregar_ambiente(raiz, exigir_telegram=not dry_run, environ=deps.environ)
+    incluidos, pulados = selecionar(leiloeiros.ativos)
+    ambiente = carregar_ambiente(raiz, exigir_telegram=not dry_run, environ=deps.environ,
+                                 exigir_apify=[l.nome for l in incluidos if l.nivel_coleta == "apify"])
     if deps.ao_carregar_segredos and ambiente.segredos:
         deps.ao_carregar_segredos(ambiente.segredos)
-    return veiculos, leiloeiros, ambiente
+    return veiculos, leiloeiros, ambiente, incluidos, pulados
+
+
+def _selecionar(ativos, sem_pagos: bool, repo_exec: RepositorioExecucoes, agora: datetime, fuso: tzinfo):
+    """Leiloeiros desta varredura (feature 005): `--sem-pagos` (D-100) e `intervalo_horas` (D-101).
+
+    Devolve (incluídos, pulados); `pulados` mapeia o id à linha da seção "Leiloeiros" do relatório.
+    """
+    incluidos, pulados = [], {}
+    for leiloeiro in ativos:
+        if sem_pagos and leiloeiro.pago:
+            pulados[leiloeiro.id] = "não incluído nesta varredura (sem pagos)"
+        elif leiloeiro.intervalo_horas and (ultima := repo_exec.ultima_coleta_ok(leiloeiro.id)) is not None \
+                and agora - ultima < timedelta(hours=leiloeiro.intervalo_horas):
+            proxima = (ultima + timedelta(hours=leiloeiro.intervalo_horas)).astimezone(fuso)
+            pulados[leiloeiro.id] = (f"pulado pelo intervalo de {leiloeiro.intervalo_horas} h (próxima leitura a "
+                                     f"partir de {proxima:%d/%m %H:%M})")
+        else:
+            incluidos.append(leiloeiro)
+            continue
+        log.info("config  | %s | %s", leiloeiro.nome, pulados[leiloeiro.id])
+    return incluidos, pulados
 
 
 def _executar(raiz: Path, dry_run: bool, deps: Dependencias, fuso: tzinfo, con, repo_exec: RepositorioExecucoes,
-              execucao_id: str, estado: _Execucao) -> None:
+              execucao_id: str, estado: _Execucao, sem_pagos: bool = False) -> None:
     # Configuração: tudo validado antes da primeira requisição.
     try:
-        veiculos, leiloeiros, ambiente = _carregar_configuracao(raiz, dry_run, deps)
+        veiculos, leiloeiros, ambiente, incluidos, pulados = _carregar_configuracao(
+            raiz, dry_run, deps, lambda ativos: _selecionar(ativos, sem_pagos, repo_exec, deps.agora(), fuso))
         estado.segredos = ambiente.segredos
     except ErroConfiguracao as erro:
         log.error("config  | %s", erro)
@@ -243,27 +279,51 @@ def _executar(raiz: Path, dry_run: bool, deps: Dependencias, fuso: tzinfo, con, 
     log.info("config  | %d veículo(s)-alvo ativo(s), %d leiloeiro(s) ativo(s), %d busca(s)",
              len(veiculos.ativos), len(leiloeiros.ativos), n_buscas)
     estado.contagens["alvos_ativos"] = len(veiculos.ativos)
-    if not veiculos.ativos or not leiloeiros.ativos:
+    ordem = {l.id: l.nome for l in leiloeiros.ativos}
+    if not veiculos.ativos or not incluidos:
+        estado.leiloeiros = [(ordem[i], situacao) for i, situacao in pulados.items()]
         estado.veredito, estado.motivo = "sucesso", "nada_a_varrer"
         estado.saida = _resultado("sucesso")
         return
 
-    # Coleta, parsing, filtragem e enriquecimento. O cliente HTTP vive até o detalhe dos lotes novos
-    # (feature 002, D-48), que usa a mesma sessão e o mesmo espaçamento por host.
+    # Coleta, parsing, filtragem e enriquecimento. Os clientes vivem até o detalhe dos lotes novos
+    # (feature 002, D-48). Cada requisição sai pelo nível do leiloeiro (feature 005, D-87).
     cliente = ClienteHTTP(deps.transporte_leiloeiros, relogio=deps.relogio, dormir=deps.dormir)
+    apify = None
+    if any(l.nivel_coleta == "apify" for l in incluidos):
+        apify = ClienteApify(ambiente.apify_token, deps.transporte_apify, relogio=deps.relogio, dormir=deps.dormir,
+                             atores_por_host={urlsplit(l.base_url).hostname: l.apify_ator
+                                              for l in incluidos if l.apify_ator})
+    roteado = ClienteRoteado({"script": cliente, **({"apify": apify} if apify else {})})
+    consumo = None
     try:
-        respostas = Coletor(cliente, adaptadores, relogio=deps.relogio, agora=deps.agora).coletar(leiloeiros.ativos)
-        parsings, aptas = _processar(respostas, leiloeiros.ativos, adaptadores)
+        respostas = Coletor(roteado, adaptadores, relogio=deps.relogio, agora=deps.agora).coletar(incluidos)
+        parsings, aptas = _processar(respostas, incluidos, adaptadores)
         fluxo = FluxoFiltragem(RepositorioLotes(con))
         filtragem = fluxo.filtrar(list(parsings.values()), veiculos.ativos, aptas)
         log.info("filtro  | %d lotes vistos, %d retirados | %d candidatos | %d já conhecidos | %d novos",
                  filtragem.vistos, filtragem.descartados_retirados, filtragem.candidatos, filtragem.ja_conhecidos,
                  len(filtragem.novos))
-        semeados_visiveis = _enriquecer(filtragem, cliente, adaptadores, detalhar_semeados=not dry_run)
+        semeados_visiveis = _enriquecer(filtragem, roteado, adaptadores, detalhar_semeados=not dry_run,
+                                        niveis={l.id: l.nivel_coleta for l in incluidos})
+        if apify is not None:
+            consumo = apify.consumo()
+            log.info("coleta  | apify | %d página(s)%s", apify.execucoes,
+                     f"; US$ {consumo.gasto_varredura:.2f} nesta varredura, ciclo US$ {consumo.gasto_ciclo:.2f} de "
+                     f"{consumo.limite:.2f}" if consumo else "; consumo indisponível")
     finally:
-        cliente.fechar()
+        roteado.fechar()
     estado.contagens.update(filtragem.contagens())
-    estado.leiloeiros = _situacao_leiloeiros(leiloeiros.ativos, respostas, parsings)
+    extras = _eventos_vistos(incluidos, respostas, filtragem, con, deps.agora(), dry_run)
+    situacoes = dict(_situacao_leiloeiros(incluidos, respostas, parsings))
+    for leiloeiro in incluidos:
+        complementos = [texto for texto, _alerta in extras.get(leiloeiro.id, [])]
+        if apify is not None and leiloeiro.nivel_coleta == "apify":
+            complementos.append(_linha_consumo(apify.execucoes, consumo, fuso))
+        if complementos:
+            situacoes[leiloeiro.nome] = " · ".join([situacoes[leiloeiro.nome], *complementos])
+    situacoes.update({ordem[i]: situacao for i, situacao in pulados.items()})
+    estado.leiloeiros = [(nome, situacoes[nome]) for nome in ordem.values() if nome in situacoes]
 
     # Semeadura e digest.
     if filtragem.buscas_a_semear:
@@ -300,7 +360,11 @@ def _executar(raiz: Path, dry_run: bool, deps: Dependencias, fuso: tzinfo, con, 
                 log.error("notif   | digest não enviado; os lotes voltam na próxima execução: %s", envio.erro)
 
         # Alertas: quebra por leiloeiro e falha geral (EC-08 do agendador).
-        pendentes = _alertas(leiloeiros.ativos, respostas, parsings, agora_local)
+        pendentes = _alertas(incluidos, respostas, parsings, agora_local)
+        pendentes += [AlertaPendente(leiloeiros=(lid,), alerta=AlertaOperacional(
+                          executado_em=agora_local, leiloeiro=ordem[lid], mensagem=mensagem))
+                      for lid, itens in extras.items() for _texto, mensagem in itens if mensagem]
+        pendentes += _alerta_gasto(consumo, agora_local, fuso)
         desde = agora_local.replace(hour=0, minute=0, second=0, microsecond=0)
         alertas = processar_alertas(pendentes, repo_exec, notificador, desde, dry_run=dry_run)
         estado.saida.alertas = alertas.textos
@@ -324,6 +388,8 @@ def _executar(raiz: Path, dry_run: bool, deps: Dependencias, fuso: tzinfo, con, 
         contagem["ok" if resposta.veredito is Veredito.OK else
                  "bloqueadas" if resposta.veredito is Veredito.BLOQUEADO else "falhas"] += 1
         contagem["quebra"] += int(parsing.quebra_suspeita)
+    if ID_ALERTA_APIFY in alertas.enviados_para:  # base do limite de 1 alerta de gasto por dia
+        repo_exec.registrar_leiloeiro(execucao_id, ID_ALERTA_APIFY, alerta_enviado=True)
     for leiloeiro_id, contagem in por_leiloeiro.items():
         repo_exec.registrar_leiloeiro(
             execucao_id, leiloeiro_id, buscas_ok=contagem["ok"], buscas_bloqueadas=contagem["bloqueadas"],
@@ -378,7 +444,7 @@ def _situacao_leiloeiros(leiloeiros, respostas, parsings) -> list[tuple[str, str
     return situacoes
 
 
-def _enriquecer(filtragem, cliente: ClienteHTTP, adaptadores, detalhar_semeados: bool) -> list:
+def _enriquecer(filtragem, cliente, adaptadores, detalhar_semeados: bool, niveis=None) -> list:
     """Detalhe dos lotes novos (feature 002, D-48): retirados e sucata saem do aviso e entram na contagem.
 
     Os semeáveis também são detalhados (E001 da feature 002), só para os documentos: todos continuam
@@ -386,21 +452,23 @@ def _enriquecer(filtragem, cliente: ClienteHTTP, adaptadores, detalhar_semeados:
     """
     parsers = nucleo.parsers()
     if filtragem.novos:
-        resultado = enriquecer(filtragem.novos, cliente, adaptadores, parsers)
+        resultado = enriquecer(filtragem.novos, cliente, adaptadores, parsers, niveis)
         filtragem.novos = resultado.novos
         filtragem.descartados_retirados += resultado.retirados
+        filtragem.descartados_sem_casar += resultado.acima_do_teto  # feature 005 (D-98)
         _log_enriquecimento("novos", resultado)
     if not detalhar_semeados or not filtragem.semeaveis:
         return []
-    semeados = enriquecer(filtragem.semeaveis, cliente, adaptadores, parsers)
+    semeados = enriquecer(filtragem.semeaveis, cliente, adaptadores, parsers, niveis)
     _log_enriquecimento("semeados", semeados)
     return semeados.novos
 
 
 def _log_enriquecimento(quais: str, resultado) -> None:
     if resultado.detalhados or resultado.falhas:
-        log.info("enriq   | %s: %d lote(s) detalhado(s), %d retirado(s), %d sucata(s), %d falha(s)", quais,
-                 resultado.detalhados, resultado.retirados, resultado.sucatas, resultado.falhas)
+        log.info("enriq   | %s: %d lote(s) detalhado(s), %d retirado(s), %d sucata(s), %d acima do teto, %d falha(s)",
+                 quais, resultado.detalhados, resultado.retirados, resultado.sucatas, resultado.acima_do_teto,
+                 resultado.falhas)
 
 
 def _alertas(leiloeiros, respostas, parsings, agora_local: datetime) -> list[AlertaPendente]:
@@ -438,6 +506,19 @@ def _alertas(leiloeiros, respostas, parsings, agora_local: datetime) -> list[Ale
                                      mensagem=f"o certificado do site não pôde ser verificado ({'; '.join(sorted(set(motivos)))})"
                                               ". Por segurança a conexão não foi feita, e este leiloeiro ficou sem "
                                               f"cobertura. Como resolver: {RUNBOOK_CERTIFICADO}")))
+    # Falhas do Apify (feature 005, D-103): a causa e o que fazer; o desafio não resolvido usa o alerta de bloqueio.
+    apify: dict[str, set[str]] = defaultdict(set)
+    for resposta in respostas:
+        motivo = resposta.motivo or ""
+        if resposta.veredito is not Veredito.BLOQUEADO and "apify:" in motivo:
+            causa = motivo.split("apify:", 1)[1].strip()
+            apify[resposta.leiloeiro_id].add(ORIENTACAO_APIFY.get(causa, f"falha no Apify ({causa})."))
+    for leiloeiro_id, mensagens in apify.items():
+        pendentes.append(AlertaPendente(
+            leiloeiros=(leiloeiro_id,),
+            alerta=AlertaOperacional(executado_em=agora_local, leiloeiro=nomes.get(leiloeiro_id, leiloeiro_id),
+                                     mensagem=" ".join(sorted(mensagens)) + " Este leiloeiro ficou sem cobertura "
+                                              "nesta varredura; os outros seguem normalmente.")))
     quebras: dict[str, list[str]] = defaultdict(list)
     for parsing in parsings.values():
         if parsing.quebra_suspeita:
@@ -450,3 +531,82 @@ def _alertas(leiloeiros, respostas, parsings, agora_local: datetime) -> list[Ale
                                               "O site provavelmente mudou de layout e este leiloeiro está sem "
                                               "cobertura até o parser ser consertado.")))
     return pendentes
+
+
+# --- Feature 005: Apify e antecedência dos leilões ---------------------------------------------------
+
+ORIENTACAO_APIFY = {
+    "token inválido": "token do Apify inválido: confira o APIFY_TOKEN no .env (console.apify.com → Settings → "
+                      "API & Integrations).",
+    "cota esgotada": "cota do Apify esgotada: o leiloeiro volta quando o ciclo da conta renovar, ou depois de "
+                     "pagar o excedente no console do Apify.",
+    "tempo esgotado": "o Apify não terminou a página a tempo (tempo esgotado); costuma passar sozinho.",
+    "plataforma indisponível": "plataforma do Apify indisponível; costuma passar sozinho. Se repetir por dias, veja "
+                               "status.apify.com.",
+    "sem resultado": "o Apify não devolveu a página (sem resultado).",
+}
+
+
+def _reais(valor: float) -> str:
+    return f"{valor:.2f}".replace(".", ",")
+
+
+def _linha_consumo(paginas: int, consumo: Consumo | None, fuso: tzinfo) -> str:
+    """Linha do leiloeiro pago na seção "Leiloeiros" (D-91)."""
+    if consumo is None:
+        return f"Apify: {paginas} página(s); consumo indisponível"
+    ciclo = f"ciclo US$ {_reais(consumo.gasto_ciclo)} de {_reais(consumo.limite)}"
+    if consumo.fim_ciclo is not None:
+        ciclo += f" até {consumo.fim_ciclo.astimezone(fuso):%d/%m}"
+    return f"Apify: {paginas} página(s), US$ {_reais(consumo.gasto_varredura)} nesta varredura; {ciclo}"
+
+
+def _alerta_gasto(consumo: Consumo | None, agora_local: datetime, fuso: tzinfo) -> list[AlertaPendente]:
+    """RN-13: gasto do ciclo acima de 80% do limite da conta; 1 por dia (chave `apify`)."""
+    if consumo is None or consumo.limite <= 0 or consumo.gasto_ciclo < ALERTA_GASTO_APIFY * consumo.limite:
+        return []
+    percentual = round(consumo.gasto_ciclo / consumo.limite * 100)
+    fim = f" O ciclo renova depois de {consumo.fim_ciclo.astimezone(fuso):%d/%m}." if consumo.fim_ciclo else ""
+    mensagem = (f"Apify: o gasto do ciclo chegou a US$ {_reais(consumo.gasto_ciclo)} de {_reais(consumo.limite)} "
+                f"({percentual}%), acima de {round(ALERTA_GASTO_APIFY * 100)}% do limite.{fim} Para economizar: rode "
+                "as varreduras manuais com varrer.bat (sem pagos) ou ponha intervalo_horas no leiloeiro pago.")
+    return [AlertaPendente(leiloeiros=(ID_ALERTA_APIFY,),
+                           alerta=AlertaOperacional(executado_em=agora_local, mensagem=mensagem))]
+
+
+def _eventos_vistos(leiloeiros, respostas, filtragem, con, agora: datetime, dry_run: bool) -> dict:
+    """D-102: grava a primeira vez que cada leilão (evento) aparece e devolve, por leiloeiro, os leilões novos.
+
+    Retorno: id do leiloeiro → [(texto para a seção "Leiloeiros", mensagem de alerta ou None)]. Os leilões da
+    semeadura ficam marcados e não contam. Em dry-run nada é gravado.
+    """
+    if dry_run:
+        return {}
+    repo = RepositorioEventos(con)
+    por_id = {l.id: l for l in leiloeiros}
+    semear = set(filtragem.buscas_a_semear)
+    saida: dict[str, list] = defaultdict(list)
+    for resposta in respostas:
+        vistos: set[str] = set()
+        for pagina in resposta.paginas:
+            evento = pagina.anotacoes.get("evento")
+            pregao = pagina.anotacoes.get("pregao_em")
+            if not evento or evento in vistos or not isinstance(pregao, datetime):
+                continue
+            vistos.add(evento)
+            na_semeadura = resposta.busca_id in semear
+            if not repo.registrar(resposta.leiloeiro_id, str(evento), pagina.anotacoes.get("rotulo"), pregao, agora,
+                                  na_semeadura=na_semeadura) or na_semeadura:
+                continue
+            visto = repo.obter(resposta.leiloeiro_id, str(evento))
+            dias = visto.antecedencia_dias
+            texto = f"leilão novo {evento}, visto {dias} dia(s) antes do pregão"
+            leiloeiro = por_id[resposta.leiloeiro_id]
+            alerta = None
+            if leiloeiro.intervalo_horas and visto.antecedencia_horas < leiloeiro.intervalo_horas:
+                alerta = (f"anunciou o leilão {evento} com {dias} dia(s) de antecedência, menos que o intervalo de "
+                          f"{leiloeiro.intervalo_horas} h; considere baixar intervalo_horas em config/leiloeiros.yaml "
+                          "para não perder leilão anunciado em cima da hora.")
+            log.info("coleta  | %s | %s", leiloeiro.nome, texto)
+            saida[resposta.leiloeiro_id].append((texto, alerta))
+    return saida

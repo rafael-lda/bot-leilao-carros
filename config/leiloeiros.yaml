@@ -5,6 +5,7 @@
 #   Claudio Kuss: _reversa_forward/002-leiloeiro-claudio-kuss/interfaces/claudio-kuss.md
 #   Copart:       _reversa_forward/003-leiloeiro-copart/interfaces/copart-busca.md
 #   Freitas:      _reversa_forward/004-leiloeiro-freitas/interfaces/freitas.md
+#   Milan:        _reversa_forward/005-leiloeiro-milan/interfaces/milan.md (páginas pelo Apify: interfaces/apify.md)
 # Não filtre por marca nem modelo: esse recorte é feito pelos veículos-alvo
 # (cadastro-leiloeiros, seção 6.1.1, "busca ampla").
 leiloeiros:
@@ -61,3 +62,20 @@ leiloeiros:
         filtros:
           categoria: 1
           condicao: inteiros
+
+  # Milan Leilões: o site inteiro está atrás do Cloudflare, então as páginas vêm pelo Apify
+  # (APIFY_TOKEN no .env; ~US$ 0,08 por página; consumo e alerta a 80% no relatório). Lê a agenda,
+  # escolhe os leilões "recuperados de financiamento" e lê o catálogo de cada um; o lance atual
+  # vem da página do lote, só para os carros que casam com um alvo. Fica de fora com varrer.bat
+  # (--sem-pagos). Para desligar: ativo: false
+  - nome: Milan Leilões
+    base_url: https://milanleiloes.com.br
+    ativo: true
+    estrategia_acesso: publico
+    nivel_coleta: apify
+    # apify_ator: neatrat/cloudflare-scraper   # padrão; trocar só por ator com perfil no código
+    # intervalo_horas: 72                       # opcional: ler o Milan no máximo a cada 72 h
+    buscas:
+      - descricao: Leilões recuperados de financiamento, todos os lotes
+        filtros:
+          descricao_contem: recuperados de financiamento

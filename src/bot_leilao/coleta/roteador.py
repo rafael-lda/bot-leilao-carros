@@ -30,6 +30,10 @@ class ClienteRoteado:
     def tentativas(self) -> int:
         return self.clientes["script"].tentativas
 
+    def tentativas_de(self, nivel: str) -> int:
+        """Máximo de tentativas do cliente daquele nível (para o log do coletor: o Apify tenta 2 vezes)."""
+        return self.clientes.get(nivel, self.clientes["script"]).tentativas
+
     def fechar(self) -> None:
         for cliente in self.clientes.values():
             cliente.fechar()

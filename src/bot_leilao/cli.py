@@ -27,6 +27,8 @@ def _parser() -> argparse.ArgumentParser:
     varredura.add_argument("--dry-run", action="store_true",
                            help="coleta de verdade, mas não envia nada ao Telegram nem grava lotes conhecidos")
     varredura.add_argument("--raiz", default=".", help="pasta com config/, dados/ e .env (padrão: a atual)")
+    varredura.add_argument("--sem-pagos", action="store_true",
+                           help="pula os leiloeiros de coleta paga (nível apify, ex.: Milan); sem custo no Apify")
 
     teste = sub.add_parser("testar-telegram", help="envia uma mensagem de teste ao Telegram")
     teste.add_argument("--raiz", default=".", help="pasta com o .env (padrão: a atual)")
@@ -84,7 +86,7 @@ def principal(argv: Sequence[str] | None = None, deps: Dependencias | None = Non
             anterior(segredos)
 
     deps.ao_carregar_segredos = registrar_segredos
-    resultado = varrer(raiz, dry_run=args.dry_run, deps=deps)
+    resultado = varrer(raiz, dry_run=args.dry_run, deps=deps, sem_pagos=args.sem_pagos)
     if args.dry_run:
         _imprimir_dry_run(resultado)
     return resultado.codigo_saida

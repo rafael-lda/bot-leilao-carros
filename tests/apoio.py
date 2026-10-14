@@ -153,14 +153,12 @@ class CenarioE2E:
         self.chamadas: list[_httpx.Request] = []
         self.ao_enviar = None
         self.transporte = _httpx.MockTransport(self._responder)
-        campos = dict(
+        self.deps = Dependencias(
             transporte_leiloeiros=self.transporte, transporte_telegram=self.transporte,
+            transporte_apify=self.transporte,  # feature 005
             relogio=relogio.agora, dormir=relogio.dormir, agora=agora, fuso=FUSO_SP,
             environ={"TELEGRAM_BOT_TOKEN": TOKEN_TESTE, "TELEGRAM_CHAT_ID": str(CHAT_TESTE)},
         )
-        if "transporte_apify" in Dependencias.__dataclass_fields__:  # feature 005
-            campos["transporte_apify"] = self.transporte
-        self.deps = Dependencias(**campos)
 
     def _falhar(self, alvo, request):
         if isinstance(alvo, int):
@@ -611,6 +609,9 @@ leiloeiros:
 """
 
 LEILOEIROS_VIP_E_MILAN = LEILOEIRO_VIP + LEILOEIRO_MILAN.removeprefix("leiloeiros:\n")
+
+# Casa com a página do Vip (Versa 2018), mas não com o Versa 2019 do catálogo real do Milan (lote 021).
+ALVO_VERSA_2018 = ALVO_VERSA.replace("ano_max: 2021", "ano_max: 2018")
 
 ALVO_CRETA = """\
 veiculos:

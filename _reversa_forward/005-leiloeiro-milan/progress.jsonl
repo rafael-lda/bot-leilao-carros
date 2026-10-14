@@ -29,3 +29,15 @@
 {"ts": "2026-10-14T23:10:47Z", "action": "T029", "status": "done", "files": ["src/bot_leilao/db/migracoes.py", "src/bot_leilao/db/eventos.py"]}
 {"ts": "2026-10-14T23:10:47Z", "action": "T030", "status": "done", "files": ["src/bot_leilao/db/execucoes.py"]}
 {"ts": "2026-10-14T23:10:47Z", "action": "T031", "status": "done", "files": ["src/bot_leilao/notificacao/relatorio.py", "src/bot_leilao/notificacao/digest.py"]}
+{"ts": "2026-10-14T23:40:31Z", "action": "T032", "status": "done", "files": ["src/bot_leilao/orquestrador.py", "tests/apoio.py"]}
+{"ts": "2026-10-14T23:40:31Z", "action": "T033", "status": "done", "files": ["src/bot_leilao/orquestrador.py"]}
+{"ts": "2026-10-14T23:40:31Z", "action": "T034", "status": "done", "files": ["src/bot_leilao/orquestrador.py"]}
+{"ts": "2026-10-14T23:40:31Z", "action": "T035", "status": "done", "files": ["src/bot_leilao/orquestrador.py"]}
+{"ts": "2026-10-14T23:40:31Z", "action": "T036", "status": "done", "files": ["src/bot_leilao/cli.py"]}
+{"ts": "2026-10-14T23:40:31Z", "action": "T037", "status": "done", "files": ["scripts/varrer.bat", "scripts/varrer-completo.bat"]}
+{"ts": "2026-10-14T23:40:31Z", "action": "T038", "status": "done", "files": ["config/leiloeiros.yaml", ".env.example"]}
+{"ts": "2026-10-14T23:40:31Z", "action": "T040", "status": "done", "files": ["README.md"]}
+{"ts": "2026-10-14T23:40:31Z", "action": "T041", "status": "done", "files": ["tests/RASTREABILIDADE.md"]}
+{"ts": "2026-10-14T23:40:31Z", "action": "T043", "status": "done", "files": ["_reversa_forward/backlog.md"]}
+{"ts": "2026-10-14T23:46:24Z", "action": "T039", "status": "done", "files": ["(execução: dry-run real)", "src/bot_leilao/coleta/coletor.py", "src/bot_leilao/coleta/roteador.py"]}
+{"ts": "2026-10-14T23:46:24Z", "action": "T042", "status": "done", "files": ["_reversa_forward/005-leiloeiro-milan/onboarding.md"]}

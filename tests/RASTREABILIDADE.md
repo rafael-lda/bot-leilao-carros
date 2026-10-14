@@ -160,3 +160,32 @@
 | 3 | Lote sem etiqueta de financeira não é avisado | `test_e2e_freitas.py::test_lote_sem_etiqueta_de_financeira_nao_e_avisado` |
 | 4 | Cadeia incompleta não desliga a verificação | `test_coleta_http.py::test_contexto_tls_confia_no_certifi_e_nos_intermediarios_da_pasta`, `test_coleta_http.py::test_nenhum_codigo_desliga_a_verificacao` |
 | 5 | Freitas bloqueando não derruba os outros | `test_e2e_freitas.py::test_freitas_bloqueando_nao_derruba_o_vip_e_gera_alerta` |
+
+## Feature 005: Milan Leilões (e o nível Apify)
+
+> Fonte: `_reversa_forward/005-leiloeiro-milan/requirements.md`. Respostas reais do ator do Apify de 2026-10-13 em `tests/fixtures/milan/`; API do Apify simulada por `apoio.ApifySimulado`.
+
+| Req. | O que exige | Testes |
+|------|-------------|--------|
+| RF-01 | Nível `apify`: página pelo Apify, nada pelo IP local, `nivel_usado: apify` | `test_coleta_apify.py::test_chamada_sincrona_com_a_url_e_o_token_so_no_cabecalho`, `test_coleta_apify.py::test_pagina_ok_devolve_o_html_e_a_url_do_site`, `test_coleta_roteamento.py::test_roteador_entrega_cada_requisicao_ao_cliente_do_seu_nivel`, `test_coleta_roteamento.py::test_coletor_carimba_o_nivel_do_leiloeiro_na_busca_e_na_preparacao`, `test_config_leiloeiros.py::test_nivel_apify_implementado_com_ator_padrao_e_sem_intervalo`, `test_e2e_milan.py::test_cenario_1_so_o_leilao_de_financiamento_e_lido_pelo_apify` |
+| RF-02 | Token exigido antes da rede quando a varredura inclui pago; nunca gravado | `test_ambiente.py::test_sem_token_do_apify_aborta_so_quando_exigido_citando_leiloeiro_e_variavel`, `test_ambiente.py::test_token_do_apify_lido_do_env_e_mascarado_como_segredo`, `test_e2e_milan.py::test_cenario_3_sem_token_aborta_antes_da_rede`, `test_e2e_milan.py::test_token_do_apify_nunca_aparece_em_log_banco_ou_relatorio`, `test_e2e_ritmo.py::test_so_o_milan_pulado_nao_exige_token` |
+| RF-03 | Agenda: só os leilões "recuperados de financiamento" | `test_coleta_milan.py::test_agenda_real_com_dois_leiloes_e_data_sem_ano`, `test_coleta_milan.py::test_agenda_e_depois_o_catalogo_do_leilao_de_financiamento`, `test_coleta_milan.py::test_agenda_sem_leilao_de_financiamento_encerra_a_busca` |
+| RF-04 | Catálogo em toda varredura; lance da página do lote só para candidatos | `test_parsing_milan.py::test_so_os_veiculos_do_catalogo_e_os_materiais_contados_no_log`, `test_coleta_milan.py::test_detalhe_pelo_link_do_lote`, `test_parsing_milan.py::test_detalhe_com_lance_atual_placa_e_cambio`, `test_e2e_milan.py::test_cenario_1_so_o_leilao_de_financiamento_e_lido_pelo_apify` |
+| RF-05 | Lote normalizado (Creta 046) | `test_parsing_milan.py::test_creta_046_completo`, `test_parsing_milan.py::test_aviso_em_vermelho_e_lance_inicial`, `test_parsing_milan.py::test_marca_e_modelo`, `test_parsing_milan.py::test_lote_com_sufixo_e_sucata`, `test_marcas.py::test_grafias_do_milan` |
+| RF-06 | Falhas do Apify com a causa | `test_coleta_apify.py::test_falhas_traduzidas_com_a_causa_e_sem_insistir_em_token_ou_cota`, `test_e2e_milan.py::test_cenario_4_cota_esgotada_vira_alerta_e_o_vip_segue`, `test_e2e_apify_alertas.py::test_alerta_de_token_invalido`, `test_e2e_apify_alertas.py::test_desafio_nao_resolvido_usa_o_alerta_de_bloqueio_citando_o_ator`, `test_e2e_apify_alertas.py::test_plataforma_fora_alerta_com_a_causa` |
+| RF-07 | Troca automática (Won't nesta feature) | Sem teste; adiada pela D-92 (backlog item 10) |
+| RF-08 | Semeadura, deduplicação, relatório, lista e alerta | `test_e2e_milan.py::test_rf08_estreia_do_milan_semeia_e_lista_o_candidato_nos_documentos`, `test_e2e_milan.py::test_cenario_2_creta_novo_avisado_com_km_cambio_patio_pregao_e_comitente` |
+| RF-09 | Consumo por varredura e alerta a 80% | `test_coleta_apify.py::test_consumo_pela_diferenca_dos_limites_da_conta`, `test_e2e_apify_alertas.py::test_consumo_do_apify_na_linha_do_leiloeiro`, `test_e2e_apify_alertas.py::test_consumo_indisponivel_nao_derruba_a_varredura`, `test_e2e_apify_alertas.py::test_alerta_quando_o_ciclo_passa_de_80_porcento_uma_vez_por_dia` |
+| RF-10 | Varredura com os 5 < 10 min | Sem teste automatizado; dry-run real (Notas de execução do `actions.md`, T039) |
+| RF-11 | `--sem-pagos` e os dois atalhos | `test_cli.py::test_opcao_sem_pagos_chega_ao_orquestrador`, `test_cli.py::test_ajuda_explica_a_opcao`, `test_e2e_ritmo.py::test_cenario_5_sem_pagos_nao_chama_o_apify_nem_exige_token` |
+| RF-12 | `intervalo_horas` | `test_config_leiloeiros.py::test_intervalo_horas_aceito`, `test_config_leiloeiros.py::test_intervalo_horas_invalido_cita_o_campo_e_a_faixa`, `test_e2e_ritmo.py::test_intervalo_pula_o_leiloeiro_lido_ha_pouco_e_le_depois`, `test_e2e_ritmo.py::test_dry_run_nao_conta_como_leitura`, `test_repo_eventos.py::test_ultima_coleta_ok_ignora_dry_run_e_execucoes_sem_busca_ok` |
+| RF-13 | Antecedência dos leilões | `test_repo_eventos.py::test_primeira_vez_fica_e_as_seguintes_sao_ignoradas`, `test_repo_eventos.py::test_antecedencia_em_dias_e_marca_de_semeadura`, `test_e2e_apify_alertas.py::test_leiloes_da_primeira_leitura_ficam_marcados_e_nao_contam`, `test_e2e_apify_alertas.py::test_leilao_novo_aparece_com_a_antecedencia`, `test_e2e_apify_alertas.py::test_antecedencia_menor_que_o_intervalo_gera_alerta` |
+| RF-14 | Teto conferido depois do detalhe | `test_enriquecimento.py::test_lance_do_detalhe_acima_do_teto_sai_do_aviso_e_e_contado`, `test_enriquecimento.py::test_lance_do_detalhe_dentro_do_teto_segue_para_o_aviso`, `test_e2e_milan.py::test_rf14_creta_com_lance_acima_do_teto_no_detalhe_nao_e_avisado` |
+
+| # | Cenário (requirements §7) | Teste |
+|---|---------------------------|-------|
+| 1 | Lotes de financiamento do Milan entram pelo Apify | `test_e2e_milan.py::test_cenario_1_so_o_leilao_de_financiamento_e_lido_pelo_apify` |
+| 2 | Lote que casa é avisado com km, câmbio e comitente | `test_e2e_milan.py::test_cenario_2_creta_novo_avisado_com_km_cambio_patio_pregao_e_comitente`, `test_digest.py::test_cambio_vem_depois_do_km` |
+| 3 | Sem token a configuração aborta antes da rede | `test_e2e_milan.py::test_cenario_3_sem_token_aborta_antes_da_rede` |
+| 4 | Cota esgotada vira alerta claro | `test_e2e_milan.py::test_cenario_4_cota_esgotada_vira_alerta_e_o_vip_segue` |
+| 5 | Varredura sem pagos não usa o Apify | `test_e2e_ritmo.py::test_cenario_5_sem_pagos_nao_chama_o_apify_nem_exige_token` |

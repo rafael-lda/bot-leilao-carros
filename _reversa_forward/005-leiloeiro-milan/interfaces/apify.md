@@ -78,7 +78,7 @@ Campos usados (verificados em 2026-10-13):
 | `data.limits.maxMonthlyUsageUsd` | `5` | limite do plano |
 | `data.monthlyUsageCycle.endAt` | `2026-10-17T23:59:59.999Z` | fim do ciclo (o ciclo desta conta vai do dia 18 ao dia 17) |
 
-Chamado na primeira página paga da varredura e no fim dela: a diferença é o gasto da varredura. A chamada não custa. Falha nessa consulta não derruba nada: o relatório diz "consumo indisponível".
+Chamado na primeira página paga da varredura e no fim dela: a diferença é o gasto da varredura. **Atraso de cobrança:** o evento por item (US$ 0,03) entra no uso da conta alguns segundos depois da execução; a consulta do fim da varredura pode mostrar só o início (US$ 0,05 por página). O gasto do ciclo acerta na varredura seguinte (dry-run real de 2026-10-14). A chamada não custa. Falha nessa consulta não derruba nada: o relatório diz "consumo indisponível".
 
 ## 6. Idempotência e efeitos
 
