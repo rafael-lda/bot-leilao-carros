@@ -48,7 +48,7 @@ Content-Type: application/json
 
 | Situação | Veredito | Motivo | Nova tentativa? |
 |----------|----------|--------|-----------------|
-| 201, item com `success: true`, `status` 200 e sem marcas de desafio (`cf-chl`, `Just a moment`, `challenge-platform`) | `OK` | — | — |
+| 201, item com `status` 200 e sem marcas da página de desafio (`Just a moment`, `cf-chl`, `Performing security verification`) | `OK` | — | — |
 | 201, item com `status` 403/503 ou marcas de desafio no `content` | `BLOQUEADO` | `desafio_antibot (via apify: <ator>)` | sim, 1 vez |
 | 201, item com `status` 404 | `FALHA_REDE` | `http_404 (via apify)` | não |
 | 201, lista vazia ou item sem `content` | `FALHA_REDE` | `apify: sem resultado` | sim, 1 vez |
@@ -58,6 +58,7 @@ Content-Type: application/json
 | 5xx ou erro de conexão com `api.apify.com` | `FALHA_REDE` | `apify: plataforma indisponível` | sim, 1 vez |
 | Outro status | `FALHA_REDE` | `apify: http_<status> (<error.type>)` | não |
 
+- **`challenge-platform` não é marca de desafio aqui:** as páginas liberadas do Milan também carregam esse script do Cloudflare (5 de 5 amostras de 2026-10-13). O nível `script` continua usando a marca (lá ela só aparece com 403/503).
 - No máximo **2 tentativas** por página. Cada tentativa é uma execução nova e custa (US$ 0,05 a 0,08), por isso nunca se repete token inválido nem cota esgotada.
 - `ResultadoHTTP.url` é a URL do site (não a da API), para o parser montar links.
 - O espaçamento mínimo de 5 s por host do site continua valendo (as execuções já levam mais que isso).

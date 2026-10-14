@@ -111,8 +111,9 @@ def test_catalogo_sem_cards_e_sem_cabecalho_e_quebra():
 
 
 def _detalhar(nome_ou_item, **campos):
-    alvo = lote(id_canonico="milan-leiloes:15618-001", leiloeiro_id="milan-leiloes", lance_inicial=None,
-                lance_corrente=None, cambio=None, placa_parcial=None, **campos)
+    padrao = dict(id_canonico="milan-leiloes:15618-001", leiloeiro_id="milan-leiloes", lance_inicial=None,
+                  lance_corrente=None, cambio=None, placa_parcial=None)
+    alvo = lote(**{**padrao, **campos})
     conteudo = html_milan(nome_ou_item) if isinstance(nome_ou_item, str) else nome_ou_item["content"].encode("utf-8")
     ParserMilan().aplicar_detalhe(alvo, conteudo)
     return alvo

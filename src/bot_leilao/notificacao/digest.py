@@ -53,6 +53,7 @@ class ItemDigest:
     observacoes: str | None = None      # feature 002: resumidas em LIMITE_OBSERVACOES
     patio: str | None = None            # feature 003: onde o veículo está
     fipe: str | None = None             # feature 003: "FIPE R$ 80.266", quando o leiloeiro informa
+    cambio: str | None = None           # feature 005: "automático", "manual" ou "CVT", quando o leiloeiro informa
 
 
 def resumir(texto: str, limite: int = LIMITE_OBSERVACOES) -> str:
@@ -79,12 +80,14 @@ def item_de(candidato: Candidato, nome_leiloeiro: str) -> ItemDigest:
         observacoes=resumir(obs) if (obs := observacoes_do_lote(lote)) else None,
         patio=lote.patio,
         fipe=f"FIPE {formatar_preco(lote.fipe)}" if lote.fipe is not None else None,
+        cambio=lote.cambio,
     )
 
 
 def _texto_item(numero: int, item: ItemDigest) -> str:
     primeira = f"{numero}. {escapar_html(item.titulo)}" + (f" — {item.ano}" if item.ano else "")
-    partes = (item.preco, item.leiloeiro, item.km, item.patio, item.fipe, item.pregao)  # D-71 da feature 003
+    # D-71 da feature 003; câmbio depois do km quando o leiloeiro informa (feature 005, cenário 2)
+    partes = (item.preco, item.leiloeiro, item.km, item.cambio, item.patio, item.fipe, item.pregao)
     segunda = "   " + " — ".join(escapar_html(p) for p in partes if p)
     linhas = [primeira, segunda]
     if item.observacoes:  # 4ª linha só para quem tem observações (RF-07 da feature 002)

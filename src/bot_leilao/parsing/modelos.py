@@ -39,6 +39,8 @@ class Lote:
     # Feature 003 (data-delta §1.1): onde o veículo está e o valor FIPE informado pelo leiloeiro.
     patio: str | None = None
     fipe: Decimal | None = None
+    # Feature 005 (data-delta §1.1): "automático", "manual" ou "CVT", quando o leiloeiro informa. Não filtra.
+    cambio: str | None = None
 
 
 @dataclass

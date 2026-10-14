@@ -25,6 +25,7 @@ class Requisicao:
     dados: dict | None = None
     cabecalhos: dict | None = None
     anotacoes: dict | None = None      # para o parser, não vai para a rede (feature 002, D-37)
+    nivel: str = "script"             # nível de coleta por onde sai (feature 005, D-87); não vai para a rede
 
 
 @dataclass

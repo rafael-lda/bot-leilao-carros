@@ -6,7 +6,7 @@ import sqlite3
 
 from bot_leilao.db.conexao import ErroBanco
 
-VERSAO_ATUAL = 1
+VERSAO_ATUAL = 2
 
 _VERSAO_1 = """
 CREATE TABLE IF NOT EXISTS execucao (
@@ -84,6 +84,20 @@ CREATE TABLE IF NOT EXISTS execucao_busca (
 """
 
 
+# Feature 005 (data-delta.md §2.1; roadmap D-102): primeira vez que cada leilão foi visto, para medir a antecedência.
+_VERSAO_2 = """
+CREATE TABLE IF NOT EXISTS evento_visto (
+  leiloeiro_id      TEXT NOT NULL,
+  evento_id         TEXT NOT NULL,
+  rotulo            TEXT,
+  pregao_em         TEXT,
+  visto_primeiro_em TEXT NOT NULL,
+  na_semeadura      INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (leiloeiro_id, evento_id)
+);
+"""
+
+
 def migrar(con: sqlite3.Connection) -> int:
     """Leva o banco à versão atual, de forma idempotente. Devolve a versão final."""
     try:
@@ -93,6 +107,9 @@ def migrar(con: sqlite3.Connection) -> int:
                             f"por este programa ({VERSAO_ATUAL}). Atualize o programa.")
         if versao < 1:
             con.executescript("BEGIN;" + _VERSAO_1 + f"PRAGMA user_version = 1; COMMIT;")
+            versao = 1
+        if versao < 2:
+            con.executescript("BEGIN;" + _VERSAO_2 + "PRAGMA user_version = 2; COMMIT;")
         return con.execute("PRAGMA user_version").fetchone()[0]
     except sqlite3.Error as erro:
         raise ErroBanco(f"Falha ao preparar o banco: {erro}") from erro

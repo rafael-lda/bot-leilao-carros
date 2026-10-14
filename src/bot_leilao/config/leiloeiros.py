@@ -10,11 +10,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from bot_leilao.coleta.apify import validar_ator
 from bot_leilao.config.arquivos import EXEMPLO_LEILOEIROS, ErroConfiguracao, garantir_arquivo, ler_yaml
 from bot_leilao.texto import gerar_id
 
 NIVEIS_COLETA = ("script", "apify", "apify_residencial")
-NIVEIS_IMPLEMENTADOS = ("script",)
+NIVEIS_IMPLEMENTADOS = ("script", "apify")  # feature 005 (D-90)
+INTERVALO_MAXIMO_HORAS = 720                # 30 dias (D-101)
 ESTRATEGIAS_ACESSO = ("publico", "logado")
 ESTRATEGIAS_IMPLEMENTADAS = ("publico",)
 FREQUENCIA_PADRAO = "seg-qua-sex-08h"
@@ -41,6 +43,13 @@ class Leiloeiro:
     nivel_coleta: str
     frequencia: str
     buscas: tuple[Busca, ...]
+    intervalo_horas: int | None = None   # feature 005 (D-101): ausente = lido em toda varredura
+    apify_ator: str | None = None        # feature 005 (D-88): ausente = ator padrão do cliente Apify
+
+    @property
+    def pago(self) -> bool:
+        """Coleta por ferramenta paga (nível diferente de `script`): fica fora de `--sem-pagos` (D-100)."""
+        return self.nivel_coleta != "script"
 
 
 @dataclass
@@ -134,6 +143,21 @@ def _leiloeiro(bloco: Any, posicao: int, avisos: list[str]) -> Leiloeiro:
     if not isinstance(frequencia, str):
         frequencia = str(frequencia)
 
+    intervalo = bloco.get("intervalo_horas")
+    if intervalo is not None and (isinstance(intervalo, bool) or not isinstance(intervalo, int)
+                                  or not 1 <= intervalo <= INTERVALO_MAXIMO_HORAS):
+        raise _erro(nome, f"intervalo_horas ({intervalo!r}) deve ser um número inteiro de horas entre 1 e "
+                          f"{INTERVALO_MAXIMO_HORAS}; para ler em toda varredura, apague a linha")
+
+    ator = bloco.get("apify_ator")
+    if ator is not None:
+        if nivel != "apify":
+            raise _erro(nome, "apify_ator só vale com nivel_coleta: apify")
+        try:
+            validar_ator(str(ator))
+        except ValueError as erro:
+            raise _erro(nome, str(erro)) from None
+
     return Leiloeiro(
         id=leiloeiro_id,
         nome=nome,
@@ -144,6 +168,8 @@ def _leiloeiro(bloco: Any, posicao: int, avisos: list[str]) -> Leiloeiro:
         nivel_coleta=nivel,
         frequencia=frequencia,
         buscas=_buscas(bloco, leiloeiro_id, nome, avisos),
+        intervalo_horas=intervalo,
+        apify_ator=str(ator) if ator is not None else None,
     )
 
 
@@ -152,7 +178,8 @@ def _verificar_executavel(leiloeiro: Leiloeiro, adaptadores: Mapping[str, Any], 
     if leiloeiro.estrategia_acesso not in ESTRATEGIAS_IMPLEMENTADAS:
         raise _erro(nome, "acesso logado ainda não implementado nesta versão; use ativo: false por enquanto")
     if leiloeiro.nivel_coleta not in NIVEIS_IMPLEMENTADOS:
-        raise _erro(nome, f"nivel_coleta {leiloeiro.nivel_coleta} ainda não implementado nesta versão; use script")
+        raise _erro(nome, f"nivel_coleta {leiloeiro.nivel_coleta} ainda não implementado nesta versão; "
+                          f"use {' ou '.join(NIVEIS_IMPLEMENTADOS)}")
     if leiloeiro.id not in adaptadores:
         disponiveis = ", ".join(sorted(adaptadores)) or "nenhum"
         raise _erro(nome, f"não há adaptador de coleta para '{leiloeiro.id}'; adaptadores disponíveis: {disponiveis}")

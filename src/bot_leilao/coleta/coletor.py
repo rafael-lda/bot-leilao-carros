@@ -5,10 +5,11 @@ from __future__ import annotations
 import logging
 import time
 from collections.abc import Callable, Mapping, Sequence
+from dataclasses import replace
 from datetime import datetime, timezone
 
 from bot_leilao.coleta.http import ClienteHTTP
-from bot_leilao.coleta.modelos import Adaptador, Pagina, RespostaBruta, Veredito
+from bot_leilao.coleta.modelos import Adaptador, Pagina, Requisicao, RespostaBruta, ResultadoHTTP, Veredito
 from bot_leilao.config.leiloeiros import Busca, Leiloeiro
 
 log = logging.getLogger(__name__)
@@ -16,6 +17,21 @@ log = logging.getLogger(__name__)
 
 def _agora_utc() -> datetime:
     return datetime.now(timezone.utc)
+
+
+class _ClienteNoNivel:
+    """Cliente entregue ao adaptador na preparação de sessão: carimba o nível do leiloeiro (feature 005, D-87)."""
+
+    def __init__(self, cliente, nivel: str) -> None:
+        self._cliente = cliente
+        self._nivel = nivel
+
+    def requisitar(self, requisicao: Requisicao) -> ResultadoHTTP:
+        return self._cliente.requisitar(replace(requisicao, nivel=self._nivel))
+
+    @property
+    def cookies(self):
+        return self._cliente.cookies
 
 
 class Coletor:
@@ -43,9 +59,11 @@ class Coletor:
 
     def _coletar_leiloeiro(self, leiloeiro: Leiloeiro) -> list[RespostaBruta]:
         adaptador = self.adaptadores[leiloeiro.id]
+        if hasattr(adaptador, "agora"):  # feature 005: datas sem ano (Milan) seguem o relógio da varredura
+            adaptador.agora = self.agora
         inicio, momento = self.relogio(), self.agora()
         try:
-            preparo = adaptador.preparar_sessao(self.cliente)
+            preparo = adaptador.preparar_sessao(_ClienteNoNivel(self.cliente, leiloeiro.nivel_coleta))
         except Exception as erro:  # noqa: BLE001 — isola bug de adaptador (RF-05)
             log.exception("coleta  | %s | erro interno ao preparar a sessão", leiloeiro.nome)
             return [self._falha(busca, leiloeiro, momento, inicio, Veredito.FALHA_REDE, None, 0,
@@ -79,7 +97,7 @@ class Coletor:
                                 leiloeiro.nome, busca.id, teto)
                     return self._falha(busca, leiloeiro, momento, inicio, Veredito.FALHA_REDE, status,
                                        tentativas_max, "teto_paginas")
-                requisicao = adaptador.montar_requisicao(busca.filtros, numero)
+                requisicao = replace(adaptador.montar_requisicao(busca.filtros, numero), nivel=leiloeiro.nivel_coleta)
                 resultado = self.cliente.requisitar(requisicao)
                 tentativas_max = max(tentativas_max, resultado.tentativas)
                 status = resultado.status_http

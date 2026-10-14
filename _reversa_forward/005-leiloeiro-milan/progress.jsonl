@@ -15,3 +15,17 @@
 {"ts": "2026-10-14T01:30:37Z", "action": "T015", "status": "done", "files": ["tests/test_e2e_milan.py"]}
 {"ts": "2026-10-14T01:30:37Z", "action": "T016", "status": "done", "files": ["tests/test_e2e_ritmo.py"]}
 {"ts": "2026-10-14T01:30:37Z", "action": "T017", "status": "done", "files": ["tests/test_e2e_apify_alertas.py"]}
+{"ts": "2026-10-14T23:10:47Z", "action": "T018", "status": "done", "files": ["src/bot_leilao/coleta/modelos.py"]}
+{"ts": "2026-10-14T23:10:47Z", "action": "T019", "status": "done", "files": ["src/bot_leilao/parsing/modelos.py"]}
+{"ts": "2026-10-14T23:10:47Z", "action": "T020", "status": "done", "files": ["src/bot_leilao/coleta/apify.py", "_reversa_forward/005-leiloeiro-milan/interfaces/apify.md"]}
+{"ts": "2026-10-14T23:10:47Z", "action": "T021", "status": "done", "files": ["src/bot_leilao/coleta/roteador.py"]}
+{"ts": "2026-10-14T23:10:47Z", "action": "T022", "status": "done", "files": ["src/bot_leilao/coleta/coletor.py"]}
+{"ts": "2026-10-14T23:10:47Z", "action": "T023", "status": "done", "files": ["src/bot_leilao/config/leiloeiros.py"]}
+{"ts": "2026-10-14T23:10:47Z", "action": "T024", "status": "done", "files": ["src/bot_leilao/config/ambiente.py"]}
+{"ts": "2026-10-14T23:10:47Z", "action": "T025", "status": "done", "files": ["src/bot_leilao/parsing/marcas.py"]}
+{"ts": "2026-10-14T23:10:47Z", "action": "T026", "status": "done", "files": ["src/bot_leilao/coleta/milan.py"]}
+{"ts": "2026-10-14T23:10:47Z", "action": "T027", "status": "done", "files": ["src/bot_leilao/parsing/milan.py", "tests/test_parsing_milan.py"]}
+{"ts": "2026-10-14T23:10:47Z", "action": "T028", "status": "done", "files": ["src/bot_leilao/coleta/enriquecimento.py"]}
+{"ts": "2026-10-14T23:10:47Z", "action": "T029", "status": "done", "files": ["src/bot_leilao/db/migracoes.py", "src/bot_leilao/db/eventos.py"]}
+{"ts": "2026-10-14T23:10:47Z", "action": "T030", "status": "done", "files": ["src/bot_leilao/db/execucoes.py"]}
+{"ts": "2026-10-14T23:10:47Z", "action": "T031", "status": "done", "files": ["src/bot_leilao/notificacao/relatorio.py", "src/bot_leilao/notificacao/digest.py"]}

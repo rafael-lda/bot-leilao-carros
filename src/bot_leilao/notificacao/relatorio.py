@@ -94,7 +94,7 @@ def lote_de(candidato: Candidato, nome_leiloeiro: str, origem: str = "aviso") ->
 
 def _linhas_do_leiloeiro(novo: LoteRelatorio) -> list[str]:
     """Pregão, despesas, documento e observações completas, quando o leiloeiro informa (D-51)."""
-    campos = [("Pátio", _escapar(novo.patio) if novo.patio else None), ("FIPE", novo.fipe),
+    campos = [("Pátio", _escapar(novo.patio) if novo.patio else None), ("Câmbio", novo.item.cambio), ("FIPE", novo.fipe),
               ("Pregão", novo.pregao), ("Despesas admin.", novo.despesas_adm),
               ("Documento", _escapar(novo.documento) if novo.documento else None),
               ("Observações", _escapar(novo.observacoes) if novo.observacoes else None)]
@@ -281,8 +281,10 @@ def _bloco_monitoramento(novo: LoteRelatorio, numero: int) -> str:
         linhas.append(f"- **Documento:** {_escapar(novo.documento)}")
     if novo.observacoes:
         linhas.append(f"- **Observações:** {_escapar(novo.observacoes)}")
-    # Câmbio em branco: só alguns leiloeiros informam; o Rafael ou um agente identifica lote a lote (2026-10-13).
-    linhas += [f"- **Link:** {item.link}", "- **Câmbio:**", f"- **Alvo:** {novo.alvo} (teto {novo.teto})"]
+    # Câmbio: preenchido quando o leiloeiro informa (Milan, feature 005); senão em branco, para o Rafael ou um
+    # agente identificar lote a lote (2026-10-13).
+    cambio = f"- **Câmbio:** {item.cambio}" if item.cambio else "- **Câmbio:**"
+    linhas += [f"- **Link:** {item.link}", cambio, f"- **Alvo:** {novo.alvo} (teto {novo.teto})"]
     return "\n".join(linhas) + "\n"
 
 

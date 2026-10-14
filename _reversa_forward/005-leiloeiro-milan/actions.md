@@ -57,20 +57,20 @@ Fora desta feature: troca automática `script` → `apify` (RF-07, Won't desde o
 
 | ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
 |----|-----------|--------------|-------------|--------------|-------------|--------|
-| T018 | Campo `Requisicao.nivel` (padrão `"script"`, não vai para a rede) (D-87) | T005 | `[//]` | `src/…/coleta/modelos.py` | 🟢 | `[ ]` |
-| T019 | Campo `Lote.cambio` (D-99) | T009 | `[//]` | `src/…/parsing/modelos.py` | 🟢 | `[ ]` |
-| T020 | `coleta/apify.py`: `ClienteApify` (chamada síncrona, perfis `PERFIS_ATOR`, tradução de falhas e tentativas, espaçamento por host do site, contagem de páginas, consumo por `limits`) (D-86, D-88, D-89, D-91) | T004, T018 | - | `src/…/coleta/apify.py` | 🟢 (🟡 cota) | `[ ]` |
-| T021 | `coleta/roteador.py`: `ClienteRoteado` (entrega pelo `Requisicao.nivel`; `cookies` e `fechar` repassados; nível sem cliente = erro claro) (D-87) | T005, T018 | - | `src/…/coleta/roteador.py` | 🟢 | `[ ]` |
-| T022 | `Coletor` carimba o `nivel_coleta` do leiloeiro em cada requisição antes de enviar (D-87) | T005, T018 | - | `src/…/coleta/coletor.py` | 🟢 | `[ ]` |
-| T023 | Cadastro: `NIVEIS_IMPLEMENTADOS = ("script", "apify")`; campos `intervalo_horas` e `apify_ator` com validação; mensagem de "não implementado" atualizada (D-88, D-90, D-101) | T006, T020 | - | `src/…/config/leiloeiros.py` | 🟢 | `[ ]` |
-| T024 | Ambiente: `apify_token`, parâmetro `exigir_apify`, token em `segredos` (D-90) | T007 | `[//]` | `src/…/config/ambiente.py` | 🟢 | `[ ]` |
-| T025 | Sinônimos `m-benz` e `cintroen`; `jaguar` nas marcas conhecidas (D-95) | T010 | `[//]` | `src/…/parsing/marcas.py` | 🟢 | `[ ]` |
-| T026 | `coleta/milan.py`: `AdaptadorMilan` (filtro, leitura da agenda com data sem ano, escolha dos leilões, cursor de catálogos com anotações, detalhe) e registro (D-93, D-94, D-97) | T008 | `[//]` | `src/…/coleta/milan.py` | 🟢 | `[ ]` |
-| T027 | `parsing/milan.py`: `ParserMilan` (catálogo: veículos, marca, modelo, anos, km, câmbio, observações, sucata, lance inicial, pregão, pátio, vazia e quebra) e `aplicar_detalhe` (lances, estado, placa, câmbio) e registro (D-95 a D-97) | T009, T019, T025 | - | `src/…/parsing/milan.py` | 🟢 (🟡 pátio, retirado) | `[ ]` |
-| T028 | Enriquecimento: nível no detalhe pelo mapa leiloeiro → nível; revalidação `casa(lote, alvo)` depois do detalhe com a contagem `acima_do_teto` e log do motivo (D-87, D-98) | T011, T018 | - | `src/…/coleta/enriquecimento.py` | 🟢 | `[ ]` |
-| T029 | Banco: esquema versão 2 (`evento_visto`) em `db/migracoes.py` e repositório `db/eventos.py` (`registrar_evento`, leitura da antecedência) (D-102) | T012 | `[//]` | `src/…/db/eventos.py` | 🟢 | `[ ]` |
-| T030 | `RepositorioExecucoes.ultima_coleta_ok(leiloeiro_id)` (D-101) | T012 | `[//]` | `src/…/db/execucoes.py` | 🟢 | `[ ]` |
-| T031 | Relatório e lista: `LoteRelatorio.cambio` e a linha "Câmbio" preenchida quando houver (D-99) | T013, T019 | - | `src/…/notificacao/relatorio.py` | 🟢 | `[ ]` |
+| T018 | Campo `Requisicao.nivel` (padrão `"script"`, não vai para a rede) (D-87) | T005 | `[//]` | `src/…/coleta/modelos.py` | 🟢 | `[X]` |
+| T019 | Campo `Lote.cambio` (D-99) | T009 | `[//]` | `src/…/parsing/modelos.py` | 🟢 | `[X]` |
+| T020 | `coleta/apify.py`: `ClienteApify` (chamada síncrona, perfis `PERFIS_ATOR`, tradução de falhas e tentativas, espaçamento por host do site, contagem de páginas, consumo por `limits`) (D-86, D-88, D-89, D-91) | T004, T018 | - | `src/…/coleta/apify.py` | 🟢 (🟡 cota) | `[X]` |
+| T021 | `coleta/roteador.py`: `ClienteRoteado` (entrega pelo `Requisicao.nivel`; `cookies` e `fechar` repassados; nível sem cliente = erro claro) (D-87) | T005, T018 | - | `src/…/coleta/roteador.py` | 🟢 | `[X]` |
+| T022 | `Coletor` carimba o `nivel_coleta` do leiloeiro em cada requisição antes de enviar (D-87) | T005, T018 | - | `src/…/coleta/coletor.py` | 🟢 | `[X]` |
+| T023 | Cadastro: `NIVEIS_IMPLEMENTADOS = ("script", "apify")`; campos `intervalo_horas` e `apify_ator` com validação; mensagem de "não implementado" atualizada (D-88, D-90, D-101) | T006, T020 | - | `src/…/config/leiloeiros.py` | 🟢 | `[X]` |
+| T024 | Ambiente: `apify_token`, parâmetro `exigir_apify`, token em `segredos` (D-90) | T007 | `[//]` | `src/…/config/ambiente.py` | 🟢 | `[X]` |
+| T025 | Sinônimos `m-benz` e `cintroen`; `jaguar` nas marcas conhecidas (D-95) | T010 | `[//]` | `src/…/parsing/marcas.py` | 🟢 | `[X]` |
+| T026 | `coleta/milan.py`: `AdaptadorMilan` (filtro, leitura da agenda com data sem ano, escolha dos leilões, cursor de catálogos com anotações, detalhe) e registro (D-93, D-94, D-97) | T008 | `[//]` | `src/…/coleta/milan.py` | 🟢 | `[X]` |
+| T027 | `parsing/milan.py`: `ParserMilan` (catálogo: veículos, marca, modelo, anos, km, câmbio, observações, sucata, lance inicial, pregão, pátio, vazia e quebra) e `aplicar_detalhe` (lances, estado, placa, câmbio) e registro (D-95 a D-97) | T009, T019, T025 | - | `src/…/parsing/milan.py` | 🟢 (🟡 pátio, retirado) | `[X]` |
+| T028 | Enriquecimento: nível no detalhe pelo mapa leiloeiro → nível; revalidação `casa(lote, alvo)` depois do detalhe com a contagem `acima_do_teto` e log do motivo (D-87, D-98) | T011, T018 | - | `src/…/coleta/enriquecimento.py` | 🟢 | `[X]` |
+| T029 | Banco: esquema versão 2 (`evento_visto`) em `db/migracoes.py` e repositório `db/eventos.py` (`registrar_evento`, leitura da antecedência) (D-102) | T012 | `[//]` | `src/…/db/eventos.py` | 🟢 | `[X]` |
+| T030 | `RepositorioExecucoes.ultima_coleta_ok(leiloeiro_id)` (D-101) | T012 | `[//]` | `src/…/db/execucoes.py` | 🟢 | `[X]` |
+| T031 | Relatório e lista: `LoteRelatorio.cambio` e a linha "Câmbio" preenchida quando houver (D-99) | T013, T019 | - | `src/…/notificacao/relatorio.py` | 🟢 | `[X]` |
 
 ## Fase 4, Integração
 
@@ -100,6 +100,11 @@ Fora desta feature: troca automática `script` → `apify` (RF-07, Won't desde o
 - **T003 (2026-10-14):** `CenarioE2E` só passa `transporte_apify` quando `Dependencias` tiver o campo (até o T032); também ganhou `varrer(**opcoes)`, `relatorio()`, `lista()` e `alertas()`.
 - **T009/T015 (2026-10-14):** o cenário 2 do requirements pede câmbio no resumo; o teste fixa o câmbio na 2ª linha do digest, depois do km, só quando o leiloeiro informa (`tests/test_digest.py`). Entra no T031 junto com o relatório.
 - **T008 (2026-10-14):** o ano do pregão (agenda sem ano) usa o relógio do adaptador (`agora`); o T022 faz o `Coletor` entregar o próprio relógio aos adaptadores que tiverem esse atributo, para os testes não dependerem da data real.
+- **T020 (2026-10-14):** as páginas liberadas do Milan contêm `challenge-platform` (script do Cloudflare que roda depois de liberar); o `ClienteApify` reconhece o desafio só por `Just a moment`, `cf-chl` e `Performing security verification`, ou status 403/503 do item. Contrato `interfaces/apify.md` §4 atualizado.
+- **T022 (2026-10-14):** a preparação de sessão também sai pelo nível do leiloeiro (cliente que carimba o nível); o `Coletor` entrega o próprio relógio aos adaptadores com atributo `agora` (Milan: datas sem ano).
+- **T028 (2026-10-14):** a revalidação usa o `casa(lote, alvo)` do motor; ponta a ponta do Kuss e do Freitas seguem verdes.
+- **T031 (2026-10-14):** câmbio também na 2ª linha do resumo do Telegram, depois do km (cenário 2), além do relatório e da lista.
+- **Etapa 2 concluída (2026-10-14):** T018–T031; 705 testes passando; 22 falhando (orquestrador e linha de comando: `test_e2e_milan`, `test_e2e_ritmo`, `test_e2e_apify_alertas`, `test_cli`), à espera da etapa 3.
 
 ## Histórico de alterações
 

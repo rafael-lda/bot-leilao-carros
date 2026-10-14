@@ -90,6 +90,13 @@ class RepositorioExecucoes:
                 f"INSERT OR REPLACE INTO execucao_busca (execucao_id, {', '.join(nomes)})"
                 f" VALUES (?, {', '.join('?' * len(nomes))})", (execucao_id, *valores))
 
+    def ultima_coleta_ok(self, leiloeiro_id: str) -> datetime | None:
+        """Início da última execução normal com pelo menos uma busca ok do leiloeiro (feature 005, D-101)."""
+        linha = self.con.execute(
+            "SELECT MAX(e.iniciado_em) FROM execucao_leiloeiro el JOIN execucao e ON e.id = el.execucao_id"
+            " WHERE el.leiloeiro_id = ? AND el.buscas_ok > 0 AND e.modo = 'normal'", (leiloeiro_id,)).fetchone()
+        return de_iso(linha[0]) if linha and linha[0] else None
+
     def alerta_enviado_desde(self, leiloeiro_id: str, desde: datetime) -> bool:
         """Base do limite de 1 alerta por dia por leiloeiro (roadmap D-22). Execuções dry_run não contam."""
         linha = self.con.execute(

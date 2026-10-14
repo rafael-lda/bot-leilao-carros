@@ -26,6 +26,8 @@ SINONIMOS: dict[str, str] = {
     "m benz": "mercedes-benz",    # Claudio Kuss, 2026-10-10
     "lr": "land rover",           # Claudio Kuss, 2026-10-10 ("IMP LR")
     "m.benz": "mercedes-benz",    # Freitas, 2026-10-13
+    "m-benz": "mercedes-benz",    # Milan, 2026-10-13 ("I/M-BENZ A200")
+    "cintroen": "citroen",        # Milan, 2026-10-13 (erro de digitação do catálogo: "CINTROEN C3")
 }
 
 # Marcas do formulário do Vip (2026-10-03), normalizadas, mais as canônicas da tabela.
@@ -37,6 +39,7 @@ MARCAS_CONHECIDAS = frozenset({
     "nissan", "peugeot", "porsche", "ram", "randon", "renault", "royal enfield", "scania", "shineray", "sr",
     "ssangyong", "subaru", "sundown", "suzuki", "tailg", "toyota", "traxx", "triumph", "valtra", "volkswagen",
     "volvo", "wuyang", "xinling", "yamaha",
+    "jaguar",  # Milan, 2026-10-13
 }) | frozenset(SINONIMOS.values())
 
 
