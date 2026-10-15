@@ -231,19 +231,34 @@ reescreve, reordena, renumera nem apaga nada. Quem tira lotes de lá é o Rafael
   dois blocos `- **Reaparição de:** <link do outro>` e não apague nenhum: pode ser oportunidade (sem lances
   antes) ou problema oculto, e o Rafael decide caso a caso.
 
+## Triagem (skill `analisar-lotes`)
+
+- **Rodar:** `/analisar-lotes` no agente (Claude Code, Antigravity, Codex), para a lista inteira ou um lote. Os
+  critérios vêm de `config/veiculos-alvo.yaml` (bloco `padrao` e texto `triagem` de cada alvo).
+- **Linha de triagem:** cada lote ganha `- **Triagem (DD/MM/AAAA):** aprovado` ou `a confirmar — <o que falta>`.
+  Na dúvida, o lote nunca é reprovado: fica "a confirmar".
+- **Reprovado:** o bloco sai daqui e vai para `lotes-descartados.md` (mesma pasta), com o motivo, a evidência e a
+  data. Para trazer de volta: `python -m bot_leilao analise devolver <número>`, ou peça ao agente.
+- **Custo:** para os aprovados, a skill preenche FIPE, Frete, Manutenções, Valor estimado na garagem e o Lance
+  máximo, com os valores de `config/custos.yaml`.
+- A skill escreve só pela linha de comando do bot, que não roda junto com uma varredura e nunca mexe no
+  comentário `<!-- lote: ... -->` nem nos números.
+
 ## Campos de cada lote
 
 | Campo | Quem preenche | O que é |
 |---|---|---|
-| FIPE | bot (Copart) ou Rafael/agente | Valor FIPE do carro; `_pendente_` enquanto ninguém consultou |
+| FIPE | bot (Copart), skill ou Rafael | Valor FIPE do carro, com código e mês; `_pendente_` enquanto ninguém consultou; `_a escolher_` quando o título cabe em mais de uma versão |
 | Lance ao entrar | bot | Lance (ou preço) quando o lote entrou na lista, com o % da FIPE |
 | Lance atual | Rafael/agente | Atualizado ao acompanhar o lote |
 | Despesas admin. | bot (Kuss) ou Rafael/agente | Despesa fixa do leiloeiro por lote, além dos 5% de comissão |
-| Frete | Rafael/agente | Custo de trazer o carro do pátio até Londrina |
-| Manutenções | Rafael/agente | Reparos estimados |
-| Valor estimado na garagem | Rafael/agente | Lance + 5% + despesas + frete + manutenções + transferência, com o % da FIPE |
+| Frete | skill ou Rafael | Custo de trazer o carro do pátio até Londrina (km × R$/km do `custos.yaml`, estimativa) |
+| Manutenções | skill ou Rafael | Reserva de reparos, mais o que as observações pedirem |
+| Valor estimado na garagem | skill ou Rafael | Lance + 5% + despesas + frete + manutenções + transferência, com o % da FIPE |
+| Lance máximo | skill | Até quanto dar para a margem do `custos.yaml` |
+| Triagem | skill | Aprovado ou a confirmar (o reprovado vai para `lotes-descartados.md`) |
 | Pátio, Pregão, Documento, Observações | bot | Onde o carro está, data do leilão, placa parcial e estado, quando o site informa |
-| Câmbio | Rafael/agente | Automático, manual ou CVT; alguns leiloeiros informam (título, página do lote ou catálogo), outros não: identificar lote a lote pelo link |
+| Câmbio | bot (Milan) ou skill | Automático, manual ou CVT; alguns leiloeiros informam (título, página do lote ou catálogo), outros não: a skill lê o título e a página do lote |
 | Link, Alvo | bot | Página do lote e veículo-alvo com o teto |
 """
 

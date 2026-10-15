@@ -161,8 +161,7 @@ class CenarioE2E:
             relogio=relogio.agora, dormir=relogio.dormir, agora=agora, fuso=FUSO_SP,
             environ={"TELEGRAM_BOT_TOKEN": TOKEN_TESTE, "TELEGRAM_CHAT_ID": str(CHAT_TESTE)},
         )
-        if hasattr(self.deps, "transporte_analise") or "transporte_analise" in type(self.deps).__dataclass_fields__:
-            self.deps.transporte_analise = self.transporte  # feature 006: FIPE e mapas (campo criado no T021)
+        self.deps.transporte_analise = self.transporte  # feature 006: FIPE e mapas
 
     def _falhar(self, alvo, request):
         if isinstance(alvo, int):

@@ -76,6 +76,7 @@ class Dependencias:
     transporte_leiloeiros: httpx.BaseTransport | None = None
     transporte_telegram: httpx.BaseTransport | None = None
     transporte_apify: httpx.BaseTransport | None = None   # feature 005
+    transporte_analise: httpx.BaseTransport | None = None  # feature 006: FIPE e mapas
     relogio: Callable[[], float] = time.monotonic
     dormir: Callable[[float], None] = time.sleep
     agora: Callable[[], datetime] = _agora_utc

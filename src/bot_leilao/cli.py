@@ -8,6 +8,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from bot_leilao import __version__
+from bot_leilao.analise import cli as cli_analise
 from bot_leilao.config.ambiente import carregar_ambiente
 from bot_leilao.config.arquivos import ErroConfiguracao
 from bot_leilao.logsetup import configurar_logs
@@ -29,6 +30,8 @@ def _parser() -> argparse.ArgumentParser:
     varredura.add_argument("--raiz", default=".", help="pasta com config/, dados/ e .env (padrão: a atual)")
     varredura.add_argument("--sem-pagos", action="store_true",
                            help="pula os leiloeiros de coleta paga (nível apify, ex.: Milan); sem custo no Apify")
+
+    cli_analise.registrar(sub)  # feature 006
 
     teste = sub.add_parser("testar-telegram", help="envia uma mensagem de teste ao Telegram")
     teste.add_argument("--raiz", default=".", help="pasta com o .env (padrão: a atual)")
@@ -56,6 +59,9 @@ def _imprimir_dry_run(resultado) -> None:
 def principal(argv: Sequence[str] | None = None, deps: Dependencias | None = None) -> int:
     args = _parser().parse_args(argv)
     raiz = Path(args.raiz).resolve()
+    if args.comando == "analise":  # feature 006: saída JSON, logs só no arquivo
+        configurar_logs(raiz / "dados" / "logs", console=False)
+        return cli_analise.executar(args, raiz, deps or Dependencias())
     filtro = configurar_logs(raiz / "dados" / "logs")
 
     if args.comando == "testar-telegram":

@@ -13,6 +13,11 @@ from bot_leilao.texto import gerar_id
 TIPOS_LEILAO = ("judicial", "extrajudicial", "financiamento", "seguradora", "recuperado")
 ANO_MINIMO_PLAUSIVEL = 1900
 ANO_MAXIMO_PLAUSIVEL = 2100
+# Feature 006 (D-107): critérios da triagem, num bloco `padrao` na raiz e sobrescrevíveis por alvo.
+CAMBIOS = ("automatico", "cvt", "manual")
+CRITERIOS_BOOLEANOS = ("aceitar_sinistro", "aceitar_sucata", "aceitar_mecanica_com_problema",
+                       "aceitar_pequenas_avarias")
+CAMPOS_DO_PADRAO = ("cambio", *CRITERIOS_BOOLEANOS)
 
 
 @dataclass(frozen=True)
@@ -27,6 +32,13 @@ class VeiculoAlvo:
     quilometragem_maxima: int | None
     ativo: bool
     excluir: tuple[str, ...] = ()   # palavras que, no modelo ou no título do lote, impedem o casamento (D-72)
+    # Feature 006 (D-107): `cambio` também é usado pelo motor (D-108); o resto, só pela skill analisar-lotes.
+    cambio: tuple[str, ...] | None = None
+    aceitar_sinistro: bool = True
+    aceitar_sucata: bool = True
+    aceitar_mecanica_com_problema: bool = True
+    aceitar_pequenas_avarias: bool = True
+    triagem: str | None = None
 
     @property
     def nome(self) -> str:
@@ -111,7 +123,48 @@ def _tipos(bloco: dict, nome: str) -> tuple[str, ...]:
     return tuple(tipos)
 
 
-def _alvo(bloco: Any, posicao: int) -> VeiculoAlvo:
+def _cambio(valor: Any, nome: str) -> tuple[str, ...]:
+    if not isinstance(valor, list) or not valor or not all(v in CAMBIOS for v in valor):
+        raise _erro(nome, f"cambio ({valor!r}) deve ser uma lista com um ou mais de: {', '.join(CAMBIOS)} "
+                          "(sem acento), ex.: [automatico, cvt]")
+    return tuple(dict.fromkeys(valor))
+
+
+def _criterios(bloco: dict, nome: str, base: dict | None = None) -> dict:
+    """Campos fixos de critério (D-107); o que o bloco não traz vem de `base` (o padrão)."""
+    criterios = dict(base or {})
+    if "cambio" in bloco:
+        criterios["cambio"] = _cambio(bloco["cambio"], nome)
+    for campo in CRITERIOS_BOOLEANOS:
+        if campo in bloco:
+            if not isinstance(bloco[campo], bool):
+                raise _erro(nome, f"{campo} ({bloco[campo]!r}) deve ser true ou false")
+            criterios[campo] = bloco[campo]
+    return criterios
+
+
+def _padrao(dados: dict) -> dict:
+    bloco = dados.get("padrao")
+    if bloco is None:
+        return {}
+    if not isinstance(bloco, dict):
+        raise _erro("padrao", "o bloco padrao deve conter campos de critério")
+    desconhecidos = sorted(set(bloco) - set(CAMPOS_DO_PADRAO))
+    if desconhecidos:
+        raise _erro("padrao", f"campo(s) desconhecido(s) {', '.join(desconhecidos)}; aceitos: {', '.join(CAMPOS_DO_PADRAO)}")
+    return _criterios(bloco, "padrao")
+
+
+def _triagem(bloco: dict, nome: str) -> str | None:
+    if "triagem" not in bloco:
+        return None
+    valor = bloco["triagem"]
+    if not isinstance(valor, str) or not valor.strip():
+        raise _erro(nome, "triagem deve ser um texto não vazio, ex.: \"Só 2.0 Dynamique Plus ou Privilège\"")
+    return valor.strip()
+
+
+def _alvo(bloco: Any, posicao: int, padrao: dict | None = None) -> VeiculoAlvo:
     if not isinstance(bloco, dict):
         raise ErroConfiguracao(f"Configuração inválida: o item {posicao} de 'veiculos' não é um bloco de campos.")
     nome = f"{bloco.get('marca', '?')} {bloco.get('modelo', '?')}"
@@ -135,6 +188,8 @@ def _alvo(bloco: Any, posicao: int) -> VeiculoAlvo:
         quilometragem_maxima=_km(bloco, nome),
         ativo=ativo,
         excluir=_excluir(bloco, nome),
+        triagem=_triagem(bloco, nome),
+        **_criterios(bloco, nome, padrao),
     )
 
 
@@ -146,8 +201,9 @@ def carregar_veiculos(caminho: Path) -> ResultadoVeiculos:
 
     resultado = ResultadoVeiculos(ativos=[])
     vistos: set[str] = set()
+    padrao = _padrao(dados)
     for posicao, bloco in enumerate(dados["veiculos"], start=1):
-        alvo = _alvo(bloco, posicao)
+        alvo = _alvo(bloco, posicao, padrao)
         if alvo.id in vistos:
             resultado.avisos.append(f"Veículo-alvo duplicado '{alvo.nome}' ({alvo.ano_min}–{alvo.ano_max}): "
                                     "mantida a primeira ocorrência.")

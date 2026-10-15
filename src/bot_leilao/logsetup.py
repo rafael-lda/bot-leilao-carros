@@ -51,8 +51,12 @@ class FiltroSegredos(logging.Filter):
         return True
 
 
-def configurar_logs(pasta_logs: Path | None, segredos: Iterable[str] = (), nivel: int = logging.INFO) -> FiltroSegredos:
-    """Configura o logger `bot_leilao` e devolve o filtro, para acrescentar segredos depois."""
+def configurar_logs(pasta_logs: Path | None, segredos: Iterable[str] = (), nivel: int = logging.INFO,
+                    console: bool = True) -> FiltroSegredos:
+    """Configura o logger `bot_leilao` e devolve o filtro, para acrescentar segredos depois.
+
+    `console=False` (feature 006, subcomandos `analise`): só o arquivo, para a saída padrão levar só o JSON.
+    """
     filtro = FiltroSegredos(segredos)
     formatador = logging.Formatter(FORMATO, datefmt="%Y-%m-%d %H:%M:%S")
     logger = logging.getLogger("bot_leilao")
@@ -60,7 +64,7 @@ def configurar_logs(pasta_logs: Path | None, segredos: Iterable[str] = (), nivel
         antigo.close()
         logger.removeHandler(antigo)
 
-    handlers: list[logging.Handler] = [logging.StreamHandler(sys.stdout)]
+    handlers: list[logging.Handler] = [logging.StreamHandler(sys.stdout)] if console else []
     if pasta_logs is not None:
         pasta_logs.mkdir(parents=True, exist_ok=True)
         handlers.append(RotatingFileHandler(pasta_logs / "bot-leilao.log", maxBytes=1_000_000, backupCount=5,

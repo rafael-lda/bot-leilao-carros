@@ -50,21 +50,21 @@ Política de escrita: `allowLegacyEdits: true`, `allowedPaths` vazio (liberaçã
 
 | ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
 |----|-----------|--------------|-------------|--------------|-------------|--------|
-| T013 | `config/veiculos.py`: bloco `padrao`, campos de critério e `triagem` no `VeiculoAlvo`, com a sobrescrita e a validação (D-107) | T004 | `[//]` | `src/…/config/veiculos.py` | 🟢 | `[ ]` |
-| T014 | `filtro/motor.py`: câmbio quando conhecido, só com certeza; contagem no log e em `descartados_sem_casar` (D-108) | T005, T013 | - | `src/…/filtro/motor.py` | 🟢 | `[ ]` |
-| T015 | `analise/lista.py`: leitura dos blocos, linha de triagem, mover para descartados, devolver, escrita atômica (D-112) | T006 | `[//]` | `src/…/analise/lista.py` | 🟢 | `[ ]` |
-| T016 | `analise/custos.py`: `custos.yaml` (criação, validação) e cálculo (parcelas, total, % da FIPE, lance máximo) (D-116) | T007 | `[//]` | `src/…/analise/custos.py` | 🟢 | `[ ]` |
-| T017 | `analise/distancias.py`: tabela, cache, Nominatim e OSRM (D-115) | T009 | `[//]` | `src/…/analise/distancias.py` | 🟢 | `[ ]` |
-| T018 | `analise/fipe.py`: parallelum, reserva no site oficial, cache por mês, candidatas por termos (D-114) | T008 | `[//]` | `src/…/analise/fipe.py` | 🟢 (🟡 estabilidade das fontes) | `[ ]` |
-| T019 | `analise/pagina.py`: leitura do lote por leiloeiro com os clientes e o nível do bot, campos do parser e texto limpo (D-110) | T010 | `[//]` | `src/…/analise/pagina.py` | 🟢 | `[ ]` |
-| T020 | Texto padrão do arquivo de comentários (`COMENTARIOS_MONITORAMENTO`): linha de triagem e arquivo de descartados (D-113) | - | `[//]` | `src/…/notificacao/relatorio.py` | 🟢 | `[ ]` |
+| T013 | `config/veiculos.py`: bloco `padrao`, campos de critério e `triagem` no `VeiculoAlvo`, com a sobrescrita e a validação (D-107) | T004 | `[//]` | `src/…/config/veiculos.py` | 🟢 | `[X]` |
+| T014 | `filtro/motor.py`: câmbio quando conhecido, só com certeza; contagem no log e em `descartados_sem_casar` (D-108) | T005, T013 | - | `src/…/filtro/motor.py` | 🟢 | `[X]` |
+| T015 | `analise/lista.py`: leitura dos blocos, linha de triagem, mover para descartados, devolver, escrita atômica (D-112) | T006 | `[//]` | `src/…/analise/lista.py` | 🟢 | `[X]` |
+| T016 | `analise/custos.py`: `custos.yaml` (criação, validação) e cálculo (parcelas, total, % da FIPE, lance máximo) (D-116) | T007 | `[//]` | `src/…/analise/custos.py` | 🟢 | `[X]` |
+| T017 | `analise/distancias.py`: tabela, cache, Nominatim e OSRM (D-115) | T009 | `[//]` | `src/…/analise/distancias.py` | 🟢 | `[X]` |
+| T018 | `analise/fipe.py`: parallelum, reserva no site oficial, cache por mês, candidatas por termos (D-114) | T008 | `[//]` | `src/…/analise/fipe.py` | 🟢 (🟡 estabilidade das fontes) | `[X]` |
+| T019 | `analise/pagina.py`: leitura do lote por leiloeiro com os clientes e o nível do bot, campos do parser e texto limpo (D-110) | T010 | `[//]` | `src/…/analise/pagina.py` | 🟢 | `[X]` |
+| T020 | Texto padrão do arquivo de comentários (`COMENTARIOS_MONITORAMENTO`): linha de triagem e arquivo de descartados (D-113) | - | `[//]` | `src/…/notificacao/relatorio.py` | 🟢 | `[X]` |
 
 ## Fase 4, Integração
 
 | ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
 |----|-----------|--------------|-------------|--------------|-------------|--------|
-| T021 | Linha de comando: `analise lotes`, `pagina`, `triar`, `devolver` (com a trava da varredura nos que escrevem) (D-104) | T011, T015, T019 | - | `src/…/cli.py` | 🟢 | `[ ]` |
-| T022 | Linha de comando: `analise fipe-candidatos`, `fipe-valor`, `custo`, `anotar-custo` (D-104, D-117) | T021, T016, T017, T018 | - | `src/…/cli.py` | 🟢 | `[ ]` |
+| T021 | Linha de comando: `analise lotes`, `pagina`, `triar`, `devolver` (com a trava da varredura nos que escrevem) (D-104) | T011, T015, T019 | - | `src/…/cli.py` | 🟢 | `[X]` |
+| T022 | Linha de comando: `analise fipe-candidatos`, `fipe-valor`, `custo`, `anotar-custo` (D-104, D-117) | T021, T016, T017, T018 | - | `src/…/cli.py` | 🟢 | `[X]` |
 | T023 | (RF-02, RF-03, RN-03) Rascunho do `SKILL.md` com o `skill-creator`: gatilhos; roteiro da triagem com **todos os critérios da RN-03** e a origem de cada um (campos já existentes do alvo: tipo de leilão, ano, teto contra o lance atual, km máximo; campos novos: câmbio, sinistro, sucata, mecânica, pequenas avarias; texto `triagem`: versão preferida; estado do lote: encerrado, retirado, documento); ordem da evidência e Copart sem câmbio "a confirmar" (D-111); "na dúvida, a confirmar"; resumo com aprovados, reprovados, a confirmar e **total de páginas pagas**; confirmação do Rafael antes de mover; custo para os aprovados com reparos extras quando houver avaria; tudo só pela linha de comando (D-104, D-105, D-111, RN-01 a RN-10) | T022 | - | `.claude/skills/analisar-lotes/SKILL.md` | 🟢 | `[ ]` |
 | T024 | Avaliações com o `skill-creator`: casos com a lista de 2026-10-15 e o veredito esperado de cada lote (`investigation.md` §5), mais os cenários de FIPE ambígua, de varredura em andamento, de km acima do máximo e de lance atual acima do teto (lotes da fixture alterados); rodar, comparar e ajustar o `SKILL.md` até acertar; guardar as avaliações na pasta da skill | T023 | - | `.claude/skills/analisar-lotes/evals/` | 🟡 | `[ ]` |
 | T025 | Cópia idêntica da skill em `.agents/skills/analisar-lotes/` (teste do T012 verde) (D-106) | T024, T003, T012 | - | `.agents/skills/analisar-lotes/` | 🟢 | `[ ]` |
@@ -88,6 +88,11 @@ Política de escrita: `allowLegacyEdits: true`, `allowedPaths` vazio (liberaçã
 - **T001 (2026-10-15):** as fixtures da FIPE são respostas reais das duas fontes (mesmos códigos de modelo: Nissan 43, Versa SL Aut. 7628 e Mec. 7629; R$ 62.464 e R$ 61.547 em out/2026); a rota Londrina → Curitiba deu 385 km (385.207 m); a página real de um anúncio do Vip foi guardada (`vip_anuncio_310800.html`).
 - **T002 (2026-10-15):** `CenarioE2E` ganhou `fipe` e `mapas`; o campo `transporte_analise` das dependências é ligado quando existir (criado no T021).
 - **Etapa 1 concluída (2026-10-15):** T001–T012. Suíte: 729 passando (727 anteriores + 2 da skill que já valem: nenhum segredo e `.gitignore`); 36 falhando e 5 módulos sem coletar (`test_analise_*`), à espera das etapas 2 e 3.
+- **T014 (2026-10-15):** `cambio_aceito` no motor; o descarte por câmbio soma em `descartados_sem_casar` (sem contador próprio no log).
+- **T018 (2026-10-15):** quando a parallelum responde mas o código não tem o ano, é erro (não cai na reserva); a reserva entra só com a fonte fora. O cache guarda apenas o mês de referência atual.
+- **T021 (2026-10-15):** os logs do console iam para a saída padrão e misturariam com o JSON; `configurar_logs(console=False)` nos subcomandos `analise` (só o arquivo de log). `Dependencias` ganhou `transporte_analise` (FIPE e mapas). Um `%` no texto de ajuda do `custo` quebrava o argparse (`%%`).
+- **Teste com dados reais (2026-10-15):** `analise lotes --numero 2` com a lista e a config reais; `fipe-candidatos` Renault "fluence dynamique 2.0" 2015 pela parallelum: Aut. R$ 44.351 (025174-7), Mec. R$ 43.177 (025173-9).
+- **Etapa 2 concluída (2026-10-15):** T013–T022; 811 testes passando; 2 falhando (a skill, etapa 3).
 
 ## Histórico de alterações
 

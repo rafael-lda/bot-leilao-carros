@@ -41,6 +41,17 @@ def _marca(marca: str | None) -> str:
     return SINONIMOS.get(normalizada, normalizada)
 
 
+def cambio_aceito(cambio_lote: str | None, cambio_alvo: tuple[str, ...] | None) -> bool:
+    """Feature 006 (D-108): descarta só com certeza. Lote sem câmbio ou alvo sem critério: aceito. "automático"
+    contra um alvo só `[cvt]` é aceito, porque há leiloeiro (Milan) que escreve AUTOMATICO também para CVT."""
+    if not cambio_lote or not cambio_alvo:
+        return True
+    texto = normalizar_texto(cambio_lote)
+    if texto == "manual":
+        return "manual" in cambio_alvo
+    return any(c in cambio_alvo for c in ("automatico", "cvt"))
+
+
 def _casa_sem_km(lote: Lote, alvo: VeiculoAlvo) -> bool:
     marca_alvo = _marca(alvo.marca)
     if not marca_alvo or marca_alvo not in _marca(lote.marca):
@@ -55,6 +66,8 @@ def _casa_sem_km(lote: Lote, alvo: VeiculoAlvo) -> bool:
         return False
     preco = lote.lance_corrente if lote.lance_corrente is not None else lote.lance_inicial
     if preco is not None and preco > alvo.preco_maximo:
+        return False
+    if not cambio_aceito(lote.cambio, alvo.cambio):
         return False
     return lote.tipo_leilao is not None and lote.tipo_leilao in alvo.tipos_leilao
 
