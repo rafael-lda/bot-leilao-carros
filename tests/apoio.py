@@ -550,16 +550,21 @@ class SiteFreitas:
     fim real), `GET /Leiloes/LoteDetalhes` por leilão e lote (`detalhes`: "8112-1" → bytes, status ou exceção;
     padrão: o detalhe real do 8112/1). `paginas` força páginas explícitas (lista de listas de cards);
     `bloqueio`: status com a página de bloqueio do firewall; `certificado_invalido`: simula a falha de verificação
-    que acontece sem o intermediário; `corpo`: bytes no lugar da página de lotes."""
+    que acontece sem o intermediário; `corpo`: bytes no lugar da página de lotes. `status` e `maiores_lances`
+    ("8103-3" → dict da mensagem / bytes) respondem `RetornarLoteStatus` e `RetornarMaiorLanceLote` (feature 006,
+    resultado do pregão); lote ausente = 404."""
 
     def __init__(self, cards: list[str] | None = None, paginas: list | None = None, detalhes: dict | None = None,
-                 bloqueio: int | None = None, certificado_invalido: bool = False, corpo: bytes | None = None) -> None:
+                 bloqueio: int | None = None, certificado_invalido: bool = False, corpo: bytes | None = None,
+                 status: dict | None = None, maiores_lances: dict | None = None) -> None:
         self.cards = cards if cards is not None else list(cards_freitas_reais().values())
         self.paginas = paginas
         self.detalhes = detalhes or {}
         self.bloqueio = bloqueio
         self.certificado_invalido = certificado_invalido
         self.corpo = corpo
+        self.status = status or {}
+        self.maiores_lances = maiores_lances or {}
         self.chamadas: list[tuple[str, dict]] = []
 
     def _html(self, conteudo) -> _httpx.Response:
@@ -592,6 +597,11 @@ class SiteFreitas:
             if isinstance(item, type):
                 raise item(f"falha simulada em {request.url}", request=request)
             return self._html(item)
+        chave = f"{params.get('leilaoId')}-{params.get('loteNumero')}"
+        if request.url.path == "/Leiloes/RetornarLoteStatus" and chave in self.status:
+            return _httpx.Response(200, json={"success": True, "message": self.status[chave]})
+        if request.url.path == "/Leiloes/RetornarMaiorLanceLote" and chave in self.maiores_lances:
+            return self._html(self.maiores_lances[chave])
         return _httpx.Response(404, text="não encontrado")
 
     def buscas(self) -> list[dict]:

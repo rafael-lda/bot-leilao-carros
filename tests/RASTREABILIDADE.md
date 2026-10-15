@@ -209,6 +209,7 @@
 | RF-11 | Não roda com a varredura em andamento | `test_cli_analise.py::test_com_a_varredura_em_andamento_nada_e_escrito` |
 | RF-12 | Anotar câmbio e resultado do pregão | `test_analise_lista.py::test_anotar_campo_existente_substitui_o_valor`, `test_analise_lista.py::test_anotar_campo_novo_entra_antes_do_link`, `test_cli_analise.py::test_anotar_campo_pela_linha_de_comando` |
 | RF-13 | Resultado do pregão do Kuss sem apelido | `test_analise_pagina.py::test_kuss_traz_o_resultado_do_pregao_sem_o_apelido` |
+| RF-14 | Resultado por leiloeiro, lance atual e reconferência (emenda) | `test_analise_pagina.py::test_vip_depois_do_pregao_traz_a_situacao_e_o_ultimo_lance`, `test_analise_pagina.py::test_vip_aberta_traz_o_lance_atual_e_nao_o_resultado`, `test_analise_pagina.py::test_freitas_vendido_traz_o_maior_lance_sem_o_apelido`, `test_analise_pagina.py::test_freitas_sem_licitantes`, `test_analise_pagina.py::test_freitas_aberto_traz_o_lance_atual`, `test_analise_pagina.py::test_freitas_sem_as_chamadas_de_status_continua_lendo_o_detalhe`, `test_analise_pagina.py::test_milan_depois_do_pregao_traz_o_estado`, `test_analise_pagina.py::test_milan_recebendo_lances_nao_tem_resultado`, `test_analise_pagina.py::test_copart_fora_da_busca_vira_resultado_e_nao_erro`, `test_analise_lista.py::test_reconferencia_grava_lance_atual_e_pregao_e_retria` |
 
 | # | Cenário (requirements §7) | Teste |
 |---|---------------------------|-------|

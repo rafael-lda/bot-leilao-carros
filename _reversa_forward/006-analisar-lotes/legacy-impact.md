@@ -1,7 +1,7 @@
 # Legacy Impact: Skill `analisar-lotes` (triagem e custo na garagem)
 
 > Identificador: `006-analisar-lotes`
-> Atualizado em: `2026-10-15` (concluída: T001–T037, três etapas)
+> Atualizado em: `2026-10-15` (concluída: T001–T037, três etapas; emenda T038–T042)
 > Âncora greenfield: `prd.md` + specs SDD em `_reversa_sdd/sdd/`, mais os adendos vigentes das features 001 a 005. O "legado" desta feature é o código entregue por elas.
 > Política de edição no momento da execução: `allowLegacyEdits: true`, `allowedPaths: []` (projeto inteiro liberado pelo Rafael). Escritas restritas, por conduta, aos caminhos do `actions.md`; na lista real (`1OUTPUT/`), só pela linha de comando e com o OK do Rafael.
 
@@ -9,12 +9,12 @@
 
 | Arquivo afetado | Componente | Tipo | Severidade | Justificativa |
 |-----------------|------------|------|------------|---------------|
-| `src/bot_leilao/analise/` (`lista.py`, `custos.py`, `distancias.py`, `fipe.py`, `pagina.py`, `cli.py`) | — | componente-novo, delta-de-contrato-externo | MEDIUM | Base determinística da skill: lista (triagem, descartados, devolução, anotação), custo na garagem, distâncias (Nominatim + OSRM), FIPE (parallelum + site oficial), leitura do lote pelo acesso do bot; subcomandos `analise` (D-104, D-110, D-112, D-114 a D-119) |
+| `src/bot_leilao/analise/` (`lista.py`, `custos.py`, `distancias.py`, `fipe.py`, `pagina.py`, `cli.py`) | — | componente-novo, delta-de-contrato-externo | MEDIUM | Base determinística da skill: lista (triagem, descartados, devolução, anotação), custo na garagem, distâncias (Nominatim + OSRM), FIPE (parallelum + site oficial), leitura do lote pelo acesso do bot, com o resultado do pregão nos cinco leiloeiros e o lance atual; subcomandos `analise` (D-104, D-110, D-112, D-114 a D-121) |
 | `src/bot_leilao/config/veiculos.py` | `configuracao-veiculos-alvo` | regra-alterada | MEDIUM | Bloco `padrao`, campos `cambio`, `aceitar_*`, `triagem`, com sobrescrita e validação (D-107) |
 | `src/bot_leilao/filtro/motor.py` | `motor-filtros` | regra-alterada | MEDIUM | Câmbio usado quando o lote informa, descartando só com certeza (D-108) |
 | `src/bot_leilao/cli.py`, `logsetup.py`, `orquestrador.py` | `interfaces/cli.md` da 001; agendador | delta-de-contrato-externo, regra-alterada | LOW | Subcomando `analise` (logs só no arquivo); `Dependencias.transporte_analise` |
 | `src/bot_leilao/notificacao/relatorio.py` | emenda E002 da 003 | regra-alterada | LOW | Texto padrão do arquivo de comentários com as regras da triagem (D-113) |
-| `.claude/skills/analisar-lotes/`, `.agents/skills/analisar-lotes/` | — | componente-novo | MEDIUM | `SKILL.md` (com o `skill-creator`) e avaliações (D-105, D-106) |
+| `.claude/skills/analisar-lotes/`, `.agents/skills/analisar-lotes/` | — | componente-novo | MEDIUM | `SKILL.md` (com o `skill-creator`), avaliações e `references/resultados-por-leiloeiro.md` (D-105, D-106, D-122) |
 | `.gitignore` | — | regra-alterada | LOW | `…/skills/*` com exceção para esta skill (D-106) |
 | `config/veiculos-alvo.yaml`, `config/custos.yaml` | cadastro | regra-alterada (dados), componente-novo (dados) | LOW | Migração aprovada pelo Rafael (D-109); custos do esclarecimento (D-116) |
 | `tests/apoio.py`, `tests/fixtures/analise/`, `tests/test_analise_*.py`, `tests/test_cli_analise.py`, `tests/test_skill_analisar_lotes.py` | testes | componente-novo | LOW | Simuladores da FIPE e dos mapas, `op=T` no Kuss; especificação da feature |
@@ -30,7 +30,7 @@
 
 **Motor.** Ganha um critério (câmbio), aplicado só quando o lote informa e só com certeza; "automático" contra um alvo só CVT não descarta, porque o Milan escreve AUTOMATICO também para CVT.
 
-**Análise.** Componente novo, fora da varredura: FIPE com reserva e cache por mês, distância calculada uma vez por cidade, custo e lance máximo determinísticos, leitura do lote pelo mesmo acesso do bot. O Kuss não divulga o valor final dos pregões; a leitura devolve só se houve lance e de que tipo, sem apelido.
+**Análise.** Componente novo, fora da varredura: FIPE com reserva e cache por mês, distância calculada uma vez por cidade, custo e lance máximo determinísticos, leitura do lote pelo mesmo acesso do bot. O resultado do pregão vem por leiloeiro: Vip e Freitas dão o valor; Kuss, Milan e Copart não (o Kuss diz só o tipo do último lance, o Milan o estado, e a Copart tira o lote da busca). Apelido nunca sai. Os "a confirmar" são reconferidos a cada execução, com Lance atual e Pregão gravados.
 
 ## Preservadas
 

@@ -155,3 +155,18 @@ def test_campo_de_triagem_sai_sem_a_data_no_nome(lista):
     triar(lista, 2, "reprovado", motivo="câmbio manual", evidencia="título 'DYN 20M'", hoje=HOJE)
     (descartado,) = ler_lista(lista.parent / "lotes-descartados.md")
     assert descartado.campos["Descartado"] == "câmbio manual — título 'DYN 20M' (15/10/2026)"
+
+
+def test_reconferencia_grava_lance_atual_e_pregao_e_retria(lista):
+    """Emenda de 2026-10-15 (RF-14, D-121): o "a confirmar" é relido; lance e pregão entram no bloco e a triagem
+    nova substitui a antiga."""
+    triar(lista, 4, "a-confirmar", hoje=date(2026, 10, 15), falta="data e lance (aguardando classificação)")
+    anotar_campo(lista, 4, "Lance atual", "R$ 21.000 (lido em 16/10/2026)")
+    anotar_campo(lista, 4, "Pregão", "22/10/2026 10:00")
+    triar(lista, 4, "a-confirmar", hoje=date(2026, 10, 16), falta="câmbio")
+    bloco = _blocos_por_numero(lista)[4]
+    assert bloco.campos["Lance atual"] == "R$ 21.000 (lido em 16/10/2026)"
+    assert bloco.campos["Pregão"] == "22/10/2026 10:00"
+    assert bloco.campos["Triagem"] == "a confirmar — câmbio (16/10/2026)"
+    assert bloco.texto.count("**Triagem (") == 1
+    assert bloco.texto.count("**Lance atual:**") == 1

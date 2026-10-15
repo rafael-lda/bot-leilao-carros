@@ -88,7 +88,7 @@
 
 ### 7. Registro do martelo final — base para calibrar o teto com dado próprio
 
-> **Verificado na feature 006 (2026-10-15):** o Claudio Kuss **não divulga o valor final** depois do pregão (evento 897: só "PRESENCIAL", apelido do lance online ou vazio). A skill anota "Resultado do pregão" com o que o site mostra; para o valor, falta checar Vip, Copart, Freitas e Milan em lotes com pregão passado.
+> **Verificado na feature 006 (2026-10-15, emenda):** a skill lê e anota o resultado por leiloeiro (`.claude/skills/analisar-lotes/references/resultados-por-leiloeiro.md`). Com valor: **Vip** (último lance e situação, ex.: "condicional negada; R$ 13.000") e **Freitas** (status e maior lance, ex.: "vendido; R$ 43.500"). Sem valor: **Claudio Kuss** (só presencial/online), **Milan** (estado VENDIDO/CONDICIONAL, lance vira "R$ ---") e **Copart** (o lote some da busca pública). Para Kuss e Milan, ver o item 7b.
 
 - **Pedido (2026-10-09):** anotar por quanto cada lote acompanhado foi efetivamente arrematado, para montar a distribuição real de % da FIPE. Vale para **todos os leiloeiros ativos**, não só o Vip: a lista-alvo do brainstorm é Freitas, Vip Leilões, Claudio Kuss, Copart e Milan (`_reversa_sdd/prd.md#47`).
 - **Por que importa:** hoje o teto de 70% é uma estimativa. Com dois ou três meses de martelo registrado, o Rafael responde com dado se 60% da FIPE existe ou é fantasia, e calibra o teto por leiloeiro — cada um tem público, avaria e disputa diferentes.
@@ -98,6 +98,14 @@
   3. Quando houver série, um resumo por leiloeiro e por modelo: mediana, p25 e p75 do % da FIPE.
 - **Depende de / combina com:** item 2 (teto por ano via FIPE) para ter a FIPE do lote sem preencher à mão, e item 3 (custo total) para a distribuição sair em custo final, não só em martelo.
 - **A investigar no plano:** comissão e taxas variam por leiloeiro (no Vip são 5% confirmados na cláusula 13 do Termo de Adesão, mais taxa administrativa a confirmar na página do lote), então o % final precisa ser calculado com a tabela do leiloeiro de origem, não com um número único.
+
+
+### 7b. Último lance do Kuss (e do Milan) perto do fim do pregão — futuro
+
+- **Pedido (2026-10-15):** o Claudio Kuss não divulga o valor depois do pregão; o Rafael só fica sabendo assistindo. O Milan esconde o lance ("R$ ---") quando o lote termina.
+- **Ideia:** nos dias de pregão de lotes da lista, ler o lance atual (Kuss: `json_edital.php op=T` e o detalhe do lote; Milan: página do lote pelo Apify) perto da hora do lote, e gravar o último valor visto como "último lance visto antes do fim" no Resultado do pregão. É o valor mínimo do martelo, não o final.
+- **A investigar:** se o Kuss mostra o valor (`V`) durante o pregão; a ordem e o ritmo dos lotes no dia (o horário do lote não é fixo); custo no Milan (~US$ 0,08 por leitura) e frequência aceitável; agendamento (combina com a ideia de agendamento na memória do projeto).
+- **Depende de / combina com:** item 7 (martelo final) e a skill `analisar-lotes` (que já lê e anota o resultado).
 
 ### 8. Distância do pátio — parte feita na feature 003
 

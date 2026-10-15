@@ -33,7 +33,8 @@ O bot só filtra o que o site informa em campo. O pente fino fica com a skill `a
 
 - **Triagem:** cada lote da lista vira *aprovado*, *a confirmar* (com o que falta) ou *reprovado* (com motivo e evidência). O reprovado vai para `1OUTPUT/lotes-descartados.md` e volta com "devolve o lote N". Na dúvida, nunca reprova.
 - **Critérios:** `config/veiculos-alvo.yaml`: bloco `padrao` (câmbio aceito, sinistro, sucata, mecânica, pequenas avarias) e texto `triagem` de cada alvo, em português. O bot também usa o câmbio quando o leiloeiro informa.
-- **Pregões que já passaram** não são descartados: ganham o resultado (o Kuss só diz se houve lance presencial ou online, sem o valor).
+- **A confirmar** é reconferido a cada execução: a skill relê o lote, atualiza Lance atual e Pregão e julga de novo.
+- **Pregões que já passaram** não são descartados: ganham o resultado, informado por leiloeiro. Vip e Freitas mostram o valor; Kuss (só presencial ou online), Milan (só o estado) e Copart (o lote some da busca) não. Detalhes em `.claude/skills/analisar-lotes/references/resultados-por-leiloeiro.md`.
 - **Custo na garagem:** FIPE (parallelum, com o site oficial de reserva), frete pela distância do pátio até Londrina (calculada uma vez por cidade), despesas, transferência e reserva de reparos de `config/custos.yaml`; o bloco ganha o valor na garagem, o % da FIPE e o lance máximo para a margem.
 - A skill escreve só pela linha de comando do bot (`python -m bot_leilao analise …`), que não roda junto com uma varredura e nunca mexe nos números nem no comentário dos lotes.
 

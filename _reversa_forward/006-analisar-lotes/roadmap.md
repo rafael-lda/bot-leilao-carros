@@ -76,6 +76,14 @@ Não há `.reversa/principles.md`; valem os princípios de fato das features ant
 | D-118 | (RN-11, RN-12, RF-12) Subcomando `analise anotar <lote> --campo {Câmbio, Resultado do pregão} --valor …`, com a trava da varredura: substitui a linha se existe, senão insere antes do Link. A skill grava o câmbio deduzido e o resultado do pregão por ele | Mesma proteção das outras escritas; só campos conhecidos | Agente editando o bloco à mão (o baseline fez isso) | 🟢 |
 | D-119 | (RF-13) `analise pagina` do Kuss consulta `json_edital.php op=T` do evento e devolve `resultado`: "último lance presencial/online; valor não divulgado pelo site" ou "sem lance". O apelido nunca sai | Verificado no evento 897 (13/10): 179 presenciais, 163 online, 4 sem lance, nenhum valor | Ler o histórico `json_lance_historico.php` (devolve "Não loteado") | 🟢 |
 
+### 3.7 Emenda: reconferência e resultado por leiloeiro (2026-10-15)
+
+| ID | Decisão | Justificativa | Alternativas descartadas | Confidência |
+|----|---------|----------------|--------------------------|-------------|
+| D-120 | (RF-14) `analise pagina` devolve `campos.resultado` quando o site mostra o fim do pregão: Vip pela situação (`div.detan-situation`) e o valor (`div.offer-value h2`); Freitas pelas chamadas públicas `RetornarLoteStatus` (JSON) e `RetornarMaiorLanceLote` (`hdMaiorLance`), as mesmas que a página faz; Milan pela etiqueta de estado; Copart, lote fora da busca vira resultado ("saiu da busca pública…") em vez de erro. Situações com "RECEBENDO", "ABERTO", "BREVE", "LOTEAMENTO", "AGUARDANDO", "ANDAMENTO" ou "PREGÃO" contam como abertas e trazem `lance_corrente` | Verificado em 2026-10-15 com lotes reais de cada site (fixtures em `tests/fixtures/analise/`); o valor do Freitas não vem no HTML do detalhe | Histórico de lances do Freitas (`ListarLancesLote`, traz apelidos); página de detalhe da Copart (barrada pelo Imperva) | 🟢 |
+| D-121 | (RF-14) `CAMPOS_ANOTAVEIS` ganha `Lance atual` e `Pregão`; a skill reconfere todo "a confirmar" e regrava a triagem só quando a pendência mudou | Mesma escrita protegida do D-118; o Rafael vê no bloco a data da última reconferência | Comando novo só para reconferir (a skill já orquestra `pagina`, `anotar` e `triar`) | 🟢 |
+| D-122 | (RN-13) Referência `references/resultados-por-leiloeiro.md` na skill, lida quando há pregão passado e atualizada (com o OK do Rafael) quando um site mostrar algo novo | O que cada site divulga muda e é conhecimento de domínio, não código | Guardar só no código (a skill não saberia explicar ao Rafael) | 🟢 |
+
 ## 4. Premissas
 
 | Premissa | Origem | Risco se errada |
@@ -146,5 +154,6 @@ Fora do delta: coleta, parsers (reaproveitados pela leitura do lote), semeadura,
 
 | Data | Alteração | Autor |
 |------|-----------|-------|
+| 2026-10-15 | Emenda antes do sync: D-120 a D-122 (resultado por leiloeiro, reconferência dos "a confirmar", referência na skill) | Claude |
 | 2026-10-15 | Ajustes do `/reversa-audit` (A001 a A005): RF-02 e RN-03 no D-104 com a origem de cada critério; link aceito (D-110); reparos extras no custo (D-116) | Claude |
 | 2026-10-15 | Versão inicial gerada por `/reversa-plan`, com verificações de acesso por leiloeiro, FIPE, distâncias e `.gitignore` | reversa |

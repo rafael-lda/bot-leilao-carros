@@ -51,7 +51,7 @@ def registrar(sub) -> None:
     t.add_argument("--evidencia")
     t.add_argument("--falta")
     novo("devolver", "traz um lote descartado de volta para a lista").add_argument("numero", type=int)
-    an = novo("anotar", "grava um campo do bloco (câmbio deduzido, resultado do pregão)")
+    an = novo("anotar", "grava um campo do bloco (câmbio deduzido, resultado do pregão, lance atual, pregão)")
     an.add_argument("lote", help="número do bloco ou link do lote")
     an.add_argument("--campo", required=True, choices=CAMPOS_ANOTAVEIS)
     an.add_argument("--valor", required=True)

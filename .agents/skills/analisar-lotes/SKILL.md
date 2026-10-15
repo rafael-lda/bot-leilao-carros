@@ -1,6 +1,6 @@
 ---
 name: analisar-lotes
-description: Triagem e custo na garagem dos lotes de leilão da lista do Bot Leilão Carros (1OUTPUT/lotes-a-monitorar.md). Confere cada lote contra o veículo-alvo (câmbio, sinistro, sucata, mecânica, km, teto, versão), anota o resultado dos pregões que já passaram e as reaparições, move os reprovados para lotes-descartados.md com motivo e evidência, e para os aprovados consulta a FIPE e calcula o custo com o carro na garagem em Londrina e o lance máximo. Use sempre que o Rafael pedir /analisar-lotes, "analisa os lotes", "triagem da lista", "quais lotes servem", "quanto fica esse carro na garagem", "vale a pena o lote 5", "FIPE do lote", "lance máximo", "devolve o lote 2", ou quiser revisar, limpar ou avaliar a lista de monitoramento, mesmo sem dizer "skill".
+description: Triagem e custo na garagem dos lotes de leilão da lista do Bot Leilão Carros (1OUTPUT/lotes-a-monitorar.md). Confere cada lote contra o veículo-alvo (câmbio, sinistro, sucata, mecânica, km, teto, versão), reconfere a cada execução os "a confirmar" (lance atual, data do pregão), anota e informa por leiloeiro o resultado dos pregões que já passaram e as reaparições, move os reprovados para lotes-descartados.md com motivo e evidência, e para os aprovados consulta a FIPE e calcula o custo com o carro na garagem em Londrina e o lance máximo. Use sempre que o Rafael pedir /analisar-lotes, "analisa os lotes", "triagem da lista", "quais lotes servem", "quanto fica esse carro na garagem", "vale a pena o lote 5", "FIPE do lote", "lance máximo", "devolve o lote 2", "como foram os pregões", "o que vendeu", ou quiser revisar, limpar ou avaliar a lista de monitoramento, mesmo sem dizer "skill".
 ---
 
 # Analisar lotes
@@ -21,7 +21,7 @@ Rode da raiz do projeto com o Python do projeto: `venv\Scripts\python.exe` no Wi
 | `python -m bot_leilao analise triar <n> --veredito a-confirmar --falta "câmbio; lance"` | Marca a confirmar |
 | `python -m bot_leilao analise triar <n> --veredito reprovado --motivo "..." --evidencia "..."` | Move para `lotes-descartados.md` |
 | `python -m bot_leilao analise devolver <n>` | Traz um descartado de volta |
-| `python -m bot_leilao analise anotar <n> --campo "Câmbio" --valor "..."` | Grava um campo (`Câmbio` ou `Resultado do pregão`) |
+| `python -m bot_leilao analise anotar <n> --campo "Câmbio" --valor "..."` | Grava um campo (`Câmbio`, `Resultado do pregão`, `Lance atual` ou `Pregão`) |
 | `python -m bot_leilao analise fipe-candidatos --marca M --modelo "termos" --ano A` | Versões FIPE daquele ano com valor e código |
 | `python -m bot_leilao analise fipe-valor --codigo C --ano A` | Valor de um código FIPE |
 | `python -m bot_leilao analise custo --lance L [--despesa D] --patio "Cidade - UF" [--documento-uf UF] [--fipe F] [--reparos-extra R --motivo-reparos "..."]` | Custo na garagem, % da FIPE, lance máximo |
@@ -33,7 +33,13 @@ Código de saída 3 significa varredura em andamento: pare, avise o Rafael e nã
 
 ### 1. Ler
 
-`analise lotes` (ou só o lote pedido). Pule lotes que já têm linha **Triagem**, a menos que o Rafael peça para refazer. Lote sem alvo (`"alvo": null`) é de um alvo desativado: deixe "a confirmar — alvo desativado" e siga.
+`analise lotes` (ou só o lote pedido). Entram na análise:
+
+- lotes sem linha **Triagem**;
+- lotes com **Triagem** "a confirmar": são reconferidos em toda execução (seção 3), porque a informação que faltava (lance, data, câmbio) costuma aparecer depois;
+- lotes cujo **Pregão** já passou e que ainda não têm **Resultado do pregão**, mesmo aprovados.
+
+Pule os aprovados com pregão por vir, a menos que o Rafael peça para refazer. Lote sem alvo (`"alvo": null`) é de um alvo desativado: deixe "a confirmar — alvo desativado" e siga.
 
 ### 2. Julgar cada lote
 
@@ -64,7 +70,9 @@ Confira os critérios nesta ordem; o primeiro que reprovar decide o motivo, e os
 
 "Motor dá partida e engrena" é bom sinal, não problema.
 
-**Pregão que já passou não reprova.** O Rafael está investigando a viabilidade dos leilões e quer ver o resultado desses lotes. Julgue-os pelos outros critérios como qualquer lote e, antes de gravar o veredito, rode `analise pagina <n>`: se vier `campos.resultado`, grave com `analise anotar <n> --campo "Resultado do pregão" --valor "<data do pregão>: <resultado>"`; se não vier, `"<data>: resultado não informado pelo site"`. O Kuss não divulga o valor final, só se houve lance e se foi presencial ou online. Nunca grave apelido de quem deu lance. Anote antes de reprovar, para o resultado ir junto para os descartados.
+**Pregão que já passou não reprova.** O Rafael está investigando a viabilidade dos leilões e quer ver o resultado desses lotes. Julgue-os pelos outros critérios como qualquer lote e, antes de gravar o veredito, rode `analise pagina <n>`: se vier `campos.resultado`, grave com `analise anotar <n> --campo "Resultado do pregão" --valor "<data do pregão>: <resultado>"`; se não vier, `"<data>: resultado não informado pelo site"`. Anote antes de reprovar, para o resultado ir junto para os descartados. Nunca grave apelido de quem deu lance.
+
+Cada leiloeiro mostra uma coisa diferente depois do pregão (o Kuss não divulga valor; a Copart tira o lote da busca; Vip, Freitas e Milan mostram a situação final). O que cada um mostra, e como ler, está em `references/resultados-por-leiloeiro.md`: leia esse arquivo quando houver pregão passado. Se a página mostrar algo que o arquivo não prevê (situação nova, valor que antes não aparecia), conte ao Rafael no resumo e proponha atualizar o arquivo.
 
 **Lendo câmbio pelo título:** "CVT", "AT", "AUT", "AUTOM", "AUTOMÁTICO" → automático ou CVT; "MT", "MEC", "MANUAL" → manual. Na Renault e em importados do Kuss, o sufixo da motorização diz o câmbio: "DYN 20A" é 2.0 automático, "DYN 20M" é 2.0 manual. "1.6 16V" sozinho não diz nada: o mesmo motor tem versões manuais e CVT. A Copart não informa câmbio em lugar nenhum; sem pista no título, fica a confirmar.
 
@@ -72,11 +80,22 @@ Confira os critérios nesta ordem; o primeiro que reprovar decide o motivo, e os
 
 **Reaparições:** um carro que não vendeu volta em outro evento com outro número. Compare os lotes entre si: mesmo modelo e versão, mesmo ano e o mesmo final de placa (campo Documento), ou a mesma km, indicam o mesmo carro. Cite no resumo ("13 é o mesmo carro do 3, placa O\*\*-\*\*35"); isso conta para a investigação do Rafael (o carro não vendeu da primeira vez).
 
-### 3. Ler a página só quando ela pode decidir
+### 3. Reconferir os "a confirmar"
+
+Para cada lote "a confirmar", rode `analise pagina <n>` e compare com o bloco:
+
+- **Lance:** se `campos.lance_corrente` veio e difere do **Lance atual** do bloco, grave `analise anotar <n> --campo "Lance atual" --valor "R$ <valor> (lido em <dd/mm/aaaa>)"`. Na Copart, "Aguardando classificação" ainda não tem lance: não grave nada.
+- **Pregão:** se `campos.pregao_em` veio e o bloco não tem **Pregão** ou tem outro, grave `analise anotar <n> --campo "Pregão" --valor "<dd/mm/aaaa hh:mm>"`.
+- **Resultado:** se veio `campos.resultado`, o pregão acabou: siga a regra do pregão passado acima.
+- **Julgue de novo** com o que chegou: o lote pode virar aprovado, reprovado (ex.: lance passou do teto) ou continuar a confirmar com outra pendência. Grave sempre com `analise triar`: a linha Triagem nova substitui a antiga e leva a data de hoje, para o Rafael ver que foi reconferido.
+
+Leia todos os "a confirmar", mesmo os da Copart e do Milan; no Milan, avise o custo (~US$ 0,08 por página) no resumo. Se a página não trouxe nada novo, mantenha o veredito e diga "sem novidade" no resumo; regrave a triagem só se a pendência mudou.
+
+### 4. Ler a página dos outros só quando ela pode decidir
 
 Se o bloco não basta (ex.: câmbio desconhecido num lote do Vip, cuja página traz "Câmbio Automático"), rode `analise pagina <n>`. Não abra o site no navegador: Milan (Cloudflare) e Copart (Imperva) barram robô, e a regra do projeto é passar só pelo acesso do bot. No Milan cada página custa cerca de US$ 0,08 (`"pago": true`): leia só quando a página pode mudar o veredito, e some no resumo. Na Copart a "página" é a busca pelo número do lote, sem câmbio. Erro de acesso não reprova: o lote fica a confirmar.
 
-### 4. Mostrar o resumo antes de mover
+### 5. Mostrar o resumo antes de mover
 
 Antes de gravar, mostre ao Rafael:
 
@@ -87,14 +106,18 @@ Reprovados (<n>), vão para lotes-descartados.md:
   2 Fluence DYN 20M 2015: câmbio manual (título "DYN 20M"); também "MECÂNICA COM PROBLEMAS"
 A confirmar (<n>):
   5 Kicks 1.6 16V 2019 (Copart): câmbio; data e lance
+Reconferidos (<n>): 4 Duster 2022 (Copart): pregão 22/10 10:00, lance R$ 21.000 → continua a confirmar (câmbio)
+Resultados dos pregões, por leiloeiro:
+  Claudio Kuss: 1 Kicks S CVT 2019, 13/10: último lance presencial; valor não divulgado pelo site
+  Freitas: ...
 Páginas lidas: <n> (<n> pagas, ~US$ <total>)
 ```
 
-Inclua também, quando houver: os resultados dos pregões que já passaram, as reaparições e o câmbio deduzido que vai ser gravado.
+Agrupe os resultados por leiloeiro, na ordem da lista, e diga em uma linha o que aquele leiloeiro divulga (ex.: "Kuss: só o tipo do último lance"; "Copart: lote some da busca, sem resultado público"). Inclua também, quando houver: as reaparições e o câmbio deduzido que vai ser gravado.
 
 **Referência para os "a confirmar":** quando um lote está "a confirmar" só por falta de câmbio, versão ou lance, dê ao Rafael uma referência de viabilidade, sem gravar no bloco: a FIPE da versão automática mais barata daquele ano (`analise fipe-candidatos`) e o lance máximo para ela (`analise custo --lance 0 --patio ... --fipe <valor>`: com lance 0, só o `lance_maximo` interessa). Diga que é referência, com a versão suposta. Isso mostra quais pátios ficam inviáveis pelo frete antes de qualquer lance.
 
-Pergunte se pode gravar. Se o Rafael já disse para aplicar direto, grave sem perguntar. Depois grave com `analise anotar` (câmbio e resultado) e `analise triar`, um lote por vez, e confirme no fim quantos foram gravados.
+Pergunte se pode gravar. Se o Rafael já disse para aplicar direto, grave sem perguntar. Depois grave com `analise anotar` (câmbio, resultado, lance atual, pregão) e `analise triar`, um lote por vez, e confirme no fim quantos foram gravados.
 
 ## Custo na garagem (aprovados)
 

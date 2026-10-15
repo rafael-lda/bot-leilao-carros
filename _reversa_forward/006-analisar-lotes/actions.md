@@ -91,6 +91,16 @@ Política de escrita: `allowLegacyEdits: true`, `allowedPaths` vazio (liberaçã
 | T036 | (RN-11, RN-12) `SKILL.md`: pregão passado não reprova e ganha o resultado; câmbio deduzido gravado; reaparições e referência de lance no resumo | T024 | - | `.claude/skills/analisar-lotes/SKILL.md` | 🟢 | `[X]` |
 | T037 | Segunda rodada de avaliações (triagem completa e custo do lote 1) com o resultado esperado novo | T036 | - | `.claude/skills/analisar-lotes/evals/` | 🟢 | `[X]` |
 
+## Emenda: reconferência e resultado por leiloeiro (2026-10-15)
+
+| ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
+|----|-----------|--------------|-------------|--------------|-------------|--------|
+| T038 | Fixtures reais de depois do pregão (Freitas 8103/3 detalhe e maior lance, com apelido trocado; Milan 001 e 046); `SiteFreitas` com `RetornarLoteStatus` e `RetornarMaiorLanceLote` | T035 | - | `tests/fixtures/analise/`, `tests/apoio.py` | 🟢 | `[X]` |
+| T039 | (RF-14) Resultado do pregão e lance atual na leitura do Vip, Freitas, Milan e Copart; testes (D-120) | T038 | - | `src/…/analise/pagina.py` | 🟢 | `[X]` |
+| T040 | (RF-14) `Lance atual` e `Pregão` em `CAMPOS_ANOTAVEIS`; teste da reconferência (D-121) | T034 | `[//]` | `src/…/analise/lista.py` | 🟢 | `[X]` |
+| T041 | (RN-13) `SKILL.md`: reconferência dos "a confirmar", resultados por leiloeiro no resumo; `references/resultados-por-leiloeiro.md`; cópia em `.agents` (D-121, D-122) | T039, T040 | - | `.claude/skills/analisar-lotes/` | 🟢 | `[X]` |
+| T042 | Backlog: captura do último lance do Kuss perto do fim do pregão; item 7 atualizado com o que cada leiloeiro divulga | T041 | - | `_reversa_forward/backlog.md` | 🟢 | `[X]` |
+
 ## Notas de execução
 
 - **Ajustes do audit (2026-10-15):** A001 a A005 aplicados antes da etapa 1 (critérios da RN-03 e D-111 no T023, casos novos no T024, reparos extras, link do lote).
@@ -110,11 +120,13 @@ Política de escrita: `allowLegacyEdits: true`, `allowedPaths` vazio (liberaçã
 - **T029 (2026-10-15), execução real na lista do Rafael:** resumo mostrado e gravação autorizada por ele. 1 aprovado (lote 1, Kicks S Direct CVT: FIPE R$ 76.451, R$ 51.883 na garagem, 68% da FIPE, lance máximo R$ 49.850); 5 reprovados para `lotes-descartados.md` (2 e 14 câmbio manual e mecânica; 3 e 13 sinistro; 11 Duster 2.0); 8 a confirmar (Copart). Reaparições: 13 = 3 e 14 = 2. Resultado do pregão de 13/10 nos lotes 1, 2 e 3 (último lance presencial, valor não divulgado). 23 comandos, nenhuma falha, nenhuma página paga. Cópia da lista antes da triagem guardada no rascunho da sessão.
 - **Ajuste durante o T029:** `analise lotes` devolvia o campo como "Triagem (15/10/2026)" (data no nome), o que atrapalharia achar os lotes já triados; agora vem `Triagem: aprovado (15/10/2026)` (e `Descartado`), com teste.
 - **Etapa 3 concluída (2026-10-15):** T023–T037; 819 testes passando; rastreabilidade conferida (36 referências); `legacy-impact.md` e `regression-watch.md` (W038–W044) gerados.
+- **Emenda (2026-10-15), pedido do Rafael:** os "a confirmar" são reconferidos a cada execução e o resultado do pregão vem por leiloeiro. Investigação com lotes reais: Kuss sem valor (só o tipo do último lance); Copart tira o lote da busca (1141180, `total 0`); Vip mantém o anúncio com "Condicional negada" e o último lance (R$ 13.000); Freitas mostra "VENDIDO" no HTML, mas o valor vem de `RetornarMaiorLanceLote` (8103/3: R$ 43.500; 8103/124: "SEM LICITANTES", 0); Milan mostra "VENDIDO" (001) e "CONDICIONAL" (046) e esconde o valor ("R$ ---"). Gasto Apify da investigação: ~US$ 0,16 (duas páginas do Milan). Leitura real do lote 4 (Copart) depois da emenda: ainda aguardando classificação, nada a gravar. 830 testes passando.
 
 ## Histórico de alterações
 
 | Data | Alteração | Autor |
 |------|-----------|-------|
+| 2026-10-15 | Emenda antes do sync: T038–T042 (reconferência e resultado por leiloeiro) | Claude |
 | 2026-10-15 | Codificação concluída em três etapas (T001–T037) | `/reversa-coding` |
 | 2026-10-15 | Ajustes do `/reversa-audit` (A001 a A005): critérios da RN-03 e D-111 no T023, casos novos no T024, reparos extras (T007), link do lote (T010, T011) | Claude |
 | 2026-10-15 | Versão inicial gerada por `/reversa-to-do` | reversa |
