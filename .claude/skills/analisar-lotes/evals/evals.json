@@ -1,0 +1,41 @@
+{
+ "skill_name": "analisar-lotes",
+ "evals": [
+  {
+   "id": 1,
+   "name": "triagem-completa",
+   "prompt": "/analisar-lotes — faz a triagem da lista toda. Pode aplicar direto, sem me perguntar.",
+   "expected_output": "Pregão passado não reprova: lote 1 (Kicks S DRCT CVT, pregão 13/10) fica na lista, aprovado, com 'Resultado do pregão' (último lance presencial, valor não divulgado); lotes 2 e 14 reprovados por câmbio manual (DYN 20M) e mecânica; 3 e 13 por sinistro; 2 e 3 levam o resultado do pregão para os descartados; 4 reprovado por lance acima do teto; 8 por km; 11 pela versão (2.0); Copart 5, 6, 7, 9, 10, 12 a confirmar; câmbio deduzido gravado nos lotes do Kuss; resumo cita as reaparições (13 = 3, 14 = 2) e dá referência de lance máximo para os 'a confirmar'.",
+   "files": [
+    "sandbox: eval1-triagem-completa (lote 4 com lance R$ 65.000; lote 8 com 120.000 km; alvo Kicks com km máximo 100.000)"
+   ]
+  },
+  {
+   "id": 2,
+   "name": "custo-lote-1",
+   "prompt": "quanto fica o lote 1 (o Kicks do Kuss) na garagem? faz a triagem dele e, se servir, calcula e anota o custo no bloco. pode gravar direto.",
+   "expected_output": "Lote 1 aprovado (CVT no título, pregão 20/10 ainda não passou); FIPE do Kicks S 2019 consultada pela linha de comando com código e mês; custo com lance R$ 43.000, despesa R$ 2.350, pátio Curitiba - PR e documento de SC; bloco com FIPE, Frete, Manutenções, Valor estimado na garagem e Lance máximo preenchidos; nenhum outro bloco alterado.",
+   "files": [
+    "sandbox: eval2-custo-lote-1 (pregão do lote 1 em 20/10/2026)"
+   ]
+  },
+  {
+   "id": 3,
+   "name": "varredura-em-andamento",
+   "prompt": "/analisar-lotes, aplica direto",
+   "expected_output": "A linha de comando devolve código 3 (varredura em andamento); a skill para, avisa o Rafael e não escreve nada; a lista fica byte a byte igual.",
+   "files": [
+    "sandbox: eval3-varredura-em-andamento (trava da varredura ativa)"
+   ]
+  },
+  {
+   "id": 4,
+   "name": "fipe-ambigua-lote-10",
+   "prompt": "pula a triagem: só quero a FIPE e o custo do lote 10 (o Versa 2017 da Copart). anota no bloco.",
+   "expected_output": "O título 'NISSAN VERSA 1.6 16V — 2017' cabe em várias versões FIPE de 2017; a skill não escolhe: anota as candidatas com valor e código (FIPE '_a escolher_') e não calcula custo; explica ao Rafael que precisa escolher a versão.",
+   "files": [
+    "sandbox: eval4-fipe-ambigua-lote-10"
+   ]
+  }
+ ]
+}

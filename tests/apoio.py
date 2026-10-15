@@ -329,10 +329,13 @@ class SiteKuss:
     `qtde`: sobrescreve a quantidade informada por evento (para testar divergência).
     `detalhes`: seq -> dict, bytes, status HTTP ou classe de exceção httpx; ausente = detalhe sem observações.
     `falha`: status HTTP ou classe de exceção httpx para o site inteiro.
+    `lances`: evento -> {seq: usuário} de `op=T` (feature 006); depois do pregão o site mostra "PRESENCIAL", um
+    apelido ou vazio, e nunca o valor (verificado em 2026-10-15 no evento 897).
     """
 
     def __init__(self, agenda: bytes | None = None, eventos: dict | None = None, qtde: dict | None = None,
-                 detalhes: dict | None = None, falha=None) -> None:
+                 detalhes: dict | None = None, falha=None, lances: dict | None = None) -> None:
+        self.lances = lances or {}
         self.agenda = agenda if agenda is not None else agenda_kuss()
         self.eventos = eventos if eventos is not None else {"897": [[lote_kuss()]], "898": []}
         self.qtde = qtde or {}
@@ -362,6 +365,11 @@ class SiteKuss:
             if form.get("op") == "P":
                 indice = int(form["pag"]) - 1
                 return self._resposta(paginas[indice] if 0 <= indice < len(paginas) else [])
+            if form.get("op") == "T":
+                lances = self.lances.get(form.get("leilaoID"), {})
+                corpo = {"qtde": len(lances), "atual": "0",
+                         **{str(i): {"Q": seq, "U": usuario, "V": ""} for i, (seq, usuario) in enumerate(lances.items())}}
+                return self._resposta(corpo)
         if request.url.path == "/json_lance_info_lote.php":
             item = self.detalhes.get(form.get("le_id"), detalhe_kuss(tblInformacoes="&nbsp;"))
             if isinstance(item, int):

@@ -78,6 +78,10 @@ Projeto greenfield com as features 001 a 005 entregues; não há `architecture.m
    - Tipo: nova
 10. **RN-10:** A skill nunca dá lance, não faz login e não contorna proteção anti-bot por conta própria (usa o acesso do bot, regra anti-bot da 005). 🟢
     - Tipo: mantida
+11. **RN-11:** **Pregão que já passou não reprova** (decisão do Rafael em 2026-10-15, fase de investigação da viabilidade dos leilões): o lote é julgado pelos outros critérios e ganha a linha `Resultado do pregão` com o que o site mostra. O Kuss não divulga o valor final, só se houve lance e se foi presencial ou online (evento 897, verificado em 2026-10-15); o apelido de quem deu lance nunca é gravado. 🟢
+    - Tipo: nova (ajuste depois da primeira rodada de avaliações)
+12. **RN-12:** A skill aproveita o que a primeira rodada mostrou: grava o **câmbio deduzido** do título ou da página no campo Câmbio, cita as **reaparições** no resumo (mesmo modelo, ano e final de placa) e dá, só no resumo, uma **referência de lance máximo** para os lotes "a confirmar" pela versão automática mais barata. 🟢
+    - Tipo: nova (ajuste depois da primeira rodada de avaliações)
 
 ## 5. Requisitos Funcionais
 
@@ -94,6 +98,8 @@ Projeto greenfield com as features 001 a 005 entregues; não há `architecture.m
 | RF-09 | A skill deve consultar a FIPE pela API, com código e mês, e listar as versões candidatas quando houver ambiguidade (RN-09) | Should | "NISSAN VERSA 1.6 16V — 2017" (Copart) gera a lista das versões 1.6 de 2017 com valor, sem escolher | 🟢 |
 | RF-10 | A skill deve calcular o lance máximo para a margem configurada (RN-08) | Could | Linha "Lance máximo para margem de 10%: R$ …" no bloco, pela fórmula da RN-08 com revenda a 85% da FIPE | 🟢 |
 | RF-11 | A skill deve recusar rodar com a varredura em andamento, dizendo por quê | Must | Com `dados/varredura.lock` ativo, a skill para sem escrever | 🟢 |
+| RF-12 | O sistema deve permitir gravar no bloco os campos `Câmbio` e `Resultado do pregão` pela linha de comando (RN-11, RN-12) | Must | `analise anotar 1 --campo "Resultado do pregão" --valor "13/10: último lance presencial; valor não divulgado pelo site"` grava a linha antes do Link; outro campo é recusado | 🟢 |
+| RF-13 | A leitura do lote do Kuss deve trazer o resultado do pregão (último lance presencial, online ou sem lance), sem o apelido (RN-11) | Should | Lote 282164 do evento 897: "último lance presencial; valor não divulgado pelo site" | 🟢 |
 
 ## 6. Requisitos Não Funcionais
 
@@ -165,5 +171,6 @@ Cenário: Varredura em andamento
 
 | Data | Alteração | Autor |
 |------|-----------|-------|
+| 2026-10-15 | Ajuste do Rafael depois da primeira rodada de avaliações: pregão passado não reprova e ganha o resultado (RN-11, RF-12, RF-13); câmbio deduzido, reaparições e referência de lance (RN-12) | Claude |
 | 2026-10-15 | Sessão de esclarecimento: critérios no YAML (RN-04, RF-05), descartados (RN-05, RF-04), valores de custo (RN-08, RF-08, RF-10) | `/reversa-clarify` |
 | 2026-10-15 | Versão inicial gerada por `/reversa-requirements` a partir do backlog item ★, do pedido do Rafael de triagem primeiro e da lista de 2026-10-15 | reversa |

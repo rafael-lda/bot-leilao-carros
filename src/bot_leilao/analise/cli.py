@@ -16,7 +16,8 @@ from pathlib import Path
 from bot_leilao.analise.custos import ErroCustos, calcular, carregar_custos
 from bot_leilao.analise.distancias import Distancias
 from bot_leilao.analise.fipe import ErroFipe, Fipe
-from bot_leilao.analise.lista import ErroLista, anotar_custo, devolver, ler_lista, numero_por_link, triar
+from bot_leilao.analise.lista import (CAMPOS_ANOTAVEIS, ErroLista, anotar_campo, anotar_custo, devolver, ler_lista,
+                                     numero_por_link, triar)
 from bot_leilao.analise.pagina import ErroPagina, ler_pagina
 from bot_leilao.config.arquivos import ErroConfiguracao
 from bot_leilao.db.trava import Trava
@@ -50,6 +51,10 @@ def registrar(sub) -> None:
     t.add_argument("--evidencia")
     t.add_argument("--falta")
     novo("devolver", "traz um lote descartado de volta para a lista").add_argument("numero", type=int)
+    an = novo("anotar", "grava um campo do bloco (câmbio deduzido, resultado do pregão)")
+    an.add_argument("lote", help="número do bloco ou link do lote")
+    an.add_argument("--campo", required=True, choices=CAMPOS_ANOTAVEIS)
+    an.add_argument("--valor", required=True)
     fc = novo("fipe-candidatos", "versões FIPE de um ano cujo nome contém os termos")
     fc.add_argument("--marca", required=True)
     fc.add_argument("--modelo", required=True, help="termos do modelo, ex.: \"versa sl 1.6\"")
@@ -180,6 +185,10 @@ def _executar(args, raiz: Path, deps, lista: Path) -> dict:
         destino = _com_trava(raiz, deps, lambda: triar(lista, numero, args.veredito, hoje=hoje, motivo=args.motivo,
                                                        evidencia=args.evidencia, falta=args.falta))
         return {"numero": numero, "veredito": args.veredito, "destino": destino}
+    if comando == "anotar":
+        numero = _numero(lista, args.lote)
+        _com_trava(raiz, deps, lambda: anotar_campo(lista, numero, args.campo, args.valor))
+        return {"numero": numero, "campo": args.campo, "valor": args.valor.strip()}
     if comando == "devolver":
         _com_trava(raiz, deps, lambda: devolver(lista, args.numero))
         return {"numero": args.numero, "destino": lista.name}

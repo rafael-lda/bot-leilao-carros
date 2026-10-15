@@ -170,3 +170,16 @@ def test_anotar_custo_com_versao_ambigua_lista_as_candidatas(cenario, capsys, mo
     assert linha_fipe.startswith("- **FIPE:** _a escolher_:")
     assert "023140-1" in linha_fipe and "023138-0" in linha_fipe and "outubro/2026" in linha_fipe
     assert "- **Valor estimado na garagem:** (% da FIPE)" in bloco, "sem versão escolhida, sem custo"
+
+
+def test_anotar_campo_pela_linha_de_comando(cenario, capsys):
+    codigo, saida = _rodar(cenario, capsys, "anotar", "1", "--campo", "Câmbio", "--valor", "CVT (título)")
+    assert codigo == 0 and saida == {"numero": 1, "campo": "Câmbio", "valor": "CVT (título)"}
+    assert "- **Câmbio:** CVT (título)" in _lista(cenario)
+    trava = Trava(cenario.raiz / "dados" / "varredura.lock")
+    assert trava.adquirir()
+    try:
+        codigo, _ = _rodar(cenario, capsys, "anotar", "1", "--campo", "Câmbio", "--valor", "manual")
+    finally:
+        trava.liberar()
+    assert codigo == 3

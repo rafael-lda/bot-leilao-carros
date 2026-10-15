@@ -80,3 +80,17 @@ def test_falha_de_acesso_vira_erro_com_o_motivo(cenario):
 def test_leiloeiro_desconhecido_e_erro(cenario):
     with pytest.raises(ErroPagina, match="leiloeiro"):
         ler_pagina("outro:1", "https://exemplo.com/1", _cliente(cenario), NIVEIS)
+
+
+def test_kuss_traz_o_resultado_do_pregao_sem_o_apelido(cenario):
+    cenario.kuss = SiteKuss(detalhes={"282164": detalhe_kuss()},
+                            lances={"897": {"282164": "PRESENCIAL", "282341": "fulano123", "282622": ""}})
+    cliente = _cliente(cenario)
+    link = "https://www.claudiokussleiloes.com.br/lance/897/0/{}"
+    assert ler_pagina("claudio-kuss-leiloes:282164", link.format(282164), cliente, NIVEIS)["campos"]["resultado"] == \
+        "último lance presencial; valor não divulgado pelo site"
+    online = ler_pagina("claudio-kuss-leiloes:282341", link.format(282341), cliente, NIVEIS)
+    assert online["campos"]["resultado"] == "último lance online; valor não divulgado pelo site"
+    assert "fulano123" not in str(online), "apelido de quem deu lance nunca sai (privacidade)"
+    assert ler_pagina("claudio-kuss-leiloes:282622", link.format(282622), cliente, NIVEIS)["campos"]["resultado"] == \
+        "sem lance"

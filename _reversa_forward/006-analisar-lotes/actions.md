@@ -65,12 +65,12 @@ Política de escrita: `allowLegacyEdits: true`, `allowedPaths` vazio (liberaçã
 |----|-----------|--------------|-------------|--------------|-------------|--------|
 | T021 | Linha de comando: `analise lotes`, `pagina`, `triar`, `devolver` (com a trava da varredura nos que escrevem) (D-104) | T011, T015, T019 | - | `src/…/cli.py` | 🟢 | `[X]` |
 | T022 | Linha de comando: `analise fipe-candidatos`, `fipe-valor`, `custo`, `anotar-custo` (D-104, D-117) | T021, T016, T017, T018 | - | `src/…/cli.py` | 🟢 | `[X]` |
-| T023 | (RF-02, RF-03, RN-03) Rascunho do `SKILL.md` com o `skill-creator`: gatilhos; roteiro da triagem com **todos os critérios da RN-03** e a origem de cada um (campos já existentes do alvo: tipo de leilão, ano, teto contra o lance atual, km máximo; campos novos: câmbio, sinistro, sucata, mecânica, pequenas avarias; texto `triagem`: versão preferida; estado do lote: encerrado, retirado, documento); ordem da evidência e Copart sem câmbio "a confirmar" (D-111); "na dúvida, a confirmar"; resumo com aprovados, reprovados, a confirmar e **total de páginas pagas**; confirmação do Rafael antes de mover; custo para os aprovados com reparos extras quando houver avaria; tudo só pela linha de comando (D-104, D-105, D-111, RN-01 a RN-10) | T022 | - | `.claude/skills/analisar-lotes/SKILL.md` | 🟢 | `[ ]` |
-| T024 | Avaliações com o `skill-creator`: casos com a lista de 2026-10-15 e o veredito esperado de cada lote (`investigation.md` §5), mais os cenários de FIPE ambígua, de varredura em andamento, de km acima do máximo e de lance atual acima do teto (lotes da fixture alterados); rodar, comparar e ajustar o `SKILL.md` até acertar; guardar as avaliações na pasta da skill | T023 | - | `.claude/skills/analisar-lotes/evals/` | 🟡 | `[ ]` |
-| T025 | Cópia idêntica da skill em `.agents/skills/analisar-lotes/` (teste do T012 verde) (D-106) | T024, T003, T012 | - | `.agents/skills/analisar-lotes/` | 🟢 | `[ ]` |
-| T026 | Migrar o `config/veiculos-alvo.yaml` do Rafael: `padrao` e texto `triagem` por alvo a partir dos comentários atuais, mostrando o diff (D-109) | T013 | `[//]` | `config/veiculos-alvo.yaml` | 🟡 | `[ ]` |
-| T027 | `config/custos.yaml` versionado com os valores do clarify (D-116) | T016 | `[//]` | `config/custos.yaml` | 🟢 | `[ ]` |
-| T028 | Atualizar o `1OUTPUT/comentarios-lotes-a-monitorar.md` existente com as regras novas (D-113) | T020 | `[//]` | `1OUTPUT/comentarios-lotes-a-monitorar.md` | 🟢 | `[ ]` |
+| T023 | (RF-02, RF-03, RN-03) Rascunho do `SKILL.md` com o `skill-creator`: gatilhos; roteiro da triagem com **todos os critérios da RN-03** e a origem de cada um (campos já existentes do alvo: tipo de leilão, ano, teto contra o lance atual, km máximo; campos novos: câmbio, sinistro, sucata, mecânica, pequenas avarias; texto `triagem`: versão preferida; estado do lote: encerrado, retirado, documento); ordem da evidência e Copart sem câmbio "a confirmar" (D-111); "na dúvida, a confirmar"; resumo com aprovados, reprovados, a confirmar e **total de páginas pagas**; confirmação do Rafael antes de mover; custo para os aprovados com reparos extras quando houver avaria; tudo só pela linha de comando (D-104, D-105, D-111, RN-01 a RN-10) | T022 | - | `.claude/skills/analisar-lotes/SKILL.md` | 🟢 | `[X]` |
+| T024 | Avaliações com o `skill-creator`: casos com a lista de 2026-10-15 e o veredito esperado de cada lote (`investigation.md` §5), mais os cenários de FIPE ambígua, de varredura em andamento, de km acima do máximo e de lance atual acima do teto (lotes da fixture alterados); rodar, comparar e ajustar o `SKILL.md` até acertar; guardar as avaliações na pasta da skill | T023 | - | `.claude/skills/analisar-lotes/evals/` | 🟡 | `[X]` |
+| T025 | Cópia idêntica da skill em `.agents/skills/analisar-lotes/` (teste do T012 verde) (D-106) | T024, T003, T012 | - | `.agents/skills/analisar-lotes/` | 🟢 | `[X]` |
+| T026 | Migrar o `config/veiculos-alvo.yaml` do Rafael: `padrao` e texto `triagem` por alvo a partir dos comentários atuais, mostrando o diff (D-109) | T013 | `[//]` | `config/veiculos-alvo.yaml` | 🟡 | `[X]` |
+| T027 | `config/custos.yaml` versionado com os valores do clarify (D-116) | T016 | `[//]` | `config/custos.yaml` | 🟢 | `[X]` |
+| T028 | Atualizar o `1OUTPUT/comentarios-lotes-a-monitorar.md` existente com as regras novas (D-113) | T020 | `[//]` | `1OUTPUT/comentarios-lotes-a-monitorar.md` | 🟢 | `[X]` |
 | T029 | Execução real de `/analisar-lotes` sobre a lista atual: a skill mostra o resumo ao Rafael e só move os reprovados com o OK dele; registrar o resultado nas Notas (páginas lidas, custo do Apify, FIPE e custos dos aprovados) | T025, T026, T027, T028 | - | (execução) | 🟡 | `[ ]` |
 
 ## Fase 5, Polimento
@@ -81,6 +81,15 @@ Política de escrita: `allowLegacyEdits: true`, `allowedPaths` vazio (liberaçã
 | T031 | Seção "Feature 006" em `tests/RASTREABILIDADE.md`, conferida mecanicamente | T025 | `[//]` | `tests/RASTREABILIDADE.md` | 🟢 | `[ ]` |
 | T032 | Ajustar `onboarding.md` com o que a execução real mostrou | T029 | `[//]` | `_reversa_forward/006-…/onboarding.md` | 🟢 | `[ ]` |
 | T033 | Backlog: item ★ marcado como feito (skill), item 1 (filtro de câmbio) atualizado com o que o bot já faz e o que a skill cobre | T029 | `[//]` | `_reversa_forward/backlog.md` | 🟢 | `[ ]` |
+
+## Ajustes depois da primeira rodada de avaliações (2026-10-15)
+
+| ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
+|----|-----------|--------------|-------------|--------------|-------------|--------|
+| T034 | (RF-12) `anotar_campo` na lista e subcomando `analise anotar` com a trava; testes (D-118) | T021 | - | `src/…/analise/lista.py` | 🟢 | `[X]` |
+| T035 | (RF-13) Resultado do pregão do Kuss na leitura do lote, sem apelido; `SiteKuss` com `op=T`; teste (D-119) | T019 | - | `src/…/analise/pagina.py` | 🟢 | `[X]` |
+| T036 | (RN-11, RN-12) `SKILL.md`: pregão passado não reprova e ganha o resultado; câmbio deduzido gravado; reaparições e referência de lance no resumo | T024 | - | `.claude/skills/analisar-lotes/SKILL.md` | 🟢 | `[X]` |
+| T037 | Segunda rodada de avaliações (triagem completa e custo do lote 1) com o resultado esperado novo | T036 | - | `.claude/skills/analisar-lotes/evals/` | 🟢 | `[X]` |
 
 ## Notas de execução
 
@@ -93,6 +102,11 @@ Política de escrita: `allowLegacyEdits: true`, `allowedPaths` vazio (liberaçã
 - **T021 (2026-10-15):** os logs do console iam para a saída padrão e misturariam com o JSON; `configurar_logs(console=False)` nos subcomandos `analise` (só o arquivo de log). `Dependencias` ganhou `transporte_analise` (FIPE e mapas). Um `%` no texto de ajuda do `custo` quebrava o argparse (`%%`).
 - **Teste com dados reais (2026-10-15):** `analise lotes --numero 2` com a lista e a config reais; `fipe-candidatos` Renault "fluence dynamique 2.0" 2015 pela parallelum: Aut. R$ 44.351 (025174-7), Mec. R$ 43.177 (025173-9).
 - **Etapa 2 concluída (2026-10-15):** T013–T022; 811 testes passando; 2 falhando (a skill, etapa 3).
+- **T023/T024 (2026-10-15), primeira rodada de avaliações** (4 casos, cópias da lista; nenhuma na lista real): com a skill 19/19 verificações; sem a skill (caso 1) 6/7, ~3× o tempo e o dobro de tokens, com edição à mão. O agente sem a skill achou as reaparições (13 = 3, 14 = 2), gravou o câmbio deduzido e deu referência de lance máximo para os "a confirmar": as três ideias entraram na skill (T036).
+- **Decisão do Rafael (2026-10-15):** pregão que já passou não reprova; o resultado é anotado (fase de investigação da viabilidade). O Kuss não divulga o valor final (evento 897: 179 últimos lances presenciais, 163 online, 4 sem lance, nenhum valor) (RN-11, D-119).
+- **T037 (2026-10-15), segunda rodada:** 20/20 verificações (triagem completa 14/14; custo do lote 1 6/6). A verificação "lote 1 aprovado" do caso 1 estava errada: no teste o alvo Kicks tinha km máximo e o Kuss não informa km, então "a confirmar — km" é o certo pela regra da skill; a verificação foi corrigida. A triagem completa passou de 2,4 para 7,1 minutos (lê páginas dos pregões passados e calcula referências).
+- **T026 (2026-10-15):** migração do `veiculos-alvo.yaml` aprovada pelo Rafael e gravada (bloco `padrao` e textos `triagem` tirados dos comentários).
+- **T028 (2026-10-15):** o `comentarios-lotes-a-monitorar.md` real era igual ao texto antigo do bot (sem edição do Rafael) e foi trocado pelo texto novo.
 
 ## Histórico de alterações
 

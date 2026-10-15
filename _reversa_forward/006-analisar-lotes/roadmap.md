@@ -69,6 +69,13 @@ Não há `.reversa/principles.md`; valem os princípios de fato das features ant
 | D-116 | (RN-08, RF-08, RF-10) `config/custos.yaml` (versionado; criado com os valores do clarify se não existir; validado). `analise custo --lance --despesa --patio "Cidade - UF" --documento-uf --fipe` devolve as parcelas, o total na garagem, o % da FIPE e o lance máximo. Lance máximo = (revenda ÷ (1 + margem) − despesa − frete − transferência − reparos) ÷ (1 + comissão), com revenda = 85% da FIPE e margem = 10% sobre o custo na garagem. Despesa ausente usa o padrão e é marcada "(padrão)"; frete marcado "(estimativa)". Reparos além da reserva (RN-08), quando as observações citam avaria: `--reparos-extra <valor> --motivo-reparos "<texto>"`, somados e mostrados com o motivo | Contas determinísticas, testadas com o exemplo do requirements (R$ 71.060 com 380 km) | Calcular no roteiro do agente | 🟢 |
 | D-117 | (RF-08) `analise anotar-custo <número>` preenche os campos que o bloco já tem: FIPE (valor, código, mês e versão, ou "_a escolher_" com as candidatas), o "% da FIPE" do lance ao entrar, Despesas admin. (se vazia), Frete, Valor estimado na garagem; e acrescenta "Lance máximo (margem 10%)". Só para lotes aprovados | Formato definido pelo Rafael na emenda E002 da 003 | Seção nova "Análise FIPE" no bloco | 🟢 |
 
+### 3.6 Ajustes depois da primeira rodada de avaliações (2026-10-15)
+
+| ID | Decisão | Justificativa | Alternativas descartadas | Confidência |
+|----|---------|----------------|--------------------------|-------------|
+| D-118 | (RN-11, RN-12, RF-12) Subcomando `analise anotar <lote> --campo {Câmbio, Resultado do pregão} --valor …`, com a trava da varredura: substitui a linha se existe, senão insere antes do Link. A skill grava o câmbio deduzido e o resultado do pregão por ele | Mesma proteção das outras escritas; só campos conhecidos | Agente editando o bloco à mão (o baseline fez isso) | 🟢 |
+| D-119 | (RF-13) `analise pagina` do Kuss consulta `json_edital.php op=T` do evento e devolve `resultado`: "último lance presencial/online; valor não divulgado pelo site" ou "sem lance". O apelido nunca sai | Verificado no evento 897 (13/10): 179 presenciais, 163 online, 4 sem lance, nenhum valor | Ler o histórico `json_lance_historico.php` (devolve "Não loteado") | 🟢 |
+
 ## 4. Premissas
 
 | Premissa | Origem | Risco se errada |

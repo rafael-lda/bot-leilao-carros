@@ -118,3 +118,32 @@ def test_numero_pelo_link(lista):
 def test_escrita_atomica_nao_deixa_temporario(lista):
     triar(lista, 1, "aprovado", hoje=HOJE)
     assert sorted(p.name for p in lista.parent.iterdir()) == ["lotes-a-monitorar.md"]
+
+
+# --- Ajuste de 2026-10-15 (pedido do Rafael): anotar um campo do bloco -----------------------------------
+
+from bot_leilao.analise.lista import CAMPOS_ANOTAVEIS, anotar_campo  # noqa: E402
+
+
+def test_anotar_campo_existente_substitui_o_valor(lista):
+    antes = _blocos_por_numero(lista)
+    anotar_campo(lista, 1, "Câmbio", "CVT (título \"S DRCT CVT\")")
+    depois = _blocos_por_numero(lista)
+    assert depois[1].campos["Câmbio"] == "CVT (título \"S DRCT CVT\")"
+    assert depois[1].texto.count("**Câmbio:**") == 1
+    assert all(depois[n].texto == antes[n].texto for n in range(2, 15))
+
+
+def test_anotar_campo_novo_entra_antes_do_link(lista):
+    anotar_campo(lista, 1, "Resultado do pregão", "13/10: último lance presencial; valor não divulgado pelo site")
+    linhas = _blocos_por_numero(lista)[1].texto.splitlines()
+    i = next(n for n, l in enumerate(linhas) if l.startswith("- **Resultado do pregão:**"))
+    assert linhas[i + 1].startswith("- **Link:**")
+
+
+def test_so_campos_conhecidos(lista):
+    assert {"Câmbio", "Resultado do pregão"} <= set(CAMPOS_ANOTAVEIS)
+    with pytest.raises(ErroLista, match="campo"):
+        anotar_campo(lista, 1, "Link", "outro")
+    with pytest.raises(ErroLista, match="valor"):
+        anotar_campo(lista, 1, "Câmbio", "  ")

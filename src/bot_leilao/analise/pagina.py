@@ -27,6 +27,7 @@ import bot_leilao.parsing.freitas  # noqa: F401
 import bot_leilao.parsing.milan  # noqa: F401
 import bot_leilao.parsing.vip  # noqa: F401
 from bot_leilao.coleta import registro
+from bot_leilao.coleta.claudio_kuss import BASE as BASE_KUSS
 from bot_leilao.coleta.copart import BASE as BASE_COPART
 from bot_leilao.coleta.copart import CABECALHOS_AJAX as CABECALHOS_COPART
 from bot_leilao.coleta.modelos import Requisicao
@@ -71,6 +72,28 @@ def _cambio(texto: str) -> str | None:
         return None
     valor = achado.group(1).lower()
     return "CVT" if valor == "cvt" else ("manual" if valor == "manual" else "automático")
+
+
+def _resultado_kuss(cliente, nivel: str, evento: str, seq: str) -> str | None:
+    """Último lance do lote no evento (`op=T`). Depois do pregão o Kuss mostra só quem deu o último lance
+    ("PRESENCIAL" ou o apelido de quem deu online) e nunca o valor (evento 897, 2026-10-15). O apelido não sai daqui."""
+    resultado = cliente.requisitar(Requisicao(
+        "POST", f"{BASE_KUSS}/json_edital.php", dados={"op": "T", "leilaoID": evento, "loteado": "S"}, nivel=nivel,
+        cabecalhos={"X-Requested-With": "XMLHttpRequest", "Referer": f"{BASE_KUSS}/relacao-foto/{evento}"}))
+    if not resultado.ok:
+        return None
+    try:
+        dados = json.loads(resultado.conteudo)
+    except ValueError:
+        return None
+    item = next((v for v in dados.values() if isinstance(v, dict) and str(v.get("Q")) == seq), None)
+    if item is None:
+        return None
+    usuario, valor = str(item.get("U") or "").strip(), str(item.get("V") or "").strip()
+    if not usuario:
+        return "sem lance"
+    quem = "presencial" if usuario.upper() == "PRESENCIAL" else "online"
+    return f"último lance {quem}; " + (f"R$ {valor}" if valor else "valor não divulgado pelo site")
 
 
 def ler_pagina(id_canonico: str, link: str, cliente, niveis: Mapping[str, str] | None = None) -> dict:
@@ -121,6 +144,10 @@ def ler_pagina(id_canonico: str, link: str, cliente, niveis: Mapping[str, str] |
         conteudo = buscar(requisicao)
         nucleo.obter_parser(leiloeiro).aplicar_detalhe(lote, conteudo)
         campos = _campos(lote)
+        if leiloeiro == "claudio-kuss-leiloes":
+            resultado = _resultado_kuss(cliente, nivel, lote.evento_id, lote.id_canonico.split(":", 1)[1])
+            if resultado:
+                campos["resultado"] = resultado
         try:
             texto = _texto_json(json.loads(conteudo))
         except ValueError:

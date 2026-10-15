@@ -22,6 +22,8 @@ CABECALHO_DESCARTADOS = (
     "Para devolver um lote à lista: `python -m bot_leilao analise devolver <número>`, ou peça ao agente.\n"
 )
 VEREDITOS = ("aprovado", "a-confirmar", "reprovado")
+# Ajuste de 2026-10-15: campos que a skill pode gravar fora da triagem e do custo.
+CAMPOS_ANOTAVEIS = ("Câmbio", "Resultado do pregão")
 _TITULO = re.compile(r"^### (\d+)\. (.*?)(?: — (\S+))?\s*$", re.M)
 _ID = re.compile(r"<!-- lote: (.+?) -->")
 _CAMPO = re.compile(r"^- \*\*(.+?):\*\* ?(.*)$", re.M)
@@ -136,6 +138,22 @@ def devolver(caminho: Path, numero: int) -> None:
     cabecalho, blocos = _partes(caminho)
     _gravar(caminho, cabecalho, [*blocos, _sem_linhas(blocos_d[i], "- **Descartado em ")])
     _gravar(origem, cab_d, blocos_d[:i] + blocos_d[i + 1:])
+
+
+def anotar_campo(caminho: Path, numero: int, campo: str, valor: str) -> None:
+    """Grava um campo do bloco (ex.: câmbio deduzido do título, resultado do pregão): substitui a linha se ela
+    existe, senão a insere antes de `- **Link:**`."""
+    if campo not in CAMPOS_ANOTAVEIS:
+        raise ErroLista(f"campo '{campo}' não pode ser anotado; aceitos: {', '.join(CAMPOS_ANOTAVEIS)}")
+    if not (valor or "").strip():
+        raise ErroLista("o valor do campo não pode ser vazio")
+    cabecalho, blocos = _partes(caminho)
+    i = _indice(blocos, numero, caminho)
+    if campo in (_bloco(blocos[i]).campos or {}):
+        blocos[i] = _trocar_campo(blocos[i], campo, valor.strip())
+    else:
+        blocos[i] = _inserir_antes_do_link(blocos[i], f"- **{campo}:** {valor.strip()}")
+    _gravar(caminho, cabecalho, blocos)
 
 
 # --- Anotação de custo (D-117) --------------------------------------------------------------------------

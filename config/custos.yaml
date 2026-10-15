@@ -1,0 +1,15 @@
+# Custos para estimar o valor do carro na garagem (skill analisar-lotes, feature 006).
+# Valores do esclarecimento de 2026-10-15; edite à vontade. Valores em reais, percentuais de 0 a 100.
+cidade_base: Londrina - PR
+uf_base: PR
+comissao_percentual: 5            # do leiloeiro, sobre o lance
+despesa_padrao: 2650              # quando o lote não traz a despesa fixa (mediana do Vip)
+frete_por_km: 4.50                # ESTIMATIVA: troque quando tiver orçamento de guincho
+transferencia_mesmo_estado: 450   # documento do PR
+transferencia_outro_estado: 650   # documento de outro estado (vistoria, talvez placa)
+reparos_reserva: 2000             # colchão por carro
+revenda_percentual_fipe: 85       # carro de leilão revende 10 a 20% abaixo da FIPE
+margem_percentual: 10             # lucro desejado, sobre o custo na garagem
+# Distância do pátio até a cidade base, em km (ida). Opcional: vence o cálculo automático.
+distancias: {}
+#  "Curitiba - PR": 386
