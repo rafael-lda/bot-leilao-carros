@@ -2,8 +2,12 @@
 .reversa/config.user.toml
 
 # Framework vendorizado — reinstalável com `npx reversa install`
-.claude/skills/
-.agents/skills/
+# (com `/*` para permitir a exceção abaixo; o diretório inteiro ignorado não deixa reincluir nada)
+.claude/skills/*
+.agents/skills/*
+# Skill do projeto, versionada (feature 006)
+!.claude/skills/analisar-lotes/
+!.agents/skills/analisar-lotes/
 
 # Skills e loops pessoais do Rafael, fora do projeto
 .claude/multiagents-debate-loop/

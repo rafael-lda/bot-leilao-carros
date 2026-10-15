@@ -165,3 +165,26 @@ def test_outro_alvo_sem_exclusao_ainda_casa():
     oroch_ok = alvo(**{**DUSTER, "id": "renault-oroch"}, excluir=())
     resultado = avaliar([_duster(modelo="duster oroch")], [alvo(**DUSTER, excluir=("Oroch",)), oroch_ok])
     assert [c.alvo.id for c in resultado.candidatos] == ["renault-oroch"]
+
+
+# --- Feature 006: câmbio quando o lote informa, só com certeza (RF-06; roadmap D-108) ------------------
+
+@pytest.mark.parametrize("cambio_lote, cambio_alvo, esperado", [
+    ("manual", ("automatico", "cvt"), False),
+    ("automático", ("automatico", "cvt"), True),
+    ("CVT", ("automatico", "cvt"), True),
+    ("automático", ("cvt",), True),        # o Milan escreve AUTOMATICO também para CVT: sem certeza, não descarta
+    ("CVT", ("manual",), False),
+    ("automático", ("manual",), False),
+    ("manual", ("manual",), True),
+    (None, ("automatico",), True),         # lote sem câmbio passa como hoje
+    ("manual", None, True),                # alvo sem critério de câmbio aceita tudo
+])
+def test_cambio_do_lote_contra_o_alvo(cambio_lote, cambio_alvo, esperado):
+    assert casa(lote(cambio=cambio_lote), alvo(cambio=cambio_alvo)) is esperado
+
+
+def test_descartado_por_cambio_conta_como_sem_casar():
+    resultado = avaliar([lote(cambio="manual")], [alvo(cambio=("automatico", "cvt"))])
+    assert resultado.candidatos == []
+    assert resultado.descartados_sem_casar == 1

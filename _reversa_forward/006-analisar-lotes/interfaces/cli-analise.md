@@ -10,17 +10,17 @@ Todos os subcomandos rodam a partir da raiz do projeto (`--raiz` como nos outros
 
 | Subcomando | Entrada | Saída (campos principais) |
 |------------|---------|---------------------------|
-| `analise lotes [--numero N]` | — | `lotes`: lista de `{numero, id, titulo, ano, campos: {FIPE, Lance ao entrar, Pátio, Km, Pregão, Documento, Observações, Câmbio, Link, Alvo, Triagem…}, alvo: {id, marca, modelo, ano_min, ano_max, preco_maximo, quilometragem_maxima, criterios: {cambio, aceitar_*}, triagem}}` |
-| `analise pagina <numero>` | número do bloco | `{numero, leiloeiro, nivel, pago, custo_estimado_usd, campos: {lance_corrente, lance_inicial, observacoes, patio, cambio, placa_parcial, retirado…}, texto}` (texto limpo, até 8.000 caracteres); falha de acesso: `{"erro": "...", "motivo": "<motivo do cliente>"}` |
+| `analise lotes [--numero N \| --link URL]` | — | `lotes`: lista de `{numero, id, titulo, ano, campos: {FIPE, Lance ao entrar, Pátio, Km, Pregão, Documento, Observações, Câmbio, Link, Alvo, Triagem…}, alvo: {id, marca, modelo, ano_min, ano_max, preco_maximo, quilometragem_maxima, criterios: {cambio, aceitar_*}, triagem}}` |
+| `analise pagina <numero ou link>` | número do bloco ou link do lote (convertido no número) | `{numero, leiloeiro, nivel, pago, custo_estimado_usd, campos: {lance_corrente, lance_inicial, observacoes, patio, cambio, placa_parcial, retirado…}, texto}` (texto limpo, até 8.000 caracteres); falha de acesso: `{"erro": "...", "motivo": "<motivo do cliente>"}` |
 | `analise fipe-candidatos --marca M --modelo "termos" --ano A` | marca, termos do modelo, ano de modelo | `{mes_referencia, fonte, candidatas: [{codigo, versao, combustivel, valor}]}` |
 | `analise fipe-valor --codigo C --ano A` | código FIPE e ano | `{codigo, versao, valor, mes_referencia, fonte}` |
-| `analise custo --lance L [--despesa D] --patio "Cidade - UF" [--documento-uf UF] [--fipe F]` | valores em reais | `{parcelas: {lance, comissao, despesa, despesa_padrao, frete, frete_km, frete_estimado, transferencia, reparos}, total, percentual_fipe, lance_maximo, avisos: [...]}` |
+| `analise custo --lance L [--despesa D] --patio "Cidade - UF" [--documento-uf UF] [--fipe F] [--reparos-extra R --motivo-reparos "texto"]` | valores em reais; reparos além da reserva quando as observações citam avaria (RN-08) | `{parcelas: {lance, comissao, despesa, despesa_padrao, frete, frete_km, frete_estimado, transferencia, reparos, reparos_extra, motivo_reparos}, total, percentual_fipe, lance_maximo, avisos: [...]}` |
 
 ## Escrita (pegam a trava da varredura; recusam com código 3 se ela estiver ocupada)
 
 | Subcomando | Entrada | Efeito |
 |------------|---------|--------|
-| `analise triar <numero> --veredito aprovado` | — | Linha `- **Triagem (DD/MM/AAAA):** aprovado` antes de `- **Link:**` (substitui a anterior) |
+| `analise triar <numero ou link> --veredito aprovado` | — | Linha `- **Triagem (DD/MM/AAAA):** aprovado` antes de `- **Link:**` (substitui a anterior) |
 | `analise triar <numero> --veredito a-confirmar --falta "câmbio; lance"` | o que falta | `- **Triagem (…):** a confirmar — câmbio; lance` |
 | `analise triar <numero> --veredito reprovado --motivo "câmbio manual" --evidencia "título 'DYN 20M'"` | motivo e evidência obrigatórios | Bloco sai da lista e vai para o fim de `1OUTPUT/lotes-descartados.md` com `- **Descartado em DD/MM/AAAA:** câmbio manual — título 'DYN 20M'` |
 | `analise devolver <numero>` | — | Bloco volta de `lotes-descartados.md` para o fim da lista, sem a linha de descarte |

@@ -148,6 +148,8 @@ class CenarioE2E:
         self.copart: "SiteCopart | None" = None
         self.freitas: "SiteFreitas | None" = None
         self.apify: "ApifySimulado | None" = None
+        self.fipe: "SiteFipe | None" = None     # feature 006
+        self.mapas: "SiteMapas | None" = None   # feature 006
         self.telegram = 200
         self.mensagens: list[str] = []
         self.chamadas: list[_httpx.Request] = []
@@ -159,6 +161,8 @@ class CenarioE2E:
             relogio=relogio.agora, dormir=relogio.dormir, agora=agora, fuso=FUSO_SP,
             environ={"TELEGRAM_BOT_TOKEN": TOKEN_TESTE, "TELEGRAM_CHAT_ID": str(CHAT_TESTE)},
         )
+        if hasattr(self.deps, "transporte_analise") or "transporte_analise" in type(self.deps).__dataclass_fields__:
+            self.deps.transporte_analise = self.transporte  # feature 006: FIPE e mapas (campo criado no T021)
 
     def _falhar(self, alvo, request):
         if isinstance(alvo, int):
@@ -189,6 +193,12 @@ class CenarioE2E:
             return self.apify.responder(request)
         if request.url.host == HOST_MILAN:
             return _httpx.Response(403, text="<title>Just a moment...</title><script src=/cdn-cgi/challenge-platform/>")
+        if request.url.host in HOSTS_FIPE:
+            assert self.fipe is not None, "o cenário não simula a FIPE"
+            return self.fipe.responder(request)
+        if request.url.host in HOSTS_MAPAS:
+            assert self.mapas is not None, "o cenário não simula os mapas"
+            return self.mapas.responder(request)
         if not isinstance(self.vip, bytes):
             return self._falhar(self.vip, request)
         if request.url.path == "/":
@@ -738,3 +748,147 @@ class ApifySimulado:
 
     def urls_pedidas(self) -> list[str]:
         return [_json.loads(c.content)["url"] for c in self.execucoes()]
+
+
+# ---------------------------------------------------------------------------
+# Análise de lotes (feature 006): lista do Rafael, FIPE e mapas simulados a partir das respostas reais de 2026-10-15.
+# ---------------------------------------------------------------------------
+
+FIXTURES_ANALISE = FIXTURES / "analise"
+HOST_PARALLELUM = "parallelum.com.br"
+HOST_FIPE_OFICIAL = "veiculos.fipe.org.br"
+HOSTS_FIPE = (HOST_PARALLELUM, HOST_FIPE_OFICIAL)
+HOST_NOMINATIM = "nominatim.openstreetmap.org"
+HOST_OSRM = "router.project-osrm.org"
+HOSTS_MAPAS = (HOST_NOMINATIM, HOST_OSRM)
+
+
+def lista_de_teste(raiz: Path) -> Path:
+    """Copia a lista de 2026-10-15 (14 lotes) para `raiz/1OUTPUT/lotes-a-monitorar.md`."""
+    destino = raiz / "1OUTPUT" / "lotes-a-monitorar.md"
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    destino.write_bytes((FIXTURES_ANALISE / "lotes-a-monitorar.md").read_bytes())
+    return destino
+
+
+def _fipe_json(nome: str):
+    return _json.loads((FIXTURES_ANALISE / "fipe" / nome).read_text(encoding="utf-8"))
+
+
+class SiteFipe:
+    """parallelum v2 e site oficial da FIPE simulados com as respostas reais (Nissan 43; Versa SL 7628 Aut., 7629 Mec.).
+
+    `parallelum` / `oficial`: "ok", "fora" (503) ou "limite" (429, só a parallelum). `referencia`: mês de referência
+    devolvido pelas duas (padrão: o das fixtures, outubro/2026, código 338).
+    """
+
+    CODIGOS = {"023140-1": "7628", "023138-0": "7629"}
+
+    def __init__(self, parallelum: str = "ok", oficial: str = "ok", referencia: tuple[str, str] | None = None) -> None:
+        self.parallelum = parallelum
+        self.oficial = oficial
+        self.referencia = referencia or ("338", "outubro/2026")
+        self.chamadas: list[_httpx.Request] = []
+
+    def _preco(self, modelo: str, ano: str) -> dict | None:
+        caminho = FIXTURES_ANALISE / "fipe" / f"parallelum_price_{modelo}_{ano}.json"
+        if not caminho.exists():
+            return None
+        preco = _json.loads(caminho.read_text(encoding="utf-8"))
+        return {**preco, "referenceMonth": self.referencia[1].replace("/", " de ")}
+
+    def _anos(self, modelo: str) -> list:
+        caminho = FIXTURES_ANALISE / "fipe" / f"parallelum_years_{modelo}.json"
+        return _json.loads(caminho.read_text(encoding="utf-8")) if caminho.exists() else []
+
+    def responder(self, request: _httpx.Request) -> _httpx.Response:
+        self.chamadas.append(request)
+        if request.url.host == HOST_PARALLELUM:
+            return self._parallelum(request)
+        return self._oficial(request)
+
+    def _parallelum(self, request) -> _httpx.Response:
+        if self.parallelum == "fora":
+            return _httpx.Response(503, text="Service Unavailable")
+        if self.parallelum == "limite":
+            return _httpx.Response(429, json={"error": "rate limit"}, headers={"x-ratelimit-remaining": "0"})
+        partes = request.url.path.removeprefix("/fipe/api/v2/").strip("/").split("/")
+        nao = _httpx.Response(404, json={"error": "veículo não encontrado para a referência informada"})
+        if partes == ["references"]:
+            return _httpx.Response(200, json=[{"code": self.referencia[0], "month": self.referencia[1]}])
+        if partes == ["cars", "brands"]:
+            return _httpx.Response(200, json=_fipe_json("parallelum_brands.json"))
+        if partes[:3] == ["cars", "brands", "43"]:
+            if len(partes) == 4:
+                return _httpx.Response(200, json=_fipe_json("parallelum_models_43.json"))
+            if len(partes) == 6:
+                return _httpx.Response(200, json=self._anos(partes[4]))
+            if len(partes) == 7:
+                preco = self._preco(partes[4], partes[6])
+                return _httpx.Response(200, json=preco) if preco else nao
+        if partes[:1] == ["cars"] and len(partes) >= 3 and partes[1] in self.CODIGOS:
+            modelo = self.CODIGOS[partes[1]]
+            if len(partes) == 3:
+                return _httpx.Response(200, json=self._anos(modelo))
+            preco = self._preco(modelo, partes[3])
+            return _httpx.Response(200, json=preco) if preco else nao
+        return nao
+
+    def _oficial(self, request) -> _httpx.Response:
+        if self.oficial == "fora":
+            return _httpx.Response(503, text="Service Unavailable")
+        dados = dict(_parse_qs(request.content.decode("utf-8")))
+        campo = lambda nome: (dados.get(nome) or [""])[0]
+        nada = _httpx.Response(200, json={"codigo": "0", "erro": "nadaencontrado"})
+        acao = request.url.path.rsplit("/", 1)[-1]
+        if acao == "ConsultarTabelaDeReferencia":
+            return _httpx.Response(200, json=[{"Codigo": int(self.referencia[0]), "Mes": self.referencia[1] + " "}])
+        if acao == "ConsultarMarcas":
+            return _httpx.Response(200, json=_fipe_json("oficial_marcas.json"))
+        if acao == "ConsultarModelos":
+            return _httpx.Response(200, json=_fipe_json("oficial_modelos_43.json")) if campo("codigoMarca") == "43" \
+                else _httpx.Response(200, json={"Modelos": [], "Anos": []})
+        if acao == "ConsultarAnoModelo":
+            anos = self._anos(campo("codigoModelo"))
+            return _httpx.Response(200, json=[{"Label": a["name"], "Value": a["code"]} for a in anos])
+        if acao == "ConsultarValorComTodosParametros":
+            modelo = self.CODIGOS.get(campo("modeloCodigoExterno")) or campo("codigoModelo")
+            preco = self._preco(modelo, f"{campo('anoModelo')}-{campo('codigoTipoCombustivel')}")
+            if preco is None:
+                return nada
+            return _httpx.Response(200, json={"Valor": preco["price"], "Marca": preco["brand"], "Modelo": preco["model"],
+                                              "AnoModelo": preco["modelYear"], "Combustivel": preco["fuel"],
+                                              "CodigoFipe": preco["codeFipe"], "MesReferencia": self.referencia[1]
+                                              .replace("/", " de ") + " ", "TipoVeiculo": 1, "SiglaCombustivel": "F"})
+        return _httpx.Response(404, text="não encontrado")
+
+    def hosts_chamados(self) -> list[str]:
+        return [c.url.host for c in self.chamadas]
+
+
+class SiteMapas:
+    """Nominatim (Londrina e Curitiba reais; outras cidades: lista vazia) e OSRM (rota real de 385 km).
+
+    `nominatim` / `osrm`: "ok" ou "fora" (500).
+    """
+
+    def __init__(self, nominatim: str = "ok", osrm: str = "ok") -> None:
+        self.nominatim = nominatim
+        self.osrm = osrm
+        self.chamadas: list[_httpx.Request] = []
+
+    def responder(self, request: _httpx.Request) -> _httpx.Response:
+        self.chamadas.append(request)
+        if request.url.host == HOST_NOMINATIM:
+            if self.nominatim == "fora":
+                return _httpx.Response(500, text="erro")
+            cidade = request.url.params.get("q", "").split(",")[0].strip().lower()
+            arquivo = FIXTURES_ANALISE / "mapas" / f"nominatim_{cidade}.json"
+            return _httpx.Response(200, json=_json.loads(arquivo.read_text(encoding="utf-8")) if arquivo.exists() else [])
+        if self.osrm == "fora":
+            return _httpx.Response(500, json={"code": "Error"})
+        return _httpx.Response(200, json=_json.loads((FIXTURES_ANALISE / "mapas" / "osrm_londrina_curitiba.json")
+                                                     .read_text(encoding="utf-8")))
+
+    def consultas_nominatim(self) -> list[str]:
+        return [c.url.params.get("q", "") for c in self.chamadas if c.url.host == HOST_NOMINATIM]

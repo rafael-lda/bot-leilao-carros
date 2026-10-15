@@ -1,0 +1,218 @@
+{
+ "Modelos": [
+  {
+   "Label": "KICKS Active 1.6 16V Flex Aut.",
+   "Value": 10139
+  },
+  {
+   "Label": "KICKS Active S 1.6 16V Flex Aut.",
+   "Value": 9334
+  },
+  {
+   "Label": "KICKS Advance 1.0 Turbo Flex Aut.",
+   "Value": 11499
+  },
+  {
+   "Label": "KICKS Advance 1.6 16V Flex Aut.",
+   "Value": 9335
+  },
+  {
+   "Label": "KICKS Exclusive 1.0 Turbo Flex Aut.",
+   "Value": 11799
+  },
+  {
+   "Label": "KICKS Exclusive 1.6 16V Flex Aut.",
+   "Value": 9336
+  },
+  {
+   "Label": "KICKS Platinum 1.0 Turbo Flex Aut.",
+   "Value": 11501
+  },
+  {
+   "Label": "KICKS Play Active Plus 1.6 16V Flex Aut.",
+   "Value": 11343
+  },
+  {
+   "Label": "KICKS Play Advance Plus 1.6 16V Flex Aut",
+   "Value": 11344
+  },
+  {
+   "Label": "KICKS Play Sense 1.6 16V Flex Aut.",
+   "Value": 11345
+  },
+  {
+   "Label": "KICKS Rio 2016 1.6 16V FlexStar 5p Aut.",
+   "Value": 7669
+  },
+  {
+   "Label": "KICKS S 1.6 16V Flex 5p Aut.",
+   "Value": 8020
+  },
+  {
+   "Label": "KICKS S 1.6 16V FlexStar 5p Mec.",
+   "Value": 7982
+  },
+  {
+   "Label": "KICKS S Direct 1.6 16V Flex 5p Aut.",
+   "Value": 9594
+  },
+  {
+   "Label": "KICKS Sense 1.0 Turbo Flex Aut.",
+   "Value": 11502
+  },
+  {
+   "Label": "KICKS Sense 1.6 16V Flex Aut.",
+   "Value": 9337
+  },
+  {
+   "Label": "KICKS Sense 1.6 16V Flex Mec.",
+   "Value": 9338
+  },
+  {
+   "Label": "KICKS SL 1.6 16V FlexStar 5p Aut.",
+   "Value": 7670
+  },
+  {
+   "Label": "KICKS Special Ed. 1.6 16V Flex 5p Aut.",
+   "Value": 8867
+  },
+  {
+   "Label": "KICKS Special Ed.1.6 16V Flex 5p Mec.",
+   "Value": 8927
+  },
+  {
+   "Label": "KICKS SV 1.6 16V FlexStar 5p Aut.",
+   "Value": 7983
+  },
+  {
+   "Label": "KICKS SV Limited 1.6 16V Flex 5p Aut.",
+   "Value": 7839
+  },
+  {
+   "Label": "KICKS UCL 1.6 16V Flex 5p Aut.",
+   "Value": 8637
+  },
+  {
+   "Label": "KICKS XPlay 1.6 16V Flex Aut.",
+   "Value": 9633
+  },
+  {
+   "Label": "VERSA 1.0 12V FlexStart 4p Mec.",
+   "Value": 7166
+  },
+  {
+   "Label": "VERSA Advance 1.6 16V Flex Aut.",
+   "Value": 9231
+  },
+  {
+   "Label": "VERSA Exclusive 1.6 16V Flex Aut.",
+   "Value": 9232
+  },
+  {
+   "Label": "VERSA S 1.0 12V FlexStart 4p Mec.",
+   "Value": 7167
+  },
+  {
+   "Label": "VERSA S 1.6 16V Flex Fuel 4p Mec.",
+   "Value": 5708
+  },
+  {
+   "Label": "VERSA S 1.6 16V FlexStart 4p Mec.",
+   "Value": 7627
+  },
+  {
+   "Label": "VERSA Sense 1.6 16V Flex Aut.",
+   "Value": 9233
+  },
+  {
+   "Label": "VERSA Sense 1.6 16V Flex Mec.",
+   "Value": 9234
+  },
+  {
+   "Label": "VERSA SL 1.6 16V Flex Fuel 4p Mec.",
+   "Value": 5709
+  },
+  {
+   "Label": "VERSA SL 1.6 16V FlexStart 4p Aut.",
+   "Value": 7628
+  },
+  {
+   "Label": "VERSA SL 1.6 16V FlexStart 4p Mec.",
+   "Value": 7629
+  },
+  {
+   "Label": "VERSA SL Direct 1.6 16V Flex  Aut. ",
+   "Value": 9598
+  },
+  {
+   "Label": "VERSA Special Ed. 1.6 16V FlexStart Aut.",
+   "Value": 9060
+  },
+  {
+   "Label": "VERSA SR 1.6 16V Flex Aut.",
+   "Value": 11086
+  },
+  {
+   "Label": "VERSA SV 1.6 16V Flex Fuel 4p Mec.",
+   "Value": 5710
+  },
+  {
+   "Label": "VERSA SV 1.6 16V FlexStart 4p Aut.",
+   "Value": 7630
+  },
+  {
+   "Label": "VERSA SV 1.6 16V FlexStart 4p Mec.",
+   "Value": 7631
+  },
+  {
+   "Label": "VERSA UNIQUE 1.6 16V Flex 4p Mec.",
+   "Value": 7168
+  },
+  {
+   "Label": "VERSA UNIQUE 1.6 16V FlexStart 4p Aut.",
+   "Value": 7632
+  },
+  {
+   "Label": "VERSA V-DRIVE 1.0  12V Flex Mec.",
+   "Value": 9168
+  },
+  {
+   "Label": "VERSA V-DRIVE 1.6 16V Flex Mec.",
+   "Value": 9169
+  },
+  {
+   "Label": "VERSA V-DRIVE Esp.Ed. 1.6 16v Flex Aut.",
+   "Value": 9170
+  },
+  {
+   "Label": "VERSA V-DRIVE PLUS 1.6 16V Flex Aut.",
+   "Value": 9171
+  },
+  {
+   "Label": "VERSA V-DRIVE Premium 1.6 16v Flex Aut.",
+   "Value": 9172
+  }
+ ],
+ "Anos": [
+  {
+   "Label": "32000 Gasolina",
+   "Value": "32000-1"
+  },
+  {
+   "Label": "32000 Flex",
+   "Value": "32000-5"
+  },
+  {
+   "Label": "32000 Diesel",
+   "Value": "32000-3"
+  },
+  {
+   "Label": "2027 Flex",
+   "Value": "2027-5"
+  },
+  {
+   "Label": "2026 Gasolina",
+   "Value": "2026-1"
+  }
+ ]
+}

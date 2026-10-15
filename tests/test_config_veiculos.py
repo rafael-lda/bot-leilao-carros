@@ -174,3 +174,63 @@ def test_excluir_invalido_cita_alvo_e_campo(raiz, valor):
         _carregar(raiz, _bloco(excluir=valor))
     assert "Nissan Versa" in str(erro.value)
     assert "excluir" in str(erro.value)
+
+
+# --- Feature 006: critérios da triagem no YAML (RF-05; roadmap D-107) ---------------------------------
+
+def _com_padrao(padrao: str, alvo_extra: str = "") -> str:
+    return (f"padrao:\n{padrao}" + "veiculos:\n  - marca: Nissan\n    modelo: Versa\n    ano_min: 2018\n"
+            "    ano_max: 2021\n    preco_maximo: 45000\n    tipos_leilao: [financiamento]\n" + alvo_extra)
+
+
+def test_sem_padrao_nem_campos_aceita_tudo(raiz):
+    (versa,) = _carregar(raiz, _bloco()).ativos
+    assert versa.cambio is None
+    assert (versa.aceitar_sinistro, versa.aceitar_sucata, versa.aceitar_mecanica_com_problema,
+            versa.aceitar_pequenas_avarias) == (True, True, True, True)
+    assert versa.triagem is None
+
+
+def test_padrao_vale_para_todos(raiz):
+    texto = _com_padrao("  cambio: [automatico, cvt]\n  aceitar_sinistro: false\n  aceitar_sucata: false\n"
+                        "  aceitar_mecanica_com_problema: false\n  aceitar_pequenas_avarias: true\n")
+    (versa,) = _carregar(raiz, texto).ativos
+    assert versa.cambio == ("automatico", "cvt")
+    assert (versa.aceitar_sinistro, versa.aceitar_sucata, versa.aceitar_mecanica_com_problema,
+            versa.aceitar_pequenas_avarias) == (False, False, False, True)
+
+
+def test_alvo_sobrescreve_o_padrao_campo_a_campo(raiz):
+    texto = _com_padrao("  cambio: [automatico, cvt]\n  aceitar_sinistro: false\n",
+                        "    cambio: [manual]\n    triagem: \"Só SL ou Unique.\"\n")
+    (versa,) = _carregar(raiz, texto).ativos
+    assert versa.cambio == ("manual",)
+    assert versa.aceitar_sinistro is False, "o que o alvo não repete vem do padrão"
+    assert versa.triagem == "Só SL ou Unique."
+
+
+@pytest.mark.parametrize("campo, valor, trecho", [
+    ("cambio", "[automático]", "cambio"),
+    ("cambio", "[]", "cambio"),
+    ("cambio", "automatico", "cambio"),
+    ("aceitar_sinistro", "talvez", "aceitar_sinistro"),
+    ("aceitar_sucata", "1", "aceitar_sucata"),
+    ("triagem", "''", "triagem"),
+])
+def test_campo_de_criterio_invalido_aborta_citando_alvo_e_campo(raiz, campo, valor, trecho):
+    with pytest.raises(ErroConfiguracao) as erro:
+        _carregar(raiz, _bloco(**{campo: valor}))
+    assert trecho in str(erro.value)
+    assert "Nissan Versa" in str(erro.value)
+
+
+def test_padrao_invalido_aborta_citando_o_bloco(raiz):
+    with pytest.raises(ErroConfiguracao) as erro:
+        _carregar(raiz, _com_padrao("  cambio: [automatico, sequencial]\n"))
+    assert "padrao" in str(erro.value) and "sequencial" in str(erro.value)
+
+
+def test_padrao_com_campo_desconhecido_aborta(raiz):
+    with pytest.raises(ErroConfiguracao) as erro:
+        _carregar(raiz, _com_padrao("  aceitar_tudo: true\n"))
+    assert "aceitar_tudo" in str(erro.value)
