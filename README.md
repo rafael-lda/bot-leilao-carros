@@ -27,6 +27,16 @@ Cada varredura real também grava um relatório em Markdown em `1OUTPUT/` (por e
 
 Na mesma pasta, `1OUTPUT/lotes-a-monitorar.md` acumula, numerados, os lotes avisados (e os da semeadura), com campos de custo para preencher (lance atual, frete, manutenções, valor estimado na garagem); as regras e o significado de cada campo ficam em `1OUTPUT/comentarios-lotes-a-monitorar.md`, para acompanhar os que ainda estão em disputa. O bot só acrescenta lotes no fim desse arquivo; quem tira (martelo batido, lote retirado, lance acima do teto) é você, à mão, ou um agente a seu pedido. As regras estão no topo do próprio arquivo.
 
+## Triagem e custo na garagem (skill `analisar-lotes`)
+
+O bot só filtra o que o site informa em campo. O pente fino fica com a skill `analisar-lotes` (Claude Code em `.claude/skills/`, Antigravity e Codex em `.agents/skills/`): no chat do agente, `/analisar-lotes` (ou "analisa os lotes", "quanto fica o lote 5 na garagem").
+
+- **Triagem:** cada lote da lista vira *aprovado*, *a confirmar* (com o que falta) ou *reprovado* (com motivo e evidência). O reprovado vai para `1OUTPUT/lotes-descartados.md` e volta com "devolve o lote N". Na dúvida, nunca reprova.
+- **Critérios:** `config/veiculos-alvo.yaml`: bloco `padrao` (câmbio aceito, sinistro, sucata, mecânica, pequenas avarias) e texto `triagem` de cada alvo, em português. O bot também usa o câmbio quando o leiloeiro informa.
+- **Pregões que já passaram** não são descartados: ganham o resultado (o Kuss só diz se houve lance presencial ou online, sem o valor).
+- **Custo na garagem:** FIPE (parallelum, com o site oficial de reserva), frete pela distância do pátio até Londrina (calculada uma vez por cidade), despesas, transferência e reserva de reparos de `config/custos.yaml`; o bloco ganha o valor na garagem, o % da FIPE e o lance máximo para a margem.
+- A skill escreve só pela linha de comando do bot (`python -m bot_leilao analise …`), que não roda junto com uma varredura e nunca mexe nos números nem no comentário dos lotes.
+
 ## Instalação
 
 Requer Python 3.12 ou mais novo.
@@ -48,6 +58,7 @@ Copie `.env.example` para `.env` e preencha o token do bot e o seu chat id. O pa
 | `python -m bot_leilao varrer` | Executa uma varredura completa |
 | `python -m bot_leilao varrer --dry-run` | Coleta de verdade, mas só mostra no console o que enviaria; não grava lotes |
 | `python -m bot_leilao varrer --sem-pagos` | Varredura sem os leiloeiros pagos (hoje, o Milan): custo zero no Apify |
+| `python -m bot_leilao analise …` | Base da skill `analisar-lotes`: `lotes`, `pagina`, `triar`, `devolver`, `anotar`, `fipe-candidatos`, `fipe-valor`, `custo`, `anotar-custo` (saída JSON) |
 | `python -m bot_leilao testar-telegram` | Envia uma mensagem de teste para conferir o `.env` |
 
 Todos aceitam `--raiz <pasta>` (a pasta com `config/`, `dados/` e `.env`; padrão: a atual).
@@ -71,6 +82,7 @@ Na primeira execução, os dois arquivos de `config/` são criados como exemplo,
 ```
 src/bot_leilao/
   config/        veículos-alvo, leiloeiros, .env, coerência entre alvos e buscas
+  analise/       lista de monitoramento, FIPE, distâncias, custo na garagem e leitura do lote (skill analisar-lotes)
   coleta/        cliente HTTP, cliente Apify e roteamento por nível, coletor, adaptador por leiloeiro (vip.py, claudio_kuss.py, copart.py, freitas.py, milan.py), detalhe dos lotes novos, certificados/
   parsing/       normalização, sinônimos de marca, parser por leiloeiro (vip.py, claudio_kuss.py, copart.py, freitas.py, milan.py)
   filtro/        critérios, deduplicação e semeadura

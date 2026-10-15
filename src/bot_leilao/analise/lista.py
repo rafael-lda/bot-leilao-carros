@@ -28,6 +28,7 @@ _TITULO = re.compile(r"^### (\d+)\. (.*?)(?: — (\S+))?\s*$", re.M)
 _ID = re.compile(r"<!-- lote: (.+?) -->")
 _CAMPO = re.compile(r"^- \*\*(.+?):\*\* ?(.*)$", re.M)
 _REAIS = re.compile(r"R\$ ([\d.]+)")
+_DATADO = re.compile(r"^(Triagem|Descartado)(?: em| \()\s*([\d/]+)\)?$")
 
 
 class ErroLista(Exception):
@@ -49,9 +50,15 @@ def _bloco(texto: str) -> Bloco | None:
     if titulo is None:
         return None
     identificador = _ID.search(texto)
+    campos = {}
+    for m in _CAMPO.finditer(texto):
+        nome, valor = m.group(1), m.group(2).strip()
+        datado = _DATADO.match(nome)   # "Triagem (15/10/2026)" e "Descartado em 15/10/2026": a data vai para o valor
+        if datado:
+            nome, valor = datado.group(1), f"{valor} ({datado.group(2)})"
+        campos[nome] = valor
     return Bloco(numero=int(titulo.group(1)), id=identificador.group(1) if identificador else "",
-                 titulo=titulo.group(2).strip(), ano=titulo.group(3), texto=texto,
-                 campos={m.group(1): m.group(2).strip() for m in _CAMPO.finditer(texto)})
+                 titulo=titulo.group(2).strip(), ano=titulo.group(3), texto=texto, campos=campos)
 
 
 def _partes(caminho: Path) -> tuple[str, list[str]]:

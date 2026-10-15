@@ -12,6 +12,8 @@
 
 ### ★ Custo na garagem em Londrina — skill `analisar-lotes` (une os itens 2, 3 e 8)
 
+> **Feito na feature 006 (2026-10-15):** skill `analisar-lotes` com triagem (critérios no `veiculos-alvo.yaml`), descartados, FIPE com reserva, distância automática, custo na garagem e lance máximo (`config/custos.yaml`). Falta: orçamento real de guincho para trocar a estimativa de R$ 4,50/km; custo automático no Telegram (evolução prevista abaixo, passo 8).
+
 - **Pedido do Rafael (2026-10-10):** para cada lote, estimar o valor final com o carro na garagem em Londrina, e o % da FIPE desse valor.
 - **Fórmula:** lance + 5% de comissão + despesa fixa do lote + frete (pátio → Londrina) + transferência; ao lado, % da FIPE (item 2).
 - **Dados:** despesa fixa no JSON do lote no Kuss (`tblDespAdm`) e no PDF do edital do evento no Vip; local do pátio no card do Vip ("Local: UF") e no endereço da página do lote; o Kuss fica em Curitiba.
@@ -45,6 +47,8 @@
 
 
 ### 1. Filtro de câmbio por veículo-alvo — prioridade do Rafael
+
+> **Parte feita na feature 006 (2026-10-15):** `cambio` no `veiculos-alvo.yaml` (bloco `padrao`); o bot descarta quando o leiloeiro informa o câmbio (hoje, o Milan), só com certeza; a skill `analisar-lotes` deduz pelo título ("CVT", "DYN 20A" / "20M") e pela página (Vip) e deixa "a confirmar" o resto (a Copart não informa câmbio).
 
 - **Pedido (2026-10-09):** cada veículo-alvo escolhe o câmbio aceito: `automatico`, `manual` ou `ambos`. Hoje o Rafael só quer automático.
 - **Por que não é ajuste:** a listagem do Vip não informa câmbio, e o filtro de câmbio do formulário é ignorado pelo servidor (testado em 2026-10-06, `interfaces/vip-pesquisa.md`). A informação confiável está na **página do lote** (campo "Câmbio: Automático", visto no Versa 315452).
@@ -83,6 +87,8 @@
 - Um lote que não vende volta com outro número de anúncio (visto em 2026-10-09: Sentra 2.0S 2012/2013, 228.227 km, 310800 → 319723), e o bot o avisa de novo. Hoje a identificação é manual na revisão da lista (emenda E003). Futuro: o bot marcar no aviso "possível reaparição de ..." comparando modelo, ano, km e final de placa.
 
 ### 7. Registro do martelo final — base para calibrar o teto com dado próprio
+
+> **Verificado na feature 006 (2026-10-15):** o Claudio Kuss **não divulga o valor final** depois do pregão (evento 897: só "PRESENCIAL", apelido do lance online ou vazio). A skill anota "Resultado do pregão" com o que o site mostra; para o valor, falta checar Vip, Copart, Freitas e Milan em lotes com pregão passado.
 
 - **Pedido (2026-10-09):** anotar por quanto cada lote acompanhado foi efetivamente arrematado, para montar a distribuição real de % da FIPE. Vale para **todos os leiloeiros ativos**, não só o Vip: a lista-alvo do brainstorm é Freitas, Vip Leilões, Claudio Kuss, Copart e Milan (`_reversa_sdd/prd.md#47`).
 - **Por que importa:** hoje o teto de 70% é uma estimativa. Com dois ou três meses de martelo registrado, o Rafael responde com dado se 60% da FIPE existe ou é fantasia, e calibra o teto por leiloeiro — cada um tem público, avaria e disputa diferentes.

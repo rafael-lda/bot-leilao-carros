@@ -189,3 +189,31 @@
 | 3 | Sem token a configuração aborta antes da rede | `test_e2e_milan.py::test_cenario_3_sem_token_aborta_antes_da_rede` |
 | 4 | Cota esgotada vira alerta claro | `test_e2e_milan.py::test_cenario_4_cota_esgotada_vira_alerta_e_o_vip_segue` |
 | 5 | Varredura sem pagos não usa o Apify | `test_e2e_ritmo.py::test_cenario_5_sem_pagos_nao_chama_o_apify_nem_exige_token` |
+
+## Feature 006: skill `analisar-lotes` (triagem e custo na garagem)
+
+> Fonte: `_reversa_forward/006-analisar-lotes/requirements.md`. Fixtures reais de 2026-10-15 em `tests/fixtures/analise/` (lista, FIPE das duas fontes, Nominatim, OSRM, anúncio do Vip); FIPE e mapas simulados por `apoio.SiteFipe` e `apoio.SiteMapas`. O comportamento do agente é avaliado pelo `skill-creator` (`.claude/skills/analisar-lotes/evals/evals.json`; 2 rodadas, 19/19 e 20/20).
+
+| Req. | O que exige | Testes |
+|------|-------------|--------|
+| RF-01 | Skill versionada nas duas pastas | `test_skill_analisar_lotes.py::test_as_duas_copias_sao_identicas`, `test_skill_analisar_lotes.py::test_cabecalho_com_nome_e_descricao`, `test_skill_analisar_lotes.py::test_a_skill_nao_e_ignorada_pelo_git`, `test_skill_analisar_lotes.py::test_nenhum_segredo_na_skill` |
+| RF-02 | Triagem pelos critérios do alvo | Avaliações do `skill-creator` (casos triagem-completa); `test_cli_analise.py::test_lotes_com_o_alvo_e_os_criterios` |
+| RF-03 | Linha de triagem no bloco | `test_analise_lista.py::test_aprovado_ganha_a_linha_antes_do_link_e_o_resto_fica_igual`, `test_analise_lista.py::test_nova_triagem_substitui_a_anterior`, `test_analise_lista.py::test_a_confirmar_diz_o_que_falta`, `test_analise_lista.py::test_campo_de_triagem_sai_sem_a_data_no_nome` |
+| RF-04 | Reprovado vai para os descartados | `test_analise_lista.py::test_reprovado_vai_para_os_descartados_com_motivo_e_evidencia`, `test_analise_lista.py::test_devolver_traz_o_bloco_de_volta_para_o_fim`, `test_cli_analise.py::test_triar_reprovado_move_para_os_descartados` |
+| RF-05 | Critérios no YAML | `test_config_veiculos.py::test_padrao_vale_para_todos`, `test_config_veiculos.py::test_alvo_sobrescreve_o_padrao_campo_a_campo`, `test_config_veiculos.py::test_campo_de_criterio_invalido_aborta_citando_alvo_e_campo`, `test_config_veiculos.py::test_sem_padrao_nem_campos_aceita_tudo` |
+| RF-06 | Câmbio no motor, só com certeza | `test_motor_criterios.py::test_cambio_do_lote_contra_o_alvo`, `test_motor_criterios.py::test_descartado_por_cambio_conta_como_sem_casar` |
+| RF-07 | Leitura do lote pelo acesso do bot | `test_analise_pagina.py::test_vip_pela_pagina_do_anuncio_com_o_cambio`, `test_analise_pagina.py::test_kuss_pelo_detalhe_com_evento_e_sequencia_tirados_do_link`, `test_analise_pagina.py::test_copart_pela_busca_com_o_numero_do_lote`, `test_analise_pagina.py::test_freitas_pelo_detalhe`, `test_analise_pagina.py::test_milan_pelo_apify_e_marcado_como_pago` |
+| RF-08 | Custo na garagem | `test_analise_custos.py::test_exemplo_do_requirements`, `test_analise_custos.py::test_reparos_extras_com_motivo`, `test_analise_distancias.py::test_calcula_pela_rota_e_guarda_no_cache`, `test_cli_analise.py::test_anotar_custo_preenche_os_campos_do_bloco` |
+| RF-09 | FIPE com reserva e candidatas | `test_analise_fipe.py::test_candidatas_por_marca_termos_e_ano`, `test_analise_fipe.py::test_parallelum_fora_ou_no_limite_usa_o_site_oficial`, `test_cli_analise.py::test_anotar_custo_com_versao_ambigua_lista_as_candidatas` |
+| RF-10 | Lance máximo | `test_analise_custos.py::test_percentual_da_fipe_e_lance_maximo` |
+| RF-11 | Não roda com a varredura em andamento | `test_cli_analise.py::test_com_a_varredura_em_andamento_nada_e_escrito` |
+| RF-12 | Anotar câmbio e resultado do pregão | `test_analise_lista.py::test_anotar_campo_existente_substitui_o_valor`, `test_analise_lista.py::test_anotar_campo_novo_entra_antes_do_link`, `test_cli_analise.py::test_anotar_campo_pela_linha_de_comando` |
+| RF-13 | Resultado do pregão do Kuss sem apelido | `test_analise_pagina.py::test_kuss_traz_o_resultado_do_pregao_sem_o_apelido` |
+
+| # | Cenário (requirements §7) | Teste |
+|---|---------------------------|-------|
+| 1 | Fluence manual reprovado pelo câmbio | Avaliação `triagem-completa` (lotes 2 e 14) |
+| 2 | Fluence sinistrado reprovado | Avaliação `triagem-completa` (lotes 3 e 13) |
+| 3 | Falta de informação não reprova | Avaliação `triagem-completa` (lotes da Copart a confirmar) |
+| 4 | Versão ambígua na FIPE não é escolhida | Avaliação `fipe-ambigua-lote-10`; `test_cli_analise.py::test_anotar_custo_com_versao_ambigua_lista_as_candidatas` |
+| 5 | Varredura em andamento | Avaliação `varredura-em-andamento`; `test_cli_analise.py::test_com_a_varredura_em_andamento_nada_e_escrito` |

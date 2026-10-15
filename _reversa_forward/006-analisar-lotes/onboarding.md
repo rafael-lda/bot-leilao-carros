@@ -22,6 +22,12 @@ O que esperar:
 
 Não rode durante uma varredura: a skill recusa e explica.
 
+O que também aparece (primeira execução real, 2026-10-15, 14 lotes, cerca de 5 a 7 minutos):
+- **Pregão que já passou** não descarta o lote: o bloco ganha "Resultado do pregão". O Kuss só diz se o último lance foi presencial ou online, sem o valor.
+- **Câmbio deduzido** do título é gravado no campo Câmbio, com a origem (ex.: "manual (título 'DYN 20M')").
+- **Reaparições** (mesmo carro em outro evento, pelo final de placa) aparecem no resumo.
+- **Referência de lance máximo** para os "a confirmar", pela versão automática mais barata, só no resumo: mostra quais pátios ficam inviáveis pelo frete.
+
 ## 4. Custo na garagem
 
 Para os aprovados, a skill consulta a FIPE e preenche FIPE, Frete, Valor estimado na garagem e Lance máximo. Se a versão do título couber em mais de uma versão da FIPE, ela lista as opções com valor em vez de escolher.

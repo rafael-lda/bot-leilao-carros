@@ -71,16 +71,16 @@ Política de escrita: `allowLegacyEdits: true`, `allowedPaths` vazio (liberaçã
 | T026 | Migrar o `config/veiculos-alvo.yaml` do Rafael: `padrao` e texto `triagem` por alvo a partir dos comentários atuais, mostrando o diff (D-109) | T013 | `[//]` | `config/veiculos-alvo.yaml` | 🟡 | `[X]` |
 | T027 | `config/custos.yaml` versionado com os valores do clarify (D-116) | T016 | `[//]` | `config/custos.yaml` | 🟢 | `[X]` |
 | T028 | Atualizar o `1OUTPUT/comentarios-lotes-a-monitorar.md` existente com as regras novas (D-113) | T020 | `[//]` | `1OUTPUT/comentarios-lotes-a-monitorar.md` | 🟢 | `[X]` |
-| T029 | Execução real de `/analisar-lotes` sobre a lista atual: a skill mostra o resumo ao Rafael e só move os reprovados com o OK dele; registrar o resultado nas Notas (páginas lidas, custo do Apify, FIPE e custos dos aprovados) | T025, T026, T027, T028 | - | (execução) | 🟡 | `[ ]` |
+| T029 | Execução real de `/analisar-lotes` sobre a lista atual: a skill mostra o resumo ao Rafael e só move os reprovados com o OK dele; registrar o resultado nas Notas (páginas lidas, custo do Apify, FIPE e custos dos aprovados) | T025, T026, T027, T028 | - | (execução) | 🟡 | `[X]` |
 
 ## Fase 5, Polimento
 
 | ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
 |----|-----------|--------------|-------------|--------------|-------------|--------|
-| T030 | README: a skill (`/analisar-lotes`), critérios no YAML (`padrao`, `triagem`), `custos.yaml`, arquivo de descartados, subcomandos `analise` | T025, T027 | `[//]` | `README.md` | 🟢 | `[ ]` |
-| T031 | Seção "Feature 006" em `tests/RASTREABILIDADE.md`, conferida mecanicamente | T025 | `[//]` | `tests/RASTREABILIDADE.md` | 🟢 | `[ ]` |
-| T032 | Ajustar `onboarding.md` com o que a execução real mostrou | T029 | `[//]` | `_reversa_forward/006-…/onboarding.md` | 🟢 | `[ ]` |
-| T033 | Backlog: item ★ marcado como feito (skill), item 1 (filtro de câmbio) atualizado com o que o bot já faz e o que a skill cobre | T029 | `[//]` | `_reversa_forward/backlog.md` | 🟢 | `[ ]` |
+| T030 | README: a skill (`/analisar-lotes`), critérios no YAML (`padrao`, `triagem`), `custos.yaml`, arquivo de descartados, subcomandos `analise` | T025, T027 | `[//]` | `README.md` | 🟢 | `[X]` |
+| T031 | Seção "Feature 006" em `tests/RASTREABILIDADE.md`, conferida mecanicamente | T025 | `[//]` | `tests/RASTREABILIDADE.md` | 🟢 | `[X]` |
+| T032 | Ajustar `onboarding.md` com o que a execução real mostrou | T029 | `[//]` | `_reversa_forward/006-…/onboarding.md` | 🟢 | `[X]` |
+| T033 | Backlog: item ★ marcado como feito (skill), item 1 (filtro de câmbio) atualizado com o que o bot já faz e o que a skill cobre | T029 | `[//]` | `_reversa_forward/backlog.md` | 🟢 | `[X]` |
 
 ## Ajustes depois da primeira rodada de avaliações (2026-10-15)
 
@@ -107,10 +107,14 @@ Política de escrita: `allowLegacyEdits: true`, `allowedPaths` vazio (liberaçã
 - **T037 (2026-10-15), segunda rodada:** 20/20 verificações (triagem completa 14/14; custo do lote 1 6/6). A verificação "lote 1 aprovado" do caso 1 estava errada: no teste o alvo Kicks tinha km máximo e o Kuss não informa km, então "a confirmar — km" é o certo pela regra da skill; a verificação foi corrigida. A triagem completa passou de 2,4 para 7,1 minutos (lê páginas dos pregões passados e calcula referências).
 - **T026 (2026-10-15):** migração do `veiculos-alvo.yaml` aprovada pelo Rafael e gravada (bloco `padrao` e textos `triagem` tirados dos comentários).
 - **T028 (2026-10-15):** o `comentarios-lotes-a-monitorar.md` real era igual ao texto antigo do bot (sem edição do Rafael) e foi trocado pelo texto novo.
+- **T029 (2026-10-15), execução real na lista do Rafael:** resumo mostrado e gravação autorizada por ele. 1 aprovado (lote 1, Kicks S Direct CVT: FIPE R$ 76.451, R$ 51.883 na garagem, 68% da FIPE, lance máximo R$ 49.850); 5 reprovados para `lotes-descartados.md` (2 e 14 câmbio manual e mecânica; 3 e 13 sinistro; 11 Duster 2.0); 8 a confirmar (Copart). Reaparições: 13 = 3 e 14 = 2. Resultado do pregão de 13/10 nos lotes 1, 2 e 3 (último lance presencial, valor não divulgado). 23 comandos, nenhuma falha, nenhuma página paga. Cópia da lista antes da triagem guardada no rascunho da sessão.
+- **Ajuste durante o T029:** `analise lotes` devolvia o campo como "Triagem (15/10/2026)" (data no nome), o que atrapalharia achar os lotes já triados; agora vem `Triagem: aprovado (15/10/2026)` (e `Descartado`), com teste.
+- **Etapa 3 concluída (2026-10-15):** T023–T037; 819 testes passando; rastreabilidade conferida (36 referências); `legacy-impact.md` e `regression-watch.md` (W038–W044) gerados.
 
 ## Histórico de alterações
 
 | Data | Alteração | Autor |
 |------|-----------|-------|
+| 2026-10-15 | Codificação concluída em três etapas (T001–T037) | `/reversa-coding` |
 | 2026-10-15 | Ajustes do `/reversa-audit` (A001 a A005): critérios da RN-03 e D-111 no T023, casos novos no T024, reparos extras (T007), link do lote (T010, T011) | Claude |
 | 2026-10-15 | Versão inicial gerada por `/reversa-to-do` | reversa |

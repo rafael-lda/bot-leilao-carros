@@ -147,3 +147,11 @@ def test_so_campos_conhecidos(lista):
         anotar_campo(lista, 1, "Link", "outro")
     with pytest.raises(ErroLista, match="valor"):
         anotar_campo(lista, 1, "Câmbio", "  ")
+
+
+def test_campo_de_triagem_sai_sem_a_data_no_nome(lista):
+    triar(lista, 1, "aprovado", hoje=HOJE)
+    assert _blocos_por_numero(lista)[1].campos["Triagem"] == "aprovado (15/10/2026)"
+    triar(lista, 2, "reprovado", motivo="câmbio manual", evidencia="título 'DYN 20M'", hoje=HOJE)
+    (descartado,) = ler_lista(lista.parent / "lotes-descartados.md")
+    assert descartado.campos["Descartado"] == "câmbio manual — título 'DYN 20M' (15/10/2026)"
