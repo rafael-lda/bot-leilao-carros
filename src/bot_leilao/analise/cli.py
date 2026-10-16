@@ -16,8 +16,8 @@ from pathlib import Path
 from bot_leilao.analise.custos import ErroCustos, calcular, carregar_custos
 from bot_leilao.analise.distancias import Distancias
 from bot_leilao.analise.fipe import ErroFipe, Fipe
-from bot_leilao.analise.lista import (CAMPOS_ANOTAVEIS, ErroLista, anotar_campo, anotar_custo, devolver, ler_lista,
-                                     numero_por_link, triar)
+from bot_leilao.analise.lista import (CAMPOS_ANOTAVEIS, VEREDITOS, ErroLista, anotar_campo, anotar_custo, devolver,
+                                     ler_lista, numero_por_link, triar)
 from bot_leilao.analise.pagina import ErroPagina, ler_pagina
 from bot_leilao.config.arquivos import ErroConfiguracao
 from bot_leilao.db.trava import Trava
@@ -44,9 +44,10 @@ def registrar(sub) -> None:
     grupo.add_argument("--numero", type=int)
     grupo.add_argument("--link")
     novo("pagina", "lê o lote pelo acesso do bot").add_argument("lote", help="número do bloco ou link do lote")
-    t = novo("triar", "escreve o veredito da triagem (o reprovado vai para lotes-descartados.md)")
+    t = novo("triar", "escreve o veredito da triagem (o reprovado vai para lotes-descartados.md; o encerrado fica, "
+                      "com o resultado do pregão em --motivo)")
     t.add_argument("lote", help="número do bloco ou link do lote")
-    t.add_argument("--veredito", required=True, choices=("aprovado", "a-confirmar", "reprovado"))
+    t.add_argument("--veredito", required=True, choices=VEREDITOS)
     t.add_argument("--motivo")
     t.add_argument("--evidencia")
     t.add_argument("--falta")
@@ -193,7 +194,8 @@ def _executar(args, raiz: Path, deps, lista: Path) -> dict:
         _com_trava(raiz, deps, lambda: devolver(lista, args.numero))
         return {"numero": args.numero, "destino": lista.name}
     if comando in ("fipe-candidatos", "fipe-valor"):
-        fipe = Fipe(raiz / "dados" / "fipe-cache.json", deps.transporte_analise)
+        fipe = Fipe(raiz / "dados" / "fipe-cache.json", deps.transporte_analise, relogio=deps.relogio,
+                    dormir=deps.dormir, hoje=lambda: hoje)
         if comando == "fipe-valor":
             return fipe.valor(args.codigo, args.ano)
         return fipe.candidatas(args.marca, args.modelo, args.ano)

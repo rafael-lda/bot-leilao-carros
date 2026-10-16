@@ -170,3 +170,12 @@ def test_reconferencia_grava_lance_atual_e_pregao_e_retria(lista):
     assert bloco.campos["Triagem"] == "a confirmar — câmbio (16/10/2026)"
     assert bloco.texto.count("**Triagem (") == 1
     assert bloco.texto.count("**Lance atual:**") == 1
+
+
+def test_encerrado_fica_na_lista_com_o_resultado(lista):
+    """Emenda de 2026-10-16 (D-124): pregão acabado não é "aprovado"; o lote fica como registro."""
+    assert triar(lista, 1, "encerrado", hoje=date(2026, 10, 16), motivo="vendido em 13/10; valor não divulgado") == \
+        "lotes-a-monitorar.md"
+    assert _blocos_por_numero(lista)[1].campos["Triagem"] == "encerrado — vendido em 13/10; valor não divulgado (16/10/2026)"
+    with pytest.raises(ErroLista, match="encerrado exige"):
+        triar(lista, 2, "encerrado", hoje=date(2026, 10, 16))

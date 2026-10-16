@@ -25,7 +25,11 @@ Base `https://veiculos.fipe.org.br/api/veiculos`, `POST` com formulário (`appli
 |-----|-----------|--------------------|
 | Mês de referência | `POST /ConsultarTabelaDeReferencia` | `[{"Codigo": 338, "Mes": "outubro/2026 "}, …]` |
 | Valor por código | `POST /ConsultarValorComTodosParametros` com `codigoTabelaReferencia=338&codigoTipoVeiculo=1&anoModelo=2019&codigoTipoCombustivel=5&tipoVehiculo=carro&modeloCodigoExterno=023140-1&tipoConsulta=codigo` | `{"Valor": "R$ 62.464,00", "Modelo": "VERSA SL 1.6 16V FlexStart 4p Aut.", "CodigoFipe": "023140-1", "MesReferencia": "outubro de 2026 "}` |
+| Versões de um ano (D-123) | `POST /ConsultarModelosAtravesDoAno` com `codigoTabelaReferencia=338&codigoTipoVeiculo=1&codigoMarca=43&codigoModelo=&ano=2019-5&codigoTipoCombustivel=5&anoModelo=2019` | `[{"Label": "VERSA SL 1.6 16V FlexStart 4p Aut.", "Value": "7628"}, …]` (só as versões que existem naquele ano e combustível) |
+| Valor por versão (D-123) | `POST /ConsultarValorComTodosParametros` com `codigoMarca`, `codigoModelo`, `anoModelo`, `codigoTipoCombustivel`, `tipoVehiculo=carro&tipoConsulta=tradicional` | mesmo formato do valor por código |
 | Erro | — | `{"codigo": "0", "erro": "nadaencontrado"}` |
+
+**Limites (verificado em 2026-10-16):** a parallelum conta cada pedido HTTP (500 em 24 h corridas; no limite responde 429 com `retry-after` de horas e sugere um token da fipe.api.br). O site oficial responde 429 a rajadas: os pedidos são espaçados de 1 s e repetidos em 5 s e 15 s. Custo de uma busca de versões: marcas (1, guardadas no mês) + 4 combustíveis + 1 por versão que casa.
 
 Combustível: 1 gasolina, 2 álcool, 3 diesel, 5 flex (o ano da parallelum traz o mesmo código: `2019-5`).
 

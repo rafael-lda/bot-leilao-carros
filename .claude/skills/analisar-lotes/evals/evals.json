@@ -36,6 +36,24 @@
    "files": [
     "sandbox: eval4-fipe-ambigua-lote-10"
    ]
+  },
+  {
+   "id": 5,
+   "name": "reconferencia",
+   "prompt": "/analisar-lotes — roda de novo na lista. Pode aplicar direto.",
+   "expected_output": "Os 'a confirmar' são relidos: Copart 4–10 e 12 continuam aguardando classificação (sem novidade, sem regravar à toa); Freitas 15 ganha 'Resultado do pregão' com 'vendido; maior lance R$ 43.500' e nova triagem datada; Vip 16 ganha câmbio automático e 'Resultado do pregão' com 'condicional negada; último lance R$ 13.000' (fica na lista ou vai aos descartados pela regra, com o resultado junto); lote 1 intacto; resumo agrupa resultados por leiloeiro e diz quem divulga valor; nenhum apelido gravado.",
+   "files": [
+    "sandbox: eval5-reconferencia (lista real de 2026-10-16 + Freitas 8103/3 e Vip 310800 a confirmar, pregões passados)"
+   ]
+  },
+  {
+   "id": 6,
+   "name": "pregoes-por-leiloeiro",
+   "prompt": "como foram os pregões dos lotes da lista que já passaram? me fala por leiloeiro e qual deles mostra o valor final",
+   "expected_output": "Lê as páginas dos lotes com pregão passado sem resultado (15 e 16) e responde por leiloeiro: Freitas vendido por R$ 43.500, Vip condicional negada com último lance R$ 13.000, Kuss (lote 1) só último lance presencial, sem valor; diz que Vip e Freitas mostram o valor e Kuss, Milan e Copart não; não grava nada sem o OK (pergunta antes).",
+   "files": [
+    "sandbox: eval6-pregoes-por-leiloeiro (mesma lista do eval 5)"
+   ]
   }
  ]
 }

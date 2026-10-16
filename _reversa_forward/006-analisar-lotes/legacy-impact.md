@@ -1,7 +1,7 @@
 # Legacy Impact: Skill `analisar-lotes` (triagem e custo na garagem)
 
 > Identificador: `006-analisar-lotes`
-> Atualizado em: `2026-10-15` (concluída: T001–T037, três etapas; emenda T038–T042)
+> Atualizado em: `2026-10-15` (concluída: T001–T037, três etapas; emendas T038–T045)
 > Âncora greenfield: `prd.md` + specs SDD em `_reversa_sdd/sdd/`, mais os adendos vigentes das features 001 a 005. O "legado" desta feature é o código entregue por elas.
 > Política de edição no momento da execução: `allowLegacyEdits: true`, `allowedPaths: []` (projeto inteiro liberado pelo Rafael). Escritas restritas, por conduta, aos caminhos do `actions.md`; na lista real (`1OUTPUT/`), só pela linha de comando e com o OK do Rafael.
 
@@ -30,7 +30,7 @@
 
 **Motor.** Ganha um critério (câmbio), aplicado só quando o lote informa e só com certeza; "automático" contra um alvo só CVT não descarta, porque o Milan escreve AUTOMATICO também para CVT.
 
-**Análise.** Componente novo, fora da varredura: FIPE com reserva e cache por mês, distância calculada uma vez por cidade, custo e lance máximo determinísticos, leitura do lote pelo mesmo acesso do bot. O resultado do pregão vem por leiloeiro: Vip e Freitas dão o valor; Kuss, Milan e Copart não (o Kuss diz só o tipo do último lance, o Milan o estado, e a Copart tira o lote da busca). Apelido nunca sai. Os "a confirmar" são reconferidos a cada execução, com Lance atual e Pregão gravados.
+**Análise.** Componente novo, fora da varredura: FIPE com reserva e cache por mês, distância calculada uma vez por cidade, custo e lance máximo determinísticos, leitura do lote pelo mesmo acesso do bot. O resultado do pregão vem por leiloeiro: Vip e Freitas dão o valor; Kuss, Milan e Copart não (o Kuss diz só o tipo do último lance, o Milan o estado, e a Copart tira o lote da busca). Apelido nunca sai. Os "a confirmar" são reconferidos a cada execução, com Lance atual e Pregão gravados. Pregão acabado vira `encerrado`. A FIPE busca versões pelo site oficial por ano (poucos pedidos) e guarda a parallelum para o valor por código.
 
 ## Preservadas
 

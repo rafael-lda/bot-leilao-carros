@@ -9,3 +9,4 @@ Capturadas em 2026-10-15.
 - `freitas_8103_3_apos_pregao.html`: detalhe do Freitas 8103/3 depois do pregão de 14/10 (status VENDIDO; o valor não vem no HTML).
 - `freitas_8103_3_maior_lance.html`: resposta de `RetornarMaiorLanceLote` do mesmo lote (R$ 43.500), com o apelido trocado por `Xx...xx`.
 - `milan_lote_001_apos_pregao.html`, `milan_lote_046_apos_pregao.html`: páginas do Milan depois do pregão (estado VENDIDO e CONDICIONAL; lance "R$ ---").
+- `fipe/oficial_modelos_43_2019-5.json`: resposta real de `ConsultarModelosAtravesDoAno` (Nissan, 2019, flex; 21 versões), capturada em 2026-10-16.

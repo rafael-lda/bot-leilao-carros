@@ -796,14 +796,18 @@ class SiteFipe:
     """parallelum v2 e site oficial da FIPE simulados com as respostas reais (Nissan 43; Versa SL 7628 Aut., 7629 Mec.).
 
     `parallelum` / `oficial`: "ok", "fora" (503) ou "limite" (429, só a parallelum). `referencia`: mês de referência
-    devolvido pelas duas (padrão: o das fixtures, outubro/2026, código 338).
+    devolvido pelas duas (padrão: o das fixtures, outubro/2026, código 338). `oficial_bloqueios`: quantos pedidos ao
+    site oficial levam 429 antes de ele voltar a responder (emenda D-123). `ConsultarModelosAtravesDoAno` responde com
+    a lista real da Nissan 2019 flex; outros anos e combustíveis, lista vazia.
     """
 
     CODIGOS = {"023140-1": "7628", "023138-0": "7629"}
 
-    def __init__(self, parallelum: str = "ok", oficial: str = "ok", referencia: tuple[str, str] | None = None) -> None:
+    def __init__(self, parallelum: str = "ok", oficial: str = "ok", referencia: tuple[str, str] | None = None,
+                 oficial_bloqueios: int = 0) -> None:
         self.parallelum = parallelum
         self.oficial = oficial
+        self.oficial_bloqueios = oficial_bloqueios
         self.referencia = referencia or ("338", "outubro/2026")
         self.chamadas: list[_httpx.Request] = []
 
@@ -854,7 +858,10 @@ class SiteFipe:
     def _oficial(self, request) -> _httpx.Response:
         if self.oficial == "fora":
             return _httpx.Response(503, text="Service Unavailable")
-        dados = dict(_parse_qs(request.content.decode("utf-8")))
+        if self.oficial_bloqueios > 0:
+            self.oficial_bloqueios -= 1
+            return _httpx.Response(429, text="Too Many Requests")
+        dados = dict(_parse_qs(request.content.decode("utf-8"), keep_blank_values=True))
         campo = lambda nome: (dados.get(nome) or [""])[0]
         nada = _httpx.Response(200, json={"codigo": "0", "erro": "nadaencontrado"})
         acao = request.url.path.rsplit("/", 1)[-1]
@@ -865,6 +872,10 @@ class SiteFipe:
         if acao == "ConsultarModelos":
             return _httpx.Response(200, json=_fipe_json("oficial_modelos_43.json")) if campo("codigoMarca") == "43" \
                 else _httpx.Response(200, json={"Modelos": [], "Anos": []})
+        if acao == "ConsultarModelosAtravesDoAno":
+            if (campo("codigoMarca"), campo("ano")) == ("43", "2019-5"):
+                return _httpx.Response(200, json=_fipe_json("oficial_modelos_43_2019-5.json"))
+            return _httpx.Response(200, json=[])
         if acao == "ConsultarAnoModelo":
             anos = self._anos(campo("codigoModelo"))
             return _httpx.Response(200, json=[{"Label": a["name"], "Value": a["code"]} for a in anos])
@@ -881,6 +892,9 @@ class SiteFipe:
 
     def hosts_chamados(self) -> list[str]:
         return [c.url.host for c in self.chamadas]
+
+    def pedidos(self, host: str) -> int:
+        return sum(1 for c in self.chamadas if c.url.host == host)
 
 
 class SiteMapas:

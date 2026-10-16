@@ -16,6 +16,9 @@ Em nenhum caso grave o apelido de quem deu lance: Kuss, Freitas e Milan o mostra
 
 - **Condicional** (Vip, Milan): o lance não atingiu o mínimo do vendedor; a venda depende da aprovação dele. "Condicional negada" quer dizer que o vendedor recusou.
 - **Sem lance / sem licitantes:** ninguém deu lance. É comum o carro voltar em outro evento (ver reaparições na skill).
+- **Data:** a página do Vip depois do pregão não mostra a data do leilão (verificado em 2026-10-16). Use o campo Pregão do bloco; se estiver vazio, escreva "data não informada pelo site (lido em DD/MM/AAAA)".
+- **Texto escondido no Vip:** o texto da página traz "(Direito de Preferência)", "Vencendo!" e "Vencedor!" de elementos escondidos (modelos que o site só mostra em certos casos). Não são o resultado: o que vale é `campos.resultado`.
+- **Depois de anotar:** o lote vira `encerrado — <resultado>` (fica na lista), a menos que algum critério o reprove.
 - **Antes do fim:** enquanto o lote recebe lance, não vem `resultado`; vem `lance_corrente`, que vai para **Lance atual** na reconferência.
 - **Valor do último lance × FIPE:** quando o site dá o valor (Vip, Freitas), mostre no resumo o % da FIPE do lote, se o bloco tiver FIPE. É o dado que o Rafael usa para avaliar a viabilidade.
 

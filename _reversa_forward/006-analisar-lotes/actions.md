@@ -99,6 +99,9 @@ Política de escrita: `allowLegacyEdits: true`, `allowedPaths` vazio (liberaçã
 | T039 | (RF-14) Resultado do pregão e lance atual na leitura do Vip, Freitas, Milan e Copart; testes (D-120) | T038 | - | `src/…/analise/pagina.py` | 🟢 | `[X]` |
 | T040 | (RF-14) `Lance atual` e `Pregão` em `CAMPOS_ANOTAVEIS`; teste da reconferência (D-121) | T034 | `[//]` | `src/…/analise/lista.py` | 🟢 | `[X]` |
 | T041 | (RN-13) `SKILL.md`: reconferência dos "a confirmar", resultados por leiloeiro no resumo; `references/resultados-por-leiloeiro.md`; cópia em `.agents` (D-121, D-122) | T039, T040 | - | `.claude/skills/analisar-lotes/` | 🟢 | `[X]` |
+| T043 | (RF-15) FIPE: versões pelo site oficial por ano, espaçamento e nova tentativa no 429, parallelum esgotada não repetida, referência do dia e marcas no cache; `SiteFipe` com `ConsultarModelosAtravesDoAno` e bloqueios; testes que contam pedidos (D-123) | T018 | - | `src/…/analise/fipe.py` | 🟢 | `[X]` |
+| T044 | (RF-16) Veredito `encerrado` na lista e na linha de comando; texto dos comentários; teste (D-124) | T040 | `[//]` | `src/…/analise/lista.py` | 🟢 | `[X]` |
+| T045 | (RN-14) `SKILL.md` e referência: encerrar em vez de aprovar, % da FIPE no resultado, data do Vip; cópia em `.agents`; 3ª e 4ª rodadas de avaliações (D-124) | T043, T044 | - | `.claude/skills/analisar-lotes/` | 🟢 | `[X]` |
 | T042 | Backlog: captura do último lance do Kuss perto do fim do pregão; item 7 atualizado com o que cada leiloeiro divulga | T041 | - | `_reversa_forward/backlog.md` | 🟢 | `[X]` |
 
 ## Notas de execução
@@ -121,11 +124,14 @@ Política de escrita: `allowLegacyEdits: true`, `allowedPaths` vazio (liberaçã
 - **Ajuste durante o T029:** `analise lotes` devolvia o campo como "Triagem (15/10/2026)" (data no nome), o que atrapalharia achar os lotes já triados; agora vem `Triagem: aprovado (15/10/2026)` (e `Descartado`), com teste.
 - **Etapa 3 concluída (2026-10-15):** T023–T037; 819 testes passando; rastreabilidade conferida (36 referências); `legacy-impact.md` e `regression-watch.md` (W038–W044) gerados.
 - **Emenda (2026-10-15), pedido do Rafael:** os "a confirmar" são reconferidos a cada execução e o resultado do pregão vem por leiloeiro. Investigação com lotes reais: Kuss sem valor (só o tipo do último lance); Copart tira o lote da busca (1141180, `total 0`); Vip mantém o anúncio com "Condicional negada" e o último lance (R$ 13.000); Freitas mostra "VENDIDO" no HTML, mas o valor vem de `RetornarMaiorLanceLote` (8103/3: R$ 43.500; 8103/124: "SEM LICITANTES", 0); Milan mostra "VENDIDO" (001) e "CONDICIONAL" (046) e esconde o valor ("R$ ---"). Gasto Apify da investigação: ~US$ 0,16 (duas páginas do Milan). Leitura real do lote 4 (Copart) depois da emenda: ainda aguardando classificação, nada a gravar. 830 testes passando.
+- **3ª rodada de avaliações (2026-10-16, T045):** dois casos novos (reconferência; "como foram os pregões") sobre a lista real + Freitas 8103/3 e Vip 310800. Skill nova 17/18, versão anterior 16/18. A diferença real: perguntada sem autorização, a versão anterior gravou na lista; a nova perguntou antes. A rodada achou três problemas: (1) a FIPE caiu nas duas fontes; a parallelum esgotou 500 pedidos em 24 h porque a busca de versões fazia um pedido por versão parecida ("hb20": até 119) e as 4 execuções tinham caches separados; o site oficial bloqueou a rajada (429); (2) lote vendido ficava "aprovado"; (3) o Vip não mostra a data depois do pregão. Decisões do Rafael: corrigir a FIPE (D-123) e criar o veredito encerrado (D-124). Medido depois da correção: "hb20" 2023 17 pedidos, "duster 1.6" 2020 17, "sentra 2.0" 2013 10.
+- **4ª rodada (2026-10-16):** caso 5 de novo, só com a skill nova: 10/10 (lotes 1, 15 e 16 encerrados; 15 "vendido; R$ 43.500 (65% da FIPE R$ 66.872)"; 16 "condicional negada; R$ 13.000 (34% da FIPE)"; nenhuma FIPE indisponível). O texto do Vip traz "(Direito de Preferência)" de um elemento escondido; anotado na referência. 838 testes passando.
 
 ## Histórico de alterações
 
 | Data | Alteração | Autor |
 |------|-----------|-------|
+| 2026-10-16 | Emenda: T043–T045 (FIPE com poucos pedidos, veredito encerrado) | Claude |
 | 2026-10-15 | Emenda antes do sync: T038–T042 (reconferência e resultado por leiloeiro) | Claude |
 | 2026-10-15 | Codificação concluída em três etapas (T001–T037) | `/reversa-coding` |
 | 2026-10-15 | Ajustes do `/reversa-audit` (A001 a A005): critérios da RN-03 e D-111 no T023, casos novos no T024, reparos extras (T007), link do lote (T010, T011) | Claude |

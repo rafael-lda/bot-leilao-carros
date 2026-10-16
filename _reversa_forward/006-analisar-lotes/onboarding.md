@@ -26,6 +26,7 @@ O que também aparece (primeira execução real, 2026-10-15, 14 lotes, cerca de 
 - **Pregão que já passou** não descarta o lote: o bloco ganha "Resultado do pregão". O Kuss só diz se o último lance foi presencial ou online, sem o valor.
 - **Câmbio deduzido** do título é gravado no campo Câmbio, com a origem (ex.: "manual (título 'DYN 20M')").
 - **Reaparições** (mesmo carro em outro evento, pelo final de placa) aparecem no resumo.
+- **Encerrado:** lote com pregão acabado fica na lista com a triagem "encerrado — <resultado>" (ex.: "vendido em 14/10 por R$ 43.500 (65% da FIPE)"), nunca "aprovado".
 - **Reconferência dos "a confirmar"** (a cada execução): o agente relê esses lotes, atualiza Lance atual e Pregão quando mudaram e julga de novo; a linha Triagem ganha a data do dia.
 - **Resultados por leiloeiro:** o resumo agrupa os pregões que já passaram por leiloeiro e diz o que cada um divulga (Vip e Freitas dão o valor; Kuss, Milan e Copart não). Detalhes em `.claude/skills/analisar-lotes/references/resultados-por-leiloeiro.md`.
 - **Referência de lance máximo** para os "a confirmar", pela versão automática mais barata, só no resumo: mostra quais pátios ficam inviáveis pelo frete.

@@ -21,7 +21,8 @@ CABECALHO_DESCARTADOS = (
     "Lotes tirados de `lotes-a-monitorar.md` pela triagem (skill `analisar-lotes`), com o motivo e a evidência.\n"
     "Para devolver um lote à lista: `python -m bot_leilao analise devolver <número>`, ou peça ao agente.\n"
 )
-VEREDITOS = ("aprovado", "a-confirmar", "reprovado")
+# "encerrado" (emenda de 2026-10-16, D-124): o pregão acabou; o lote fica na lista como registro, com o resultado.
+VEREDITOS = ("aprovado", "a-confirmar", "reprovado", "encerrado")
 # Ajuste de 2026-10-15: campos que a skill pode gravar fora da triagem e do custo. Emenda do mesmo dia (RF-14, D-121):
 # na reconferência dos "a confirmar", o lance e a data do pregão lidos no site.
 CAMPOS_ANOTAVEIS = ("Câmbio", "Resultado do pregão", "Lance atual", "Pregão")
@@ -118,6 +119,8 @@ def triar(caminho: Path, numero: int, veredito: str, *, hoje: date, motivo: str 
         raise ErroLista("reprovado exige --evidencia (trecho do título, observação ou página)")
     if veredito == "a-confirmar" and not (falta or "").strip():
         raise ErroLista("a confirmar exige --falta (o que falta para decidir)")
+    if veredito == "encerrado" and not (motivo or "").strip():
+        raise ErroLista("encerrado exige --motivo (o resultado do pregão, ex.: 'vendido em 14/10 por R$ 43.500')")
     cabecalho, blocos = _partes(caminho)
     i = _indice(blocos, numero, caminho)
     data = f"{hoje:%d/%m/%Y}"
@@ -129,8 +132,9 @@ def triar(caminho: Path, numero: int, veredito: str, *, hoje: date, motivo: str 
         _gravar(destino, cab_d, [*blocos_d, descartado])
         _gravar(caminho, cabecalho, blocos[:i] + blocos[i + 1:])
         return ARQUIVO_DESCARTADOS
-    linha = (f"- **Triagem ({data}):** aprovado" if veredito == "aprovado"
-             else f"- **Triagem ({data}):** a confirmar — {falta.strip()}")
+    linha = {"aprovado": f"- **Triagem ({data}):** aprovado",
+             "a-confirmar": f"- **Triagem ({data}):** a confirmar — {(falta or '').strip()}",
+             "encerrado": f"- **Triagem ({data}):** encerrado — {(motivo or '').strip()}"}[veredito]
     blocos[i] = _inserir_antes_do_link(texto, linha)
     _gravar(caminho, cabecalho, blocos)
     return caminho.name

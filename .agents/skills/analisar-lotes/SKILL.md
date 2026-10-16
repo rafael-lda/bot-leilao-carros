@@ -20,6 +20,7 @@ Rode da raiz do projeto com o Python do projeto: `venv\Scripts\python.exe` no Wi
 | `python -m bot_leilao analise triar <n> --veredito aprovado` | Marca aprovado |
 | `python -m bot_leilao analise triar <n> --veredito a-confirmar --falta "câmbio; lance"` | Marca a confirmar |
 | `python -m bot_leilao analise triar <n> --veredito reprovado --motivo "..." --evidencia "..."` | Move para `lotes-descartados.md` |
+| `python -m bot_leilao analise triar <n> --veredito encerrado --motivo "<resultado>"` | Pregão acabou: o lote fica na lista como registro |
 | `python -m bot_leilao analise devolver <n>` | Traz um descartado de volta |
 | `python -m bot_leilao analise anotar <n> --campo "Câmbio" --valor "..."` | Grava um campo (`Câmbio`, `Resultado do pregão`, `Lance atual` ou `Pregão`) |
 | `python -m bot_leilao analise fipe-candidatos --marca M --modelo "termos" --ano A` | Versões FIPE daquele ano com valor e código |
@@ -37,9 +38,9 @@ Código de saída 3 significa varredura em andamento: pare, avise o Rafael e nã
 
 - lotes sem linha **Triagem**;
 - lotes com **Triagem** "a confirmar": são reconferidos em toda execução (seção 3), porque a informação que faltava (lance, data, câmbio) costuma aparecer depois;
-- lotes cujo **Pregão** já passou e que ainda não têm **Resultado do pregão**, mesmo aprovados.
+- lotes cujo **Pregão** já passou e que ainda não estão **encerrados** (inclusive os aprovados).
 
-Pule os aprovados com pregão por vir, a menos que o Rafael peça para refazer. Lote sem alvo (`"alvo": null`) é de um alvo desativado: deixe "a confirmar — alvo desativado" e siga.
+Pule os encerrados e os aprovados com pregão por vir, a menos que o Rafael peça para refazer. Lote sem alvo (`"alvo": null`) é de um alvo desativado: deixe "a confirmar — alvo desativado" e siga.
 
 ### 2. Julgar cada lote
 
@@ -47,7 +48,8 @@ Cada lote recebe um veredito:
 
 - **aprovado:** nada no que se sabe contraria o alvo;
 - **reprovado:** uma evidência clara contraria um critério;
-- **a confirmar:** falta informação para decidir.
+- **a confirmar:** falta informação para decidir;
+- **encerrado:** o pregão acabou e nada reprova o lote; ele fica na lista como registro do resultado.
 
 **Na dúvida, a confirmar.** Um reprovado sai da lista e o Rafael pode nunca mais olhar; um "a confirmar" custa só uma olhada. Reprove só com evidência que você consegue citar (trecho do título, da observação ou da página).
 
@@ -70,7 +72,7 @@ Confira os critérios nesta ordem; o primeiro que reprovar decide o motivo, e os
 
 "Motor dá partida e engrena" é bom sinal, não problema.
 
-**Pregão que já passou não reprova.** O Rafael está investigando a viabilidade dos leilões e quer ver o resultado desses lotes. Julgue-os pelos outros critérios como qualquer lote e, antes de gravar o veredito, rode `analise pagina <n>`: se vier `campos.resultado`, grave com `analise anotar <n> --campo "Resultado do pregão" --valor "<data do pregão>: <resultado>"`; se não vier, `"<data>: resultado não informado pelo site"`. Anote antes de reprovar, para o resultado ir junto para os descartados. Nunca grave apelido de quem deu lance.
+**Pregão que já passou não reprova.** O Rafael está investigando a viabilidade dos leilões e quer ver o resultado desses lotes. Rode `analise pagina <n>`: se vier `campos.resultado`, grave com `analise anotar <n> --campo "Resultado do pregão" --valor "<data do pregão>: <resultado>"`; se não vier, `"<data>: resultado não informado pelo site"`. Quando o resultado tem valor e você sabe a FIPE da versão (bloco ou `analise fipe-candidatos`), acrescente o percentual: `"14/10: vendido; maior lance R$ 43.500 (65% da FIPE R$ 66.872)"`; é o dado que o Rafael usa para calibrar o teto. Depois julgue pelos critérios: com evidência que reprova, reprove (anote o resultado antes, para ele ir junto para os descartados); senão, `triar <n> --veredito encerrado --motivo "<resultado curto>"`, nunca "aprovado": um carro vendido ou com o pregão fechado não está disponível. Nunca grave apelido de quem deu lance.
 
 Cada leiloeiro mostra uma coisa diferente depois do pregão (o Kuss não divulga valor; a Copart tira o lote da busca; Vip, Freitas e Milan mostram a situação final). O que cada um mostra, e como ler, está em `references/resultados-por-leiloeiro.md`: leia esse arquivo quando houver pregão passado. Se a página mostrar algo que o arquivo não prevê (situação nova, valor que antes não aparecia), conte ao Rafael no resumo e proponha atualizar o arquivo.
 
@@ -107,6 +109,7 @@ Reprovados (<n>), vão para lotes-descartados.md:
 A confirmar (<n>):
   5 Kicks 1.6 16V 2019 (Copart): câmbio; data e lance
 Reconferidos (<n>): 4 Duster 2022 (Copart): pregão 22/10 10:00, lance R$ 21.000 → continua a confirmar (câmbio)
+Encerrados (<n>): 15 HB20 Limited 2023 (Freitas): vendido em 14/10 por R$ 43.500 (65% da FIPE)
 Resultados dos pregões, por leiloeiro:
   Claudio Kuss: 1 Kicks S CVT 2019, 13/10: último lance presencial; valor não divulgado pelo site
   Freitas: ...
@@ -121,6 +124,8 @@ Pergunte se pode gravar. Se o Rafael já disse para aplicar direto, grave sem pe
 
 ## Custo na garagem (aprovados)
 
+Lote encerrado não tem custo: o pregão acabou. Para ele, só o % da FIPE do resultado (seção "Pregão que já passou").
+
 Faça quando o Rafael pedir, ou logo após a triagem se ele pediu "triagem e custo".
 
 1. **FIPE:** `analise fipe-candidatos --marca <marca por extenso> --modelo "<termos>" --ano <ano de modelo>`. Termos: modelo e versão do título, sem "IMP", "I/", marca, ano ou códigos do leiloeiro (ex.: "NISSAN/KICKS S DRCT CVT" → `--marca Nissan --modelo "kicks s"`). Comece específico e vá tirando termos se não vier nada. Use o câmbio que você já sabe para eliminar versões. Ficou **uma** plausível: use-a. Ficaram **várias**: não escolha; anote as candidatas e não calcule custo (o Rafael escolhe).
@@ -133,7 +138,7 @@ Faça quando o Rafael pedir, ou logo após a triagem se ele pediu "triagem e cus
    - `--reparos-extra` e `--motivo-reparos`: só quando as observações citam avaria ou defeito, com estimativa conservadora e o motivo (ex.: 800, "pequenos amassados"). A reserva padrão já cobre o imprevisto comum.
 3. **Gravar:** passe pela entrada padrão para `analise anotar-custo <n> --json -` o JSON `{"fipe": <saída do fipe-valor ou a candidata escolhida>, "custo": <saída do custo>}`; com várias candidatas, `{"fipe": null, "candidatas": <saída do fipe-candidatos>, "custo": null}`.
 
-A FIPE vem sempre da linha de comando (parallelum, com o site oficial de reserva), nunca de memória. Se vier `FIPE indisponível`, diga e siga sem custo.
+A FIPE vem sempre da linha de comando, nunca de memória. A busca de versões custa uns 5 a 20 pedidos (menos com termos específicos, como "hb20 limited" em vez de "hb20"), e os pedidos ao site oficial são espaçados de 1 s: espere alguns segundos por busca. Se vier `FIPE indisponível`, diga e siga sem custo.
 
 ## Devolver um lote
 

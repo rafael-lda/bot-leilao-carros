@@ -86,6 +86,9 @@ Projeto greenfield com as features 001 a 005 entregues; não há `architecture.m
 13. **RN-13:** (emenda de 2026-10-15, pedido do Rafael) Lote **"a confirmar" é reconferido em toda execução** da skill: ela lê o lote no site, atualiza no bloco o **Lance atual** e o **Pregão** quando mudaram e julga de novo (a triagem nova substitui a antiga, com a data do dia). O **resultado do pregão** é lido e informado **por leiloeiro**, com o que cada site divulga, registrado em `.claude/skills/analisar-lotes/references/resultados-por-leiloeiro.md`: Kuss só o tipo do último lance; Copart tira o lote da busca pública; Vip mostra a situação final e o último lance; Freitas, o status e o maior lance; Milan, o estado, sem o valor. 🟢
     - Tipo: nova (emenda antes do sync)
 
+14. **RN-14:** (emenda de 2026-10-16, depois da 3ª rodada de avaliações) **Lote com pregão encerrado** fica na lista com a triagem `encerrado — <resultado>`, nunca "aprovado" (um carro vendido ou com o pregão fechado não está disponível); se algum critério o reprova, vai para os descartados com o resultado. Quando o site dá o valor e a FIPE é conhecida, o resultado leva o % da FIPE. 🟢
+    - Tipo: nova (decisão do Rafael)
+
 ## 5. Requisitos Funcionais
 
 | ID | Requisito | Prioridade | Critério de aceite | Confidência |
@@ -103,6 +106,8 @@ Projeto greenfield com as features 001 a 005 entregues; não há `architecture.m
 | RF-11 | A skill deve recusar rodar com a varredura em andamento, dizendo por quê | Must | Com `dados/varredura.lock` ativo, a skill para sem escrever | 🟢 |
 | RF-12 | O sistema deve permitir gravar no bloco os campos `Câmbio` e `Resultado do pregão` pela linha de comando (RN-11, RN-12) | Must | `analise anotar 1 --campo "Resultado do pregão" --valor "13/10: último lance presencial; valor não divulgado pelo site"` grava a linha antes do Link; outro campo é recusado | 🟢 |
 | RF-13 | A leitura do lote do Kuss deve trazer o resultado do pregão (último lance presencial, online ou sem lance), sem o apelido (RN-11) | Should | Lote 282164 do evento 897: "último lance presencial; valor não divulgado pelo site" | 🟢 |
+| RF-15 | A busca de versões da FIPE deve gastar poucos pedidos (site oficial por ano e combustível; parallelum de reserva), espaçar os pedidos ao site oficial e repeti-los quando ele bloquear, e não insistir na parallelum depois do limite diário (RF-09) | Must | "hb20" 2023: 17 pedidos (antes até 119); site oficial com dois 429 seguidos responde na terceira tentativa | 🟢 |
+| RF-16 | O sistema deve aceitar o veredito `encerrado` com o resultado (RN-14) | Must | `analise triar 15 --veredito encerrado --motivo "vendido em 14/10 por R$ 43.500"` deixa o bloco na lista com a linha Triagem "encerrado — …" | 🟢 |
 | RF-14 | A leitura do lote deve trazer o resultado do pregão nos cinco leiloeiros e, com o pregão aberto, o lance atual; a lista deve aceitar gravar `Lance atual` e `Pregão`; a skill deve reconferir os "a confirmar" e informar os resultados por leiloeiro (RN-13) | Must | Vip 310800: "condicional negada; último lance R$ 13.000"; Freitas 8103/3: "vendido; maior lance R$ 43.500"; Milan 15618/001: "vendido; valor não divulgado pelo site"; Copart fora da busca: "saiu da busca pública…" | 🟢 |
 
 ## 6. Requisitos Não Funcionais
@@ -175,6 +180,7 @@ Cenário: Varredura em andamento
 
 | Data | Alteração | Autor |
 |------|-----------|-------|
+| 2026-10-16 | Emenda, depois da 3ª rodada de avaliações: FIPE com poucos pedidos (RF-15) e veredito encerrado (RN-14, RF-16) | Claude |
 | 2026-10-15 | Emenda antes do sync: reconferência dos "a confirmar" e resultado do pregão por leiloeiro (RN-13, RF-14) | Claude |
 | 2026-10-15 | Ajuste do Rafael depois da primeira rodada de avaliações: pregão passado não reprova e ganha o resultado (RN-11, RF-12, RF-13); câmbio deduzido, reaparições e referência de lance (RN-12) | Claude |
 | 2026-10-15 | Sessão de esclarecimento: critérios no YAML (RN-04, RF-05), descartados (RN-05, RF-04), valores de custo (RN-08, RF-08, RF-10) | `/reversa-clarify` |
