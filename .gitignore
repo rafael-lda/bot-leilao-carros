@@ -33,3 +33,6 @@ dados/
 
 # Relatórios por varredura (emenda E001) — histórico de interesse de compra, fora do git
 1OUTPUT/
+
+# Artefatos de empacotamento
+build/
